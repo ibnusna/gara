@@ -45,9 +45,7 @@ class _HybridWrapperState extends State<HybridWrapper>
   // Blackout overlay — aktif saat focus hilang dalam exam mode
   bool _showBlackout = false;
 
-  // Skeleton shimmer
-  late AnimationController _shimmerCtrl;
-  late Animation<double>   _shimmerAnim;
+
 
   final String _errorPageLocalPath =
       'file:///android_asset/flutter_assets/assets/helpers/eror.html';
@@ -89,15 +87,6 @@ class _HybridWrapperState extends State<HybridWrapper>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // Shimmer controller
-    _shimmerCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    )..repeat(reverse: true);
-    _shimmerAnim = Tween<double>(begin: 0.3, end: 0.85).animate(
-      CurvedAnimation(parent: _shimmerCtrl, curve: Curves.easeInOut),
-    );
-
     _pullToRefreshController = PullToRefreshController(
       settings: PullToRefreshSettings(
         enabled: true,
@@ -111,7 +100,6 @@ class _HybridWrapperState extends State<HybridWrapper>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _shimmerCtrl.dispose();
     if (_isExamModeActive) _deactivateExamSecuritySync();
     super.dispose();
   }
@@ -578,9 +566,11 @@ class _HybridWrapperState extends State<HybridWrapper>
 
                 onProgressChanged: (controller, progress) {
                   if (mounted) {
-                    setState(() {
-                      if (progress == 100) _isLoading = false;
-                    });
+                    if (progress >= 75 && _isLoading) {
+                      setState(() {
+                        _isLoading = false;
+                      });
+                    }
                   }
                 },
 
@@ -729,7 +719,7 @@ class _HybridWrapperState extends State<HybridWrapper>
               if (_isLoading)
                 Positioned.fill(
                   child: AbsorbPointer(
-                    child: _SkeletonOverlay(shimmerAnim: _shimmerAnim),
+                    child: const _SkeletonOverlay(),
                   ),
                 ),
 
@@ -795,75 +785,106 @@ class _HybridWrapperState extends State<HybridWrapper>
 }
 
 // ── Skeleton Overlay Widget ───────────────────────────────────────
-class _SkeletonOverlay extends StatelessWidget {
-  final Animation<double> shimmerAnim;
-  const _SkeletonOverlay({required this.shimmerAnim});
+class _SkeletonOverlay extends StatefulWidget {
+  const _SkeletonOverlay();
+
+  @override
+  State<_SkeletonOverlay> createState() => _SkeletonOverlayState();
+}
+
+class _SkeletonOverlayState extends State<_SkeletonOverlay> with SingleTickerProviderStateMixin {
+  late final AnimationController _shimmerCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _shimmerCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _shimmerCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: shimmerAnim,
-      builder: (_, __) {
-        final shimmerColor = Color.lerp(
-          const Color(0xFFE8EDF5),
-          const Color(0xFFC8D4E8),
-          shimmerAnim.value,
-        )!;
-        final highlightColor = Color.lerp(
-          const Color(0xFFEEF3FB),
-          const Color(0xFFDDE6F6),
-          shimmerAnim.value,
-        )!;
-
-        return Container(
-          color: GaraColors.studentBgBody,
-          padding: const EdgeInsets.all(16),
-          child: SingleChildScrollView(
-            physics: const NeverScrollableScrollPhysics(),
-            child: Column(
+    return Container(
+      color: GaraColors.studentBgBody,
+      child: AnimatedBuilder(
+        animation: _shimmerCtrl,
+        builder: (context, child) {
+          return ShaderMask(
+            blendMode: BlendMode.srcATop,
+            shaderCallback: (bounds) {
+              return LinearGradient(
+                colors: const [
+                  Color(0xFFE8EDF5),
+                  Color(0xFFFDFDFD),
+                  Color(0xFFE8EDF5),
+                ],
+                stops: const [0.1, 0.5, 0.9],
+                begin: const Alignment(-2.0, -0.3),
+                end: const Alignment(2.0, 0.3),
+                transform: _SlidingGradientTransform(slidePercent: _shimmerCtrl.value),
+              ).createShader(bounds);
+            },
+            child: child,
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 12),
               // App Bar Skeleton
-              _bar(highlightColor, double.infinity, 56, radius: 8),
-              const SizedBox(height: 24),
-              
+              _bar(double.infinity, 56, radius: 16),
+              const SizedBox(height: 30),
               // Page Title Skeleton
-              _bar(highlightColor, 180, 20, radius: 6),
-              const SizedBox(height: 16),
-              
+              _bar(180, 24, radius: 8),
+              const SizedBox(height: 20),
               // Hero Banner / Main Content Box
-              _bar(shimmerColor, double.infinity, 160, radius: 16),
-              const SizedBox(height: 24),
-              
+              _bar(double.infinity, 180, radius: 24),
+              const SizedBox(height: 30),
               // Subtitle Skeleton
-              _bar(highlightColor, 120, 16, radius: 4),
-              const SizedBox(height: 16),
-              
+              _bar(140, 18, radius: 6),
+              const SizedBox(height: 20),
               // List Items (Generic Cards)
-              _bar(shimmerColor, double.infinity, 80, radius: 12),
-              const SizedBox(height: 12),
-              _bar(shimmerColor, double.infinity, 80, radius: 12),
-              const SizedBox(height: 12),
-              _bar(shimmerColor, double.infinity, 80, radius: 12),
+              _bar(double.infinity, 90, radius: 20),
+              const SizedBox(height: 16),
+              _bar(double.infinity, 90, radius: 20),
+              const SizedBox(height: 16),
+              _bar(double.infinity, 90, radius: 20),
             ],
           ),
-          ),
-        );
-      },
+        ),
+      ),
     );
   }
 
-  Widget _bar(Color color, double width, double height, {double radius = 8}) =>
-      Container(
+  Widget _bar(double width, double height, {double radius = 8}) => Container(
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: color,
+          color: const Color(0xFFE8EDF5),
           borderRadius: BorderRadius.circular(radius),
         ),
       );
 }
+
+class _SlidingGradientTransform extends GradientTransform {
+  final double slidePercent;
+  const _SlidingGradientTransform({required this.slidePercent});
+  @override
+  Matrix4 transform(Rect bounds, {TextDirection? textDirection}) {
+    return Matrix4.translationValues(bounds.width * (slidePercent * 3.0 - 1.5), 0.0, 0.0);
+  }
+}
+
 
 // ── Native Offline Overlay (Non-Siswa) ───────────────────────────
 // FIX v9: Ditampilkan saat non-siswa mengalami connectivity error di WebView.

@@ -149,6 +149,7 @@ class _PilihMapelPageState extends State<PilihMapelPage> with TickerProviderStat
           ),
         ],
       ),
+      floatingActionButton: _buildSmartConnectButton(),
     );
   }
 
@@ -186,13 +187,11 @@ class _PilihMapelPageState extends State<PilihMapelPage> with TickerProviderStat
                 padding: EdgeInsets.symmetric(horizontal: GaraResponsive.hPad(context)),
                 sliver: SliverList(delegate: SliverChildListDelegate(_buildCardList())),
               ),
-              const SliverToBoxAdapter(child: SizedBox(height: 40)),
+              SliverToBoxAdapter(child: _buildLogoutArea()),
+              const SliverToBoxAdapter(child: SizedBox(height: 100)),
             ],
           ),
         ),
-        _buildLogoutArea(),
-        _buildSmartConnectButton(),
-        const SizedBox(height: 10),
       ],
     );
   }

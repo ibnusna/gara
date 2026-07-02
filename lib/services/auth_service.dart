@@ -121,7 +121,7 @@ class AuthService {
       debugPrint('[AuthService.login] Error: $e');
       return AuthResult(
         success:      false,
-        errorMessage: 'Terjadi kesalahan. Coba lagi.',
+        errorMessage: 'Debug Error: $e',
       );
     }
   }

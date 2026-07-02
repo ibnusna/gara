@@ -277,14 +277,9 @@ class _DashboardPageState extends State<DashboardPage>
           ),
 
           SafeArea(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: GaraResponsive.contentMaxWidth(context),
-                ),
-                child: Column(
-                  children: [
-                    _AppHeader(
+            child: Column(
+              children: [
+                _AppHeader(
                       namaSiswa: _nama,
                       sapaan: _sapaan,
                       poinSiswa: _poin,
@@ -333,8 +328,6 @@ class _DashboardPageState extends State<DashboardPage>
                     ),
                   ],
                 ),
-              ),
-            ),
           ),
         ],
       ),
@@ -669,7 +662,9 @@ class _BottomNav extends StatelessWidget {
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-        child: Center(
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          heightFactor: 1.0,
           child: ConstrainedBox(
             constraints: BoxConstraints(
               maxWidth: GaraResponsive.navMaxWidth(context),

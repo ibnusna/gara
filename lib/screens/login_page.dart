@@ -54,9 +54,29 @@ class _LoginPageState extends State<LoginPage>
     curve: PerformanceConfig.loginFadeCurve,
   );
 
+  // Entrance animation
+  late final AnimationController _entranceCtrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1000),
+  )..forward();
+
+  late final Animation<double> _entranceFade = CurvedAnimation(
+    parent: _entranceCtrl,
+    curve: const Interval(0.0, 1.0, curve: Curves.easeOut),
+  );
+
+  late final Animation<Offset> _entranceSlide = Tween<Offset>(
+    begin: const Offset(0, 0.05),
+    end: Offset.zero,
+  ).animate(CurvedAnimation(
+    parent: _entranceCtrl,
+    curve: const Interval(0.0, 1.0, curve: Curves.easeOutCubic),
+  ));
+
   @override
   void dispose() {
     _animCtrl.dispose();
+    _entranceCtrl.dispose();
     _identifierCtrl.dispose();
     _passwordCtrl.dispose();
     _identifierFocus.dispose();
@@ -158,8 +178,12 @@ class _LoginPageState extends State<LoginPage>
           // Layer 3: Particle decoration — tetap aktif, gratis (static CustomPainter)
           const _ParticleOverlay(),
 
-          // Layer 4: Animated content
-          AnimatedSwitcher(
+          // Layer 4: Animated content with Entrance Animation
+          FadeTransition(
+            opacity: _entranceFade,
+            child: SlideTransition(
+              position: _entranceSlide,
+              child: AnimatedSwitcher(
             duration: PerformanceConfig.loginSwitcherDuration, // 400ms
             switchInCurve: Curves.easeOut,
             switchOutCurve: Curves.easeIn,
@@ -195,6 +219,8 @@ class _LoginPageState extends State<LoginPage>
                     fadeAnim: _fadeAnim,
                     onMulaiAkses: _goToLoginScreen,
                   ),
+          ),
+            ),
           ),
         ],
       ),
@@ -248,24 +274,7 @@ class _WelcomeScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 36),
-                Text(
-                  'Selamat Datang di\nEra Belajar Digital',
-                  textAlign: TextAlign.center,
-                  style: tt.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Akses materi, tugas, dan ujian\ndalam satu genggaman. Cepat, Mudah, Efisien.',
-                  textAlign: TextAlign.center,
-                  style: tt.bodyMedium?.copyWith(
-                    color: GaraColors.textMuted,
-                    height: 1.55,
-                  ),
-                ),
+                const _TextCarousel(),
                 const SizedBox(height: 40),
                 const SlideIndicators(),
                 const SizedBox(height: 28),
@@ -277,6 +286,94 @@ class _WelcomeScreen extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ── Text Carousel ──────────────────────────────────────────────
+class _TextCarousel extends StatefulWidget {
+  const _TextCarousel();
+
+  @override
+  State<_TextCarousel> createState() => _TextCarouselState();
+}
+
+class _TextCarouselState extends State<_TextCarousel> {
+  int _currentIndex = 0;
+  late final List<Map<String, String>> _carouselItems = [
+    {
+      'title': 'Selamat Datang di\nEra Belajar Digital',
+      'subtitle': 'Akses materi, tugas, dan ujian\ndalam satu genggaman. Cepat, Mudah, Efisien.',
+    },
+    {
+      'title': 'Belajar Kapan Saja,\nDi Mana Saja',
+      'subtitle': 'Jelajahi perpustakaan materi terpadu dan\ntingkatkan pemahamanmu dengan interaktif.',
+    },
+    {
+      'title': 'Pantau Perkembangan\nBelajarmu',
+      'subtitle': 'Lihat nilai, kerjakan kuis, dan raih\nprestasi akademik dengan cara yang lebih seru.',
+    }
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    Future.delayed(const Duration(seconds: 4), () {
+      if (mounted) {
+        setState(() {
+          _currentIndex = (_currentIndex + 1) % _carouselItems.length;
+        });
+        _startTimer();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 800),
+      transitionBuilder: (child, animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.0, 0.1),
+              end: Offset.zero,
+            ).animate(animation),
+            child: child,
+          ),
+        );
+      },
+      child: Column(
+        key: ValueKey(_currentIndex),
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            _carouselItems[_currentIndex]['title']!,
+            textAlign: TextAlign.center,
+            style: tt.titleLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            _carouselItems[_currentIndex]['subtitle']!,
+            textAlign: TextAlign.center,
+            style: tt.bodyMedium?.copyWith(
+              color: GaraColors.textMuted,
+              height: 1.55,
+            ),
+          ),
+        ],
       ),
     );
   }

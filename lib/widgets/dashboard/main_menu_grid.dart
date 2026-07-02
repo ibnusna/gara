@@ -346,6 +346,9 @@ class _SmallMenuTileState extends State<_SmallMenuTile> {
       case 'Ruang Diskusi':
         targetPath = AppConfig.ruangDiskusiPath;
         break;
+      case 'Ruang Tugas':
+        targetPath = AppConfig.ruangTugasPath;
+        break;
     }
 
     if (targetPath == null || !context.mounted) return;
