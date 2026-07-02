@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Garuda Akademi - NextGen Dashboard</title>
+    
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons (Menggunakan versi Duotone agar lebih modern) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Tailwind CSS (via CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Konfigurasi Tema Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        gara: {
+                            blue: '#1d4ed8',     
+                            light: '#3b82f6',    
+                            ice: '#e0f2fe',
+                            glass: 'rgba(255, 255, 255, 0.4)'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #f8fafc; 
+            color: #0f172a; 
+            margin: 0;
+            overflow: hidden; /* Mencegah overscroll pada body */
+        }
+
+        /* --- THE REAL GLASSMORPHISM & MD3 SHAPES --- */
+        
+        /* 1. Latar Belakang Mesh Dinamis (Krusial untuk efek kaca) */
+        .mesh-bg {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 0;
+            background-color: #f1f5f9;
+            overflow: hidden;
+        }
+
+        .mesh-blob {
+            position: absolute;
+            filter: blur(80px);
+            opacity: 0.8;
+            border-radius: 50%;
+            animation: drift 25s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .blob-blue { width: 40vw; height: 40vw; background: #93c5fd; top: -10%; left: -10%; }
+        .blob-purple { width: 50vw; height: 50vw; background: #d8b4fe; top: 40%; right: -20%; animation-delay: -5s; }
+        .blob-cyan { width: 35vw; height: 35vw; background: #67e8f9; bottom: -10%; left: 10%; animation-delay: -10s; }
+
+        @keyframes drift {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+
+        /* 2. Kartu Kaca (The Glass) */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.35); /* Sangat transparan */
+            backdrop-filter: blur(20px);           /* Blur kuat */
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.7); /* Border putih tegas (pantulan cahaya) */
+            box-shadow: 
+                0 4px 24px -1px rgba(0, 0, 0, 0.05),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.2); /* Inner glow */
+        }
+        
+        .glass-card-strong {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08);
+        }
+
+        /* 3. Kartu Aksen MD3 (Primary Container) */
+        .primary-card {
+            background: linear-gradient(145deg, #2563eb, #1d4ed8);
+            box-shadow: 0 12px 32px -8px rgba(29, 78, 216, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 4. Efek Ripple MD3 */
+        .ripple { position: relative; overflow: hidden; cursor: pointer; }
+        .ripple .ink {
+            position: absolute; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4); 
+            transform: scale(0); pointer-events: none;
+            animation: ripple-animation 0.6s linear;
+        }
+        @keyframes ripple-animation { to { transform: scale(4); opacity: 0; } }
+
+        /* Utilitas Scroll */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Progress Bar Kustom */
+        .progress-track {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 999px; overflow: hidden;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .progress-fill {
+            background: #fff;
+            height: 100%; border-radius: 999px;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- THE MESH BACKGROUND -->
+    <div class="mesh-bg">
+        <div class="mesh-blob blob-blue"></div>
+        <div class="mesh-blob blob-purple"></div>
+        <div class="mesh-blob blob-cyan"></div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div class="relative z-10 flex flex-col h-screen max-w-md mx-auto shadow-2xl overflow-hidden">
+        
+        <!-- MAIN CONTENT AREA (Scrollable) -->
+        <main class="flex-1 overflow-y-auto no-scrollbar pb-32 px-5 pt-8 z-10">
+            
+            <!-- SECTION 1: HEADER & PROFILE (Lebih ringkas & menyatu) -->
+            <header class="flex justify-between items-center mb-8">
+                <div class="flex items-center gap-3">
+                    <!-- Avatar dengan Ring -->
+                    <div class="relative">
+                        <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-md z-10 relative bg-white">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Andres&backgroundColor=b6e3f4" alt="Avatar" class="w-full h-full object-cover">
+                        </div>
+                        <div class="absolute inset-0 bg-blue-500 rounded-full blur-md opacity-40 scale-110"></div>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Selamat Datang,</p>
+                        <h1 class="text-xl font-bold text-slate-800 tracking-tight leading-tight">M. Andres W.</h1>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions (Points & Notif) dalam satu Glass Pill -->
+                <div class="glass-card-strong rounded-full flex items-center p-1.5 shadow-sm">
+                    <div class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50/50 rounded-full border border-blue-100/50">
+                        <i class="ph-fill ph-star-circle text-gara-yellow text-lg"></i>
+                        <span class="text-xs font-bold text-slate-700">120</span>
+                    </div>
+                    <div class="w-9 h-9 rounded-full flex items-center justify-center relative ripple cursor-pointer text-slate-600 hover:bg-slate-100/50 transition-colors">
+                        <i class="ph-duotone ph-bell-ringing text-xl"></i>
+                        <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full animate-pulse border border-white"></span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- SECTION 2: CALL TO ACTION WIDGET (Lanjutkan Belajar) -->
+            <!-- Ini adalah widget modern yang diminta, berfokus pada apa yang harus dilakukan user selanjutnya -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between mb-3 px-1">
+                    <h2 class="text-sm font-bold text-slate-800 tracking-wide">Aktivitas Terakhir</h2>
+                    <span class="text-xs font-semibold text-blue-600 cursor-pointer hover:underline">Lihat Semua</span>
+                </div>
+
+                <!-- Kartu CTA MD3 -->
+                <div class="primary-card rounded-[32px] p-1.5 ripple cursor-pointer active:scale-[0.98] transition-transform">
+                    <!-- Glass container di dalam kartu warna -->
+                    <div class="bg-white/10 backdrop-blur-md rounded-[26px] p-5 border border-white/20 h-full relative z-10">
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <span class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-blue-100 bg-white/20 px-2.5 py-1 rounded-lg mb-2">
+                                    <i class="ph-fill ph-planet"></i> IPA Terpadu (VII)
+                                </span>
+                                <h3 class="text-xl font-bold text-white leading-tight">Sistem Tata Surya &<br>Karakteristik Planet</h3>
+                            </div>
+                            <!-- FAB Play Button (MD3 Style) -->
+                            <div class="w-12 h-12 bg-white rounded-[16px] flex items-center justify-center shadow-lg transform rotate-3 hover:rotate-0 transition-transform">
+                                <i class="ph-fill ph-play text-2xl text-blue-600 translate-x-0.5"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Progress -->
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold text-blue-50 mb-2">
+                                <span>Progres Modul</span>
+                                <span>65%</span>
+                            </div>
+                            <div class="progress-track w-full h-2">
+                                <div class="progress-fill w-[65%]"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: TERAS ILMU (Redesigned with True Glassmorphism) -->
+            <!-- Layout asimetris: 2 kartu besar (fitur utama), 4 kartu kecil -->
+            <div class="mb-8">
+                <h2 class="text-sm font-bold text-slate-800 tracking-wide mb-3 px-1">Eksplorasi</h2>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    
+                    <!-- Kartu Utama 1 (Ruang Belajar) -->
+                    <div class="glass-card rounded-[24px] p-4 ripple flex flex-col justify-between h-32 group hover:-translate-y-1 transition-transform">
+                        <div class="w-10 h-10 rounded-[14px] bg-blue-500 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
+                            <i class="ph-duotone ph-books text-2xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm">Ruang Belajar</h4>
+                            <p class="text-[10px] text-slate-500 font-medium mt-0.5">Materi & Modul</p>
+                        </div>
+                    </div>
+
+                    <!-- Kartu Utama 2 (Ruang Tugas) -->
+                    <div class="glass-card rounded-[24px] p-4 ripple flex flex-col justify-between h-32 group hover:-translate-y-1 transition-transform">
+                        <div class="w-10 h-10 rounded-[14px] bg-orange-500 text-white flex items-center justify-center shadow-md shadow-orange-500/20">
+                            <i class="ph-duotone ph-pencil-line text-2xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm">Ruang Tugas</h4>
+                            <p class="text-[10px] text-slate-500 font-medium mt-0.5">Ujian & Latihan</p>
+                        </div>
+                    </div>
+
+                    <!-- 4 Kartu Kecil di bawahnya -->
+                    <div class="col-span-2 grid grid-cols-4 gap-3 mt-1">
+                        <!-- Kompetensi -->
+                        <div class="glass-card rounded-[20px] p-3 flex flex-col items-center gap-2 ripple">
+                            <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
+                                <i class="ph-duotone ph-target text-xl"></i>
+                            </div>
+                            <span class="text-[10px] font-bold text-slate-700 text-center leading-tight">Kompetensi</span>
+                        </div>
+                        <!-- Fokus -->
+                        <div class="glass-card rounded-[20px] p-3 flex flex-col items-center gap-2 ripple">
+                            <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center">
+                                <i class="ph-duotone ph-timer text-xl"></i>
+                            </div>
+                            <span class="text-[10px] font-bold text-slate-700 text-center leading-tight">Fokus</span>
+                        </div>
+                        <!-- Diskusi -->
+                        <div class="glass-card rounded-[20px] p-3 flex flex-col items-center gap-2 ripple">
+                            <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                                <i class="ph-duotone ph-chats-circle text-xl"></i>
+                            </div>
+                            <span class="text-[10px] font-bold text-slate-700 text-center leading-tight">Diskusi</span>
+                        </div>
+                        <!-- Catatan -->
+                        <div class="glass-card rounded-[20px] p-3 flex flex-col items-center gap-2 ripple">
+                            <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
+                                <i class="ph-duotone ph-notebook text-xl"></i>
+                            </div>
+                            <span class="text-[10px] font-bold text-slate-700 text-center leading-tight">Catatan</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SECTION 4: WIDGET TAMBAHAN (Zona Produktif) -->
+            <div>
+                <h2 class="text-sm font-bold text-slate-800 tracking-wide mb-3 px-1">Produktivitas</h2>
+                
+                <!-- Glass Card Horizontal -->
+                <div class="glass-card rounded-[24px] p-3 flex items-center justify-between ripple group">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-[16px] bg-gradient-to-br from-slate-700 to-slate-900 text-white flex items-center justify-center shadow-lg relative overflow-hidden">
+                            <!-- Aksen lengkung di dalam icon box -->
+                            <div class="absolute -top-2 -right-2 w-6 h-6 bg-white/20 rounded-full"></div>
+                            <i class="ph-duotone ph-moon-stars text-[26px]"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm">Jadwal Sholat</h4>
+                            <p class="text-[11px] text-slate-500 font-medium">Ashar dalam 2 jam 15 mnt</p>
+                        </div>
+                    </div>
+                    <div class="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center bg-white/50 text-slate-400 group-hover:bg-white group-hover:text-slate-800 transition-colors">
+                        <i class="ph-bold ph-caret-right"></i>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- BOTTOM NAVIGATION (MD3 Floating Glass Pill) -->
+        <!-- Dibuat melayang, transparan, dengan interaksi kapsul aktif yang halus -->
+        <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[400px] glass-card-strong p-2 z-50 rounded-full border-t border-white shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)]">
+            <ul class="flex justify-between items-center relative">
+                
+                <!-- Indikator Kapsul Latar (MD3 Indicator) -->
+                <div id="nav-indicator" class="absolute top-2 bottom-2 left-2 w-[calc(33.33%-0.5rem)] bg-blue-100 rounded-full transition-transform duration-300 ease-out z-0"></div>
+
+                <!-- Item 1: Beranda -->
+                <li class="flex-1 flex justify-center z-10">
+                    <button class="nav-btn active flex items-center justify-center gap-2 w-full h-11 rounded-full transition-all text-blue-600">
+                        <i class="ph-fill ph-house text-2xl nav-icon transition-transform"></i>
+                        <span class="text-[13px] font-bold nav-label overflow-hidden transition-all duration-300 max-w-[100px] opacity-100">Beranda</span>
+                    </button>
+                </li>
+
+                <!-- Item 2: Kalender/Jadwal (Menggantikan Notif karena Notif sudah di header) -->
+                <li class="flex-1 flex justify-center z-10">
+                    <button class="nav-btn flex items-center justify-center gap-2 w-full h-11 rounded-full transition-all text-slate-400 hover:text-slate-600">
+                        <i class="ph-duotone ph-calendar-check text-2xl nav-icon transition-transform"></i>
+                        <span class="text-[13px] font-bold nav-label overflow-hidden transition-all duration-300 max-w-0 opacity-0 whitespace-nowrap">Jadwal</span>
+                    </button>
+                </li>
+
+                <!-- Item 3: Profil -->
+                <li class="flex-1 flex justify-center z-10">
+                    <button class="nav-btn flex items-center justify-center gap-2 w-full h-11 rounded-full transition-all text-slate-400 hover:text-slate-600">
+                        <i class="ph-duotone ph-user text-2xl nav-icon transition-transform"></i>
+                        <span class="text-[13px] font-bold nav-label overflow-hidden transition-all duration-300 max-w-0 opacity-0 whitespace-nowrap">Profil</span>
+                    </button>
+                </li>
+
+            </ul>
+        </nav>
+    </div>
+
+    <!-- JAVASCRIPT: Interaksi MD3 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // 1. RIPPLE EFFECT (Sentuhan Material Design)
+            const rippleElements = document.querySelectorAll('.ripple');
+            rippleElements.forEach(element => {
+                element.addEventListener('click', function (e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX ? e.clientX - rect.left : rect.width / 2;
+                    const y = e.clientY ? e.clientY - rect.top : rect.height / 2;
+                    
+                    const ink = document.createElement('span');
+                    ink.classList.add('ink');
+                    
+                    const size = Math.max(rect.width, rect.height);
+                    ink.style.width = ink.style.height = `${size}px`;
+                    ink.style.left = `${x - size/2}px`;
+                    ink.style.top = `${y - size/2}px`;
+                    
+                    this.appendChild(ink);
+                    setTimeout(() => ink.remove(), 600);
+                });
+            });
+
+            // 2. ANIMASI BOTTOM NAVIGATION (MD3 style)
+            const navButtons = document.querySelectorAll('.nav-btn');
+            const indicator = document.getElementById('nav-indicator');
+            
+            navButtons.forEach((btn, index) => {
+                btn.addEventListener('click', function() {
+                    if (!this.classList.contains('active')) {
+                        
+                        // Geser kapsul biru latar
+                        indicator.style.transform = `translateX(${index * 100}%)`;
+
+                        navButtons.forEach(b => {
+                            b.classList.remove('active', 'text-blue-600');
+                            b.classList.add('text-slate-400', 'hover:text-slate-600');
+                            
+                            // Reset Ikon (Kembali ke Duotone)
+                            const icon = b.querySelector('.nav-icon');
+                            if(icon) {
+                                // Ganti class prefix dari ph-fill ke ph-duotone
+                                icon.className = icon.className.replace('ph-fill', 'ph-duotone');
+                                icon.classList.remove('scale-110');
+                            }
+
+                            // Sembunyikan Teks
+                            const label = b.querySelector('.nav-label');
+                            if(label) {
+                                label.classList.remove('max-w-[100px]', 'opacity-100', 'ml-1');
+                                label.classList.add('max-w-0', 'opacity-0');
+                            }
+                        });
+
+                        // Aktifkan tombol yang diklik
+                        this.classList.add('active', 'text-blue-600');
+                        this.classList.remove('text-slate-400', 'hover:text-slate-600');
+                        
+                        // Ubah ikon jadi Solid (Fill) dan sedikit membesar
+                        const icon = this.querySelector('.nav-icon');
+                        if(icon) {
+                            icon.className = icon.className.replace('ph-duotone', 'ph-fill');
+                            icon.classList.add('scale-110');
+                        }
+
+                        // Munculkan teks
+                        const label = this.querySelector('.nav-label');
+                        if(label) {
+                            label.classList.remove('max-w-0', 'opacity-0');
+                            label.classList.add('max-w-[100px]', 'opacity-100', 'ml-1');
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
