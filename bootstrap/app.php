@@ -37,6 +37,11 @@ $app = Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\CheckMaintenance::class,
             \App\Http\Middleware\CheckIpBlock::class,
             \App\Http\Middleware\SecurityHeaders::class,
+            \App\Http\Middleware\LogActivity::class,
+        ]);
+
+        $middleware->api(append: [
+            \App\Http\Middleware\LogActivity::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
