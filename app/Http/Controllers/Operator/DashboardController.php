@@ -24,10 +24,14 @@ class DashboardController extends Controller
         try {
             // Include custom days custom duration settings dynamically if present
             foreach ($request->input('settings') as $key => $value) {
-                \App\Models\AppSetting::updateOrCreate(
-                    ['setting_key' => $key],
-                    ['setting_value' => $value]
-                );
+                if ($value === null || $value === '') {
+                    \App\Models\AppSetting::where('setting_key', $key)->delete();
+                } else {
+                    \App\Models\AppSetting::updateOrCreate(
+                        ['setting_key' => $key],
+                        ['setting_value' => $value]
+                    );
+                }
             }
             return redirect()->back()->with('success_message', 'Pengaturan berhasil diperbarui!');
         } catch (\Exception $e) {

@@ -124,7 +124,9 @@ class AcademicMappingController extends Controller
             }
         }
 
-        return view('operator.mapping.competency', compact('gurus', 'mapels', 'selected_guru_id', 'guru_competencies', 'subjectClasses', 'teacherAssignments', 'otherAssignments'));
+        $allClasses = Kelas::getSortedClasses();
+
+        return view('operator.mapping.competency', compact('gurus', 'mapels', 'selected_guru_id', 'guru_competencies', 'subjectClasses', 'teacherAssignments', 'otherAssignments', 'allClasses'));
     }
 
     public function updateCompetency(Request $request)

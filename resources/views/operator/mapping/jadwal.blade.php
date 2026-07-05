@@ -53,42 +53,61 @@
                         <div class="col-12" id="exportContainer"></div>
                     </div>
                     
+                    @php
+                        $maxSlots = 0;
+                        foreach($hariList as $hari) {
+                            if(isset($groupedMaster[$hari])) {
+                                $count = count($groupedMaster[$hari]);
+                                if($count > $maxSlots) $maxSlots = $count;
+                            }
+                        }
+                    @endphp
                     <table id="hiddenJadwalTable" style="display:none;">
                         <thead>
                             <tr>
-                                <th>Hari</th>
-                                <th>Waktu</th>
-                                <th>Mata Pelajaran</th>
-                                <th>Guru Pengampu</th>
+                                <th>Jam Ke</th>
+                                @foreach($hariList as $hari)
+                                    <th>{{ $hari }}</th>
+                                @endforeach
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($hariList as $hari)
-                                @if(isset($groupedMaster[$hari]))
-                                    @foreach($groupedMaster[$hari] as $jam)
-                                        @php
-                                            $jadwal = $jadwalData[$jam->id] ?? null;
-                                            $mapel = '-';
-                                            $guru = '-';
-                                            if ($jam->jenis_kegiatan == 'KBM' && $jadwal) {
-                                                $curr = collect($classCurriculum)->firstWhere('id', $jadwal->teaching_assignment_id);
-                                                if ($curr) {
-                                                    $mapel = $curr->nama_mapel;
-                                                    $guru = $curr->nama_lengkap;
+                            @for($i = 0; $i < $maxSlots; $i++)
+                                <tr>
+                                    <td>{{ $i + 1 }}</td>
+                                    @foreach($hariList as $hari)
+                                        @if(isset($groupedMaster[$hari][$i]))
+                                            @php
+                                                $jam = $groupedMaster[$hari][$i];
+                                                $jadwal = $jadwalData[$jam->id] ?? null;
+                                                $mapel = '-';
+                                                $guru = '-';
+                                                if ($jam->jenis_kegiatan == 'KBM' && $jadwal) {
+                                                    $curr = collect($classCurriculum)->firstWhere('id', $jadwal->teaching_assignment_id);
+                                                    if ($curr) {
+                                                        $mapel = $curr->nama_mapel;
+                                                        $guru = $curr->nama_lengkap;
+                                                    }
+                                                } else if ($jam->jenis_kegiatan != 'KBM') {
+                                                    $mapel = $jam->jenis_kegiatan;
                                                 }
-                                            } else if ($jam->jenis_kegiatan != 'KBM') {
-                                                $mapel = $jam->jenis_kegiatan;
-                                            }
-                                        @endphp
-                                        <tr>
-                                            <td>{{ $hari }}</td>
-                                            <td>{{ substr($jam->jam_mulai,0,5) }} - {{ substr($jam->jam_selesai,0,5) }}</td>
-                                            <td>{{ $mapel }}</td>
-                                            <td>{{ $guru }}</td>
-                                        </tr>
+                                                $waktu = substr($jam->jam_mulai,0,5) . ' - ' . substr($jam->jam_selesai,0,5);
+                                            @endphp
+                                            <td>
+                                                @if($jam->jenis_kegiatan == 'KBM' && $jadwal)
+                                                    [{{ $waktu }}] {{ $mapel }} ({{ $guru }})
+                                                @elseif($jam->jenis_kegiatan != 'KBM')
+                                                    [{{ $waktu }}] {{ $mapel }}
+                                                @else
+                                                    [{{ $waktu }}] -
+                                                @endif
+                                            </td>
+                                        @else
+                                            <td>-</td>
+                                        @endif
                                     @endforeach
-                                @endif
-                            @endforeach
+                                </tr>
+                            @endfor
                         </tbody>
                     </table>
 
@@ -203,13 +222,21 @@ $(document).ready(function() {
                 extend: 'pdfHtml5',
                 text: '<i class="fas fa-file-pdf mr-1"></i> Export PDF',
                 className: 'btn btn-danger btn-sm px-3 mr-2 rounded-pill shadow-sm',
+                orientation: 'landscape',
+                pageSize: 'A4',
                 title: dtTitle
             },
             {
                 extend: 'print',
                 text: '<i class="fas fa-print mr-1"></i> Print Jadwal',
                 className: 'btn btn-info btn-sm px-3 rounded-pill shadow-sm',
-                title: dtTitle
+                title: dtTitle,
+                customize: function (win) {
+                    $(win.document.body).find('table')
+                        .addClass('table-bordered')
+                        .css('font-size', '10pt');
+                    $(win.document.body).find('th').css('text-align', 'center');
+                }
             }
         ]
     });

@@ -123,25 +123,25 @@
                                                             <hr class="mt-0 mb-2">
                                                             <p class="text-muted small mb-2"><i class="fas fa-info-circle"></i> Pilih kelas yang diajar:</p>
                                                             <div class="row">
-                                                                @if(isset($subjectClasses[$m->id]))
-                                                                    @foreach($subjectClasses[$m->id] as $cls)
+                                                                @if(isset($allClasses) && count($allClasses) > 0)
+                                                                    @foreach($allClasses as $cls)
                                                                         @php
-                                                                            $isChecked = isset($teacherAssignments[$m->id]) && in_array($cls['id'], $teacherAssignments[$m->id]);
-                                                                            $isAssignedToOther = isset($otherAssignments[$m->id]) && in_array($cls['id'], $otherAssignments[$m->id]);
+                                                                            $isChecked = isset($teacherAssignments[$m->id]) && in_array($cls->id, $teacherAssignments[$m->id]);
+                                                                            $isAssignedToOther = isset($otherAssignments[$m->id]) && in_array($cls->id, $otherAssignments[$m->id]);
                                                                         @endphp
                                                                         <div class="col-md-4 col-sm-6 mb-1">
                                                                             <div class="form-check">
                                                                                 <input class="form-check-input class-checkbox" type="checkbox" 
                                                                                        name="classes[{{ $m->id }}][]" 
-                                                                                       value="{{ $cls['id'] }}" 
-                                                                                       id="class_{{ $m->id }}_{{ $cls['id'] }}"
+                                                                                       value="{{ $cls->id }}" 
+                                                                                       id="class_{{ $m->id }}_{{ $cls->id }}"
                                                                                        data-subject-id="{{ $m->id }}"
-                                                                                       data-class-id="{{ $cls['id'] }}"
+                                                                                       data-class-id="{{ $cls->id }}"
                                                                                        data-teacher-id="{{ $selected_guru_id }}"
                                                                                        {{ $isChecked ? 'checked' : '' }}
                                                                                        {{ $isAssignedToOther ? 'disabled' : '' }}>
-                                                                                <label class="form-check-label {{ $isAssignedToOther ? 'text-muted' : 'cursor-pointer' }}" style="{{ $isAssignedToOther ? 'text-decoration: line-through;' : '' }}" for="class_{{ $m->id }}_{{ $cls['id'] }}">
-                                                                                    {{ $cls['nama_kelas'] }}
+                                                                                <label class="form-check-label {{ $isAssignedToOther ? 'text-muted' : 'cursor-pointer' }}" style="{{ $isAssignedToOther ? 'text-decoration: line-through;' : '' }}" for="class_{{ $m->id }}_{{ $cls->id }}">
+                                                                                    {{ $cls->nama_kelas }}
                                                                                     @if($isAssignedToOther)
                                                                                         <small class="text-danger ml-1" style="text-decoration: none !important; display: inline-block;">(Terisi)</small>
                                                                                     @endif
@@ -151,7 +151,7 @@
                                                                     @endforeach
                                                                 @else
                                                                     <div class="col-12">
-                                                                        <small class="text-danger">Belum ada kelas dengan kurikulum mapel ini.</small>
+                                                                        <small class="text-danger">Data kelas belum tersedia.</small>
                                                                     </div>
                                                                 @endif
                                                             </div>
