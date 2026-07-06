@@ -1,6 +1,6 @@
 # 📚 GARA — Garuda Akademi Platform
 
-### Dokumentasi Teknis Komprehensif · Versi 2.0 · Mei 2026
+### Dokumentasi Teknis Komprehensif · Versi 2.1 · Juli 2026
 
 ---
 
@@ -185,15 +185,17 @@ RBAC diimplementasikan secara berlapis untuk memastikan tingkat keamanan maksima
 ### 1. 👑 Super Admin
 
 - **Prefix Route:** `/super-admin/` | **Middleware:** `IsSuperAdmin`
-- **Panel Kontrol Global:** Mengelola konfigurasi `app_settings` (seperti toggle mode maintenance, perubahan nama sekolah).
+- **Panel Kontrol Global:** Mengelola konfigurasi `app_settings` (seperti toggle mode maintenance, perubahan nama sekolah, dan **Manajemen Logo Sekolah** dinamis).
 - **Keamanan Lanjutan & IP Block:** Mencegah serangan brute-force atau scraping dengan mengelola daftar IP address yang diblokir langsung ke database `mysql_auth.ip_blocks`.
 - **Emergency Mode:** Halaman khusus status darurat untuk membekukan sistem jika terjadi anomali atau kebocoran data.
 - **Native PHP Database Backup:** System backup database cerdas berbasis PDO yang mengekspor schema + data dari database `auth_gara`, `lms_pembelajaran`, dan `asesmen_gara` secara dinamis dan aman ke folder `storage/app/backups/` tanpa memicu pemblokiran shell eksekusi oleh hosting provider.
+- **Manajemen Ganti Semester:** Modul otomatisasi kenaikan kelas (VII ke VIII, VIII ke IX, dan kelulusan IX), update tahun ajaran, dan pengarsipan data transaksional (seperti absensi, nilai, tugas) secara aman dengan perlindungan transaksi multi-database.
 
 ### 2. 🖥️ Operator
 
 - **Prefix Route:** `/operator/` | **Middleware:** `IsOperator`
 - **Master Akademik:** CRUD Kelas, Mata Pelajaran, dan pemetaan guru pengajar (`teaching_assignments`).
+- **Jadwal Pelajaran:** Manajemen penyusunan dan pengelolaan jadwal pelajaran siswa dan guru untuk setiap kelas secara dinamis.
 - **Master Ujian (Asesmen):** Menyusun `jadwal_ujian` dan mengontrol "pintu masuk" ujian bagi siswa (`status_pintu` global dan `status_pintu_siswa`).
 - **Hasil Evaluasi:** Mengakses dan mengekspor rekapitulasi nilai akhir seluruh siswa secara menyeluruh.
 
@@ -543,4 +545,4 @@ gara/
 ---
 
 _Dokumentasi teknis ini diperbarui secara menyeluruh dan komprehensif berdasarkan audit aktual kode sumber sistem GARA._
-_Terakhir diperbarui: Mei 2026_
+_Terakhir diperbarui: Juli 2026_

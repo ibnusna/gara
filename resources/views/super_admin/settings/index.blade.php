@@ -71,31 +71,74 @@
                                 <hr>
                                 <h6 class="font-weight-bold mb-3">Manajemen Tampilan Logo</h6>
                                 
-                                <div class="form-group row">
-                                    <label for="logo_mode" class="col-sm-3 col-form-label">Mode Logo</label>
-                                    <div class="col-sm-9">
-                                        <select class="form-control" id="logo_mode" name="settings[logo_mode]">
-                                            <option value="default" {{ ($settingsDB['logo_mode'] ?? 'default') == 'default' ? 'selected' : '' }}>Default GARA (Garuda Akademi)</option>
-                                            <option value="custom" {{ ($settingsDB['logo_mode'] ?? '') == 'custom' ? 'selected' : '' }}>Logo Kustom Sekolah</option>
-                                            <option value="preset_tutwuri" {{ ($settingsDB['logo_mode'] ?? '') == 'preset_tutwuri' ? 'selected' : '' }}>Preset Tut Wuri Handayani</option>
-                                        </select>
-                                        <small class="form-text text-muted">Pengaturan ini akan mengubah seluruh tampilan logo di platform (kecuali logo pertama di halaman login utama).</small>
-                                    </div>
-                                </div>
-
-                                <div class="form-group row">
-                                    <label for="custom_logo_file" class="col-sm-3 col-form-label">Upload Logo Kustom</label>
-                                    <div class="col-sm-9">
-                                        <input type="file" class="form-control-file" id="custom_logo_file" name="custom_logo_file" accept=".png,.jpg,.jpeg,.svg">
-                                        <small class="form-text text-muted">Hanya di perlukan jika Anda memilih "Logo Kustom Sekolah". Maksimal 2MB. Format: JPG, PNG, SVG.</small>
-                                        @if(isset($settingsDB['custom_logo_filename']))
-                                            <div class="mt-2">
-                                                <small class="text-info">Logo kustom tersimpan saat ini: <strong>{{ $settingsDB['custom_logo_filename'] }}</strong></small><br>
-                                                <img src="{{ asset('logo/' . $settingsDB['custom_logo_filename']) }}" alt="Custom Logo" class="img-thumbnail mt-1" style="max-height: 50px;">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div class="form-group row">
+                                            <label for="logo_mode" class="col-sm-4 col-form-label">Mode Logo</label>
+                                            <div class="col-sm-8">
+                                                <select class="form-control" id="logo_mode" name="settings[logo_mode]">
+                                                    <option value="default" {{ ($settingsDB['logo_mode'] ?? 'default') == 'default' ? 'selected' : '' }}>Default GARA</option>
+                                                    <option value="custom" {{ ($settingsDB['logo_mode'] ?? '') == 'custom' ? 'selected' : '' }}>Logo Kustom Sekolah</option>
+                                                    <option value="preset_tutwuri" {{ ($settingsDB['logo_mode'] ?? '') == 'preset_tutwuri' ? 'selected' : '' }}>Preset Tut Wuri</option>
+                                                </select>
+                                                <small class="form-text text-muted">Akan mengubah logo di form login, ruang ujian, dll.</small>
                                             </div>
-                                        @endif
+                                        </div>
+
+                                        <div class="form-group row">
+                                            <label for="custom_logo_file" class="col-sm-4 col-form-label">Upload Logo Kustom</label>
+                                            <div class="col-sm-8">
+                                                <input type="file" class="form-control-file" id="custom_logo_file" name="custom_logo_file" accept=".png,.jpg,.jpeg,.svg">
+                                                <small class="form-text text-muted">Hanya diperlukan jika Anda memilih "Logo Kustom Sekolah". Maksimal 2MB.</small>
+                                                @if(isset($settingsDB['custom_logo_filename']))
+                                                    <div class="mt-2">
+                                                        <small class="text-info">Tersimpan saat ini: <strong>{{ $settingsDB['custom_logo_filename'] }}</strong></small>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 d-flex flex-column align-items-center justify-content-center" style="background: rgba(0,0,0,0.02); border-radius: 8px; padding: 15px; border: 1px dashed rgba(0,0,0,0.15);">
+                                        <span class="text-muted small font-weight-bold mb-2">PREVIEW LOGO</span>
+                                        <img id="logo_preview" src="" alt="Preview Logo" style="max-width: 100%; max-height: 120px; object-fit: contain;">
                                     </div>
                                 </div>
+                                
+                                <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    const modeSelect = document.getElementById('logo_mode');
+                                    const fileInput = document.getElementById('custom_logo_file');
+                                    const previewImg = document.getElementById('logo_preview');
+                                    
+                                    const assetDefault = "{{ asset('logo/FARA_BLACK.svg') }}";
+                                    const assetTutwuri = "{{ asset('logo/logo_tutwuri.svg') }}";
+                                    const assetCustom = "{{ asset('logo/' . ($settingsDB['custom_logo_filename'] ?? 'logo_sekolah.png')) }}";
+                                    
+                                    function updatePreview() {
+                                        if (modeSelect.value === 'default') {
+                                            previewImg.src = assetDefault;
+                                        } else if (modeSelect.value === 'preset_tutwuri') {
+                                            previewImg.src = assetTutwuri;
+                                        } else if (modeSelect.value === 'custom') {
+                                            if (fileInput.files && fileInput.files[0]) {
+                                                const reader = new FileReader();
+                                                reader.onload = function(e) {
+                                                    previewImg.src = e.target.result;
+                                                }
+                                                reader.readAsDataURL(fileInput.files[0]);
+                                            } else {
+                                                previewImg.src = assetCustom;
+                                            }
+                                        }
+                                    }
+                                    
+                                    modeSelect.addEventListener('change', updatePreview);
+                                    fileInput.addEventListener('change', updatePreview);
+                                    
+                                    // Set initial preview on load
+                                    updatePreview();
+                                });
+                                </script>
 
                             </div>
                             <div class="card-footer">
