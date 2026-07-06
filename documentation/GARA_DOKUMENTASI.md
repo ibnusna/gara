@@ -36,12 +36,13 @@
 - **API Authentication:** Laravel Sanctum (Bearer Token)
 - **Google Integration:** `google/apiclient` & `google/apiclient-services` (OAuth 2.0, Drive API, Docs API)
 
-### Frontend & PWA
+### Frontend, UI/UX & PWA
 
 - **Template Engine:** Blade (Native Laravel layouting)
 - **Asset Bundler:** Vite (modern fast asset compilation)
 - **Styling:** Vanilla CSS (Custom Harmony Design System)
 - **Scripting:** Vanilla JavaScript (event listeners, asynchronous fetch, modular structure)
+- **Responsive UI:** Antarmuka adaptif teroptimasi untuk layar Tablet/iPad dan dukungan split-screen Android.
 - **PWA Core:** Service Worker (`sw.js`) & Web App Manifest (`manifest.json`)
 
 ### Infrastructure & Operations
@@ -54,7 +55,7 @@
 
 ## 🏗️ Arsitektur Sistem
 
-GARA dirancang sebagai aplikasi **Stateful-Stateless Hybrid**. Aplikasi web konvensional berjalan sebagai stateful session monolith, sementara aplikasi mobile (Flutter) menggunakan stateless token-based API yang disinkronkan melalui WebView Session Bridge.
+GARA dirancang sebagai aplikasi **Stateful-Stateless Hybrid** di dalam arsitektur **Mono-Repo**. Aplikasi web konvensional (Laravel) berjalan sebagai stateful session monolith, sementara source code aplikasi mobile (Flutter) terintegrasi di repositori yang sama dan memanfaatkan stateless token-based API yang disinkronkan melalui WebView Session Bridge.
 
 ```
                   ┌────────────────────────────────────────────────────────┐
@@ -67,8 +68,8 @@ GARA dirancang sebagai aplikasi **Stateful-Stateless Hybrid**. Aplikasi web konv
                   │       │             │              │                   │
                   │  ┌────▼─────────────▼──────────────▼──────────────┐    │
                   │  │        HTTP Kernel & Middleware Stack          │    │
-                  │  │  [CheckMaintenance] [CheckIpBlock] [Auth]      │    │
-                  │  │  [IsGuru] [IsSiswa] [CheckGuruSession]         │    │
+                  │  │  [LogActivity] [SecurityHeaders] [IpBlock]     │    │
+                  │  │  [CheckMaintenance] [Auth] [IsGuru] [IsSiswa]  │    │
                   │  └────────────────────────┬───────────────────────┘    │
                   │                           │                            │
                   │  ┌────────────────────────▼───────────────────────┐    │
@@ -194,8 +195,8 @@ RBAC diimplementasikan secara berlapis untuk memastikan tingkat keamanan maksima
 ### 2. 🖥️ Operator
 
 - **Prefix Route:** `/operator/` | **Middleware:** `IsOperator`
-- **Master Akademik:** CRUD Kelas, Mata Pelajaran, dan pemetaan guru pengajar (`teaching_assignments`).
-- **Jadwal Pelajaran:** Manajemen penyusunan dan pengelolaan jadwal pelajaran siswa dan guru untuk setiap kelas secara dinamis.
+- **Master Akademik & Kompetensi:** CRUD Kelas, Mata Pelajaran, pemetaan guru pengajar (`teaching_assignments`), dan matriks *Mapping Competency* lintas kelas.
+- **Jadwal Pelajaran:** Manajemen penyusunan dan pengelolaan jadwal pelajaran siswa dan guru, lengkap dengan fitur ekspor matriks dalam format PDF dan Print.
 - **Master Ujian (Asesmen):** Menyusun `jadwal_ujian` dan mengontrol "pintu masuk" ujian bagi siswa (`status_pintu` global dan `status_pintu_siswa`).
 - **Hasil Evaluasi:** Mengakses dan mengekspor rekapitulasi nilai akhir seluruh siswa secara menyeluruh.
 
@@ -362,7 +363,15 @@ Aplikasi memfilter seluruh request masuk melalui middleware global `CheckIpBlock
 - _Fungsi:_ Mengunci sistem untuk perawatan total.
 - _Bypass:_ Menyediakan bypass khusus bagi pengguna dengan role `super_admin`. Super Admin tetap dapat login, mengakses dashboard pengaturannya, dan menonaktifkan maintenance mode saat sistem dinilai telah stabil.
 
-### 3. Setup Configuration Wizard & Failsafe (`InstallController`)
+### 3. Sistem Audit Log Otomatis (`LogActivity`)
+
+- _Fungsi:_ Merekam seluruh jejak aktivitas pengguna baik di ekosistem web maupun API secara *real-time* ke tabel `audit_logs` tanpa harus melakukan logging manual di setiap fungsi Controller.
+
+### 4. Proteksi HTTP Headers (`SecurityHeaders`)
+
+- _Fungsi:_ Melindungi aplikasi dari serangan berbasis browser (seperti Clickjacking, XSS, MIME-sniffing) dengan menginjeksikan header keamanan standar industri secara paksa pada setiap response HTTP.
+
+### 5. Setup Configuration Wizard & Failsafe (`InstallController`)
 
 - _Fungsi:_ Halaman `/install` mengonfigurasi awal database sistem lewat Artisan Command `gara:setup`.
 - _Failsafe Protection:_
