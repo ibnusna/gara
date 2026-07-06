@@ -18,7 +18,7 @@
 
     
     <link rel="stylesheet" href="{{ asset('exam/assets/root.css') }}?v={{ time() }}">
-    <link rel="icon" href="{{ asset('exam/img/GARA_ICON.svg') }}" type="image/png">
+    <link rel="icon" href="{{ \App\Models\AppSetting::getLogo('GARA_ICON.svg') }}" type="image/png">
     <link rel="stylesheet" href="{{ asset('exam/assets/exam.css') }}?v={{ time() }}" media="(max-width: 768px)">
     <link rel="stylesheet" href="{{ asset('exam/assets/ujian.css') }}?v={{ time() }}" media="(min-width: 769px)">
     <link rel="stylesheet" href="{{ asset('exam/assets/css/camera.css') }}">
@@ -159,7 +159,7 @@
     <div id="gatewayOverlay" class="overlay-screen hidden">
         <div class="gateway-card">
             <div class="gateway-icon">
-                <img src="{{ asset('exam/img/3dlogo.svg') }}" alt="Gateway Icon">
+                <img src="{{ \App\Models\AppSetting::getLogo('3dlogo.svg') }}" alt="Gateway Icon">
             </div>
             <h2>Mulai Ujian</h2>
             <button id="btnEnterFullscreen" class="btn-gateway">
@@ -178,7 +178,7 @@
             <div class="header-left">
                 
                 <div class="brand-identity">
-                    <img src="{{ asset('exam/img/GARA_WHITE.svg') }}" alt="GARA Logo" class="header-logo"
+                    <img src="{{ \App\Models\AppSetting::getLogo('GARA_WHITE.svg') }}" alt="GARA Logo" class="header-logo"
                         onerror="this.style.display='none'; this.nextElementSibling.style.marginLeft='0';">
 
                     <div class="title-group">

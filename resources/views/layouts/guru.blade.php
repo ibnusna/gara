@@ -220,7 +220,7 @@
                     </a>
                 </li>
                 <li class="nav-item d-none d-sm-flex align-items-center">
-                    <img src="{{ asset('assets/img/FARA_BLACK.svg') }}" alt="GARA Logo"
+                    <img src="{{ \App\Models\AppSetting::getLogo('FARA_BLACK.svg', true) }}" alt="GARA Logo"
                         style="height:28px; margin-right:8px; opacity:0.85">
                     <span class="font-weight-bold" style="color:#0b57d0; font-size:0.95rem;">Garuda Akademi</span>
                 </li>

@@ -8,7 +8,7 @@
     <title>Konfirmasi Data - Ruang Asesmen</title>
 
     
-    <link rel="icon" href="{{ asset('exam/img/GARA_ICON.svg') }}" type="image/png">
+    <link rel="icon" href="{{ \App\Models\AppSetting::getLogo('GARA_ICON.svg') }}" type="image/png">
 
     
     <link rel="stylesheet"
@@ -36,7 +36,7 @@
         
         <header class="app-header">
             <div class="header-container">
-                <img src="{{ asset('exam/img/FARA_BLACK (1).svg') }}" alt="Logo Kemendikbud" class="brand-logo">
+                <img src="{{ \App\Models\AppSetting::getLogo('FARA_BLACK.svg') }}" alt="Logo Kemendikbud" class="brand-logo">
                 <div class="brand-divider">
                     <h1 class="brand-title">
                         RUANG UJIAN<br>GARUDA AKADEMI

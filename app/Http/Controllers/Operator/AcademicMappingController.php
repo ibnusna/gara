@@ -18,6 +18,7 @@ class AcademicMappingController extends Controller
     
     public function curriculumIndex(Request $request)
     {
+        $this->initializeAllRombels();
         $kelases = Kelas::getSortedClasses();
         $mapels = MataPelajaran::orderBy('nama_mapel', 'asc')->get();
 
@@ -79,6 +80,7 @@ class AcademicMappingController extends Controller
     
     public function competencyIndex(Request $request)
     {
+        $this->initializeAllRombels();
         $gurus = Guru::orderBy('nama_lengkap', 'asc')->get();
         $mapels = MataPelajaran::orderBy('nama_mapel', 'asc')->get();
 
@@ -215,6 +217,7 @@ class AcademicMappingController extends Controller
     
     public function assignmentsIndex()
     {
+        $this->initializeAllRombels();
         $assignmentsRaw = DB::connection('mysql_apps')->table('teaching_assignments as ta')
             ->join(config('database.connections.mysql_auth.database').'.guru as g', 'ta.teacher_id', '=', 'g.id')
             ->join(config('database.connections.mysql_auth.database').'.mata_pelajaran as m', 'ta.subject_id', '=', 'm.id')
@@ -333,6 +336,7 @@ class AcademicMappingController extends Controller
 
     public function jadwalIndex(Request $request)
     {
+        $this->initializeAllRombels();
         $kelases = Kelas::getSortedClasses();
         $selected_class_id = $request->get('class_id');
 
@@ -498,5 +502,69 @@ class AcademicMappingController extends Controller
     {
         \App\Models\MasterJamPelajaran::where('id', $id)->delete();
         return redirect()->back()->with('success_message', 'Waktu belajar berhasil dihapus.');
+    }
+
+    private function initializeAllRombels()
+    {
+        $allClasses = Kelas::all();
+        foreach ($allClasses as $class) {
+            if ($class->nama_kelas === $class->tingkat) {
+                continue; // Skip main classes
+            }
+
+            $mainClass = $allClasses->where('tingkat', $class->tingkat)
+                ->where('nama_kelas', $class->tingkat)
+                ->first();
+                
+            if (!$mainClass) {
+                continue;
+            }
+
+            // 1. Sync class_subjects (curriculum) if empty
+            $hasCurriculum = DB::connection('mysql_apps')->table('class_subjects')
+                ->where('class_id', $class->id)
+                ->exists();
+                
+            if (!$hasCurriculum) {
+                $mainCurriculum = DB::connection('mysql_apps')->table('class_subjects')
+                    ->where('class_id', $mainClass->id)
+                    ->get();
+                    
+                $inserts = [];
+                foreach ($mainCurriculum as $item) {
+                    $inserts[] = [
+                        'class_id' => $class->id,
+                        'subject_id' => $item->subject_id
+                    ];
+                }
+                if (!empty($inserts)) {
+                    DB::connection('mysql_apps')->table('class_subjects')->insert($inserts);
+                }
+            }
+
+            // 2. Sync teaching_assignments if empty
+            $hasAssignments = DB::connection('mysql_apps')->table('teaching_assignments')
+                ->where('class_id', $class->id)
+                ->exists();
+                
+            if (!$hasAssignments) {
+                $mainAssignments = DB::connection('mysql_apps')->table('teaching_assignments')
+                    ->where('class_id', $mainClass->id)
+                    ->get();
+                    
+                $inserts = [];
+                foreach ($mainAssignments as $item) {
+                    $inserts[] = [
+                        'class_id' => $class->id,
+                        'subject_id' => $item->subject_id,
+                        'teacher_id' => $item->teacher_id,
+                        'academic_year' => $item->academic_year
+                    ];
+                }
+                if (!empty($inserts)) {
+                    DB::connection('mysql_apps')->table('teaching_assignments')->insert($inserts);
+                }
+            }
+        }
     }
 }

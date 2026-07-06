@@ -14,7 +14,7 @@
     
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link rel="icon" href="{{ asset('exam/img/GARA_ICON.svg') }}" type="image/png">
+    <link rel="icon" href="{{ \App\Models\AppSetting::getLogo('GARA_ICON.svg') }}" type="image/png">
     
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;800&display=swap"
@@ -62,7 +62,7 @@
         
         <header class="app-header">
             <div class="header-container">
-                <img src="{{ asset('exam/img/FARA_BLACK (1).svg') }}" alt="Logo Kemendikbud" class="brand-logo">
+                <img src="{{ \App\Models\AppSetting::getLogo('FARA_BLACK.svg') }}" alt="Logo Kemendikbud" class="brand-logo">
                 <div class="brand-divider">
                     <h1 class="brand-title">
                         RUANG ASESMEN<br>GARUDA AKADEMI
@@ -85,7 +85,7 @@
 
                 
                 <div class="result-icon-wrapper">
-                    <img src="{{ asset('exam/img/3dlogo.svg') }}" alt="Logo" class="result-logo">
+                    <img src="{{ \App\Models\AppSetting::getLogo('3dlogo.svg') }}" alt="Logo" class="result-logo">
                 </div>
                 <div class="result-header">
                     <h1 class="result-title">Ujian Selesai!</h1>

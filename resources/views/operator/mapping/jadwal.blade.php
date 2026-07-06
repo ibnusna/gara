@@ -54,10 +54,62 @@
                     </div>
                     
                     @php
+                        $mergedJadwal = [];
                         $maxSlots = 0;
+                        
                         foreach($hariList as $hari) {
+                            $mergedJadwal[$hari] = [];
                             if(isset($groupedMaster[$hari])) {
-                                $count = count($groupedMaster[$hari]);
+                                $currentBlock = null;
+                                foreach($groupedMaster[$hari] as $jam) {
+                                    $jadwal = $jadwalData[$jam->id] ?? null;
+                                    $mapel = '';
+                                    $guru = '';
+                                    $taId = '';
+                                    
+                                    if ($jam->jenis_kegiatan == 'KBM' && $jadwal) {
+                                        $curr = collect($classCurriculum)->firstWhere('id', $jadwal->teaching_assignment_id);
+                                        if ($curr) {
+                                            $mapel = $curr->nama_mapel;
+                                            $guru = $curr->nama_lengkap;
+                                            $taId = $jadwal->teaching_assignment_id;
+                                        }
+                                    } else if ($jam->jenis_kegiatan != 'KBM') {
+                                        $mapel = $jam->jenis_kegiatan;
+                                    }
+
+                                    $contentKey = ($jam->jenis_kegiatan == 'KBM') ? "KBM_{$taId}" : "NON_KBM_{$jam->jenis_kegiatan}";
+
+                                    if ($currentBlock === null) {
+                                        $currentBlock = [
+                                            'content_key' => $contentKey,
+                                            'jenis_kegiatan' => $jam->jenis_kegiatan,
+                                            'mapel' => $mapel,
+                                            'guru' => $guru,
+                                            'jam_mulai' => $jam->jam_mulai,
+                                            'jam_selesai' => $jam->jam_selesai,
+                                        ];
+                                    } else {
+                                        if ($currentBlock['content_key'] === $contentKey && $contentKey !== 'KBM_') {
+                                            $currentBlock['jam_selesai'] = $jam->jam_selesai;
+                                        } else {
+                                            $mergedJadwal[$hari][] = $currentBlock;
+                                            $currentBlock = [
+                                                'content_key' => $contentKey,
+                                                'jenis_kegiatan' => $jam->jenis_kegiatan,
+                                                'mapel' => $mapel,
+                                                'guru' => $guru,
+                                                'jam_mulai' => $jam->jam_mulai,
+                                                'jam_selesai' => $jam->jam_selesai,
+                                            ];
+                                        }
+                                    }
+                                }
+                                if ($currentBlock !== null) {
+                                    $mergedJadwal[$hari][] = $currentBlock;
+                                }
+                                
+                                $count = count($mergedJadwal[$hari]);
                                 if($count > $maxSlots) $maxSlots = $count;
                             }
                         }
@@ -65,7 +117,7 @@
                     <table id="hiddenJadwalTable" style="display:none;">
                         <thead>
                             <tr>
-                                <th>Jam Ke</th>
+                                <th>Sesi</th>
                                 @foreach($hariList as $hari)
                                     <th>{{ $hari }}</th>
                                 @endforeach
@@ -76,34 +128,24 @@
                                 <tr>
                                     <td>{{ $i + 1 }}</td>
                                     @foreach($hariList as $hari)
-                                        @if(isset($groupedMaster[$hari][$i]))
+                                        @if(isset($mergedJadwal[$hari][$i]))
                                             @php
-                                                $jam = $groupedMaster[$hari][$i];
-                                                $jadwal = $jadwalData[$jam->id] ?? null;
-                                                $mapel = '-';
-                                                $guru = '-';
-                                                if ($jam->jenis_kegiatan == 'KBM' && $jadwal) {
-                                                    $curr = collect($classCurriculum)->firstWhere('id', $jadwal->teaching_assignment_id);
-                                                    if ($curr) {
-                                                        $mapel = $curr->nama_mapel;
-                                                        $guru = $curr->nama_lengkap;
-                                                    }
-                                                } else if ($jam->jenis_kegiatan != 'KBM') {
-                                                    $mapel = $jam->jenis_kegiatan;
-                                                }
-                                                $waktu = substr($jam->jam_mulai,0,5) . ' - ' . substr($jam->jam_selesai,0,5);
+                                                $block = $mergedJadwal[$hari][$i];
+                                                $waktu = substr($block['jam_mulai'], 0, 5) . ' - ' . substr($block['jam_selesai'], 0, 5);
+                                                $mapel = $block['mapel'];
+                                                $guru = $block['guru'];
                                             @endphp
                                             <td>
-                                                @if($jam->jenis_kegiatan == 'KBM' && $jadwal)
-                                                    [{{ $waktu }}] {{ $mapel }} ({{ $guru }})
-                                                @elseif($jam->jenis_kegiatan != 'KBM')
-                                                    [{{ $waktu }}] {{ $mapel }}
+                                                @if($block['jenis_kegiatan'] == 'KBM' && !empty($mapel))
+                                                    {{ $waktu }}<br>{{ $mapel }}<br>{{ $guru }}
+                                                @elseif($block['jenis_kegiatan'] != 'KBM' && !empty($mapel))
+                                                    {{ $waktu }}<br>{{ $mapel }}
                                                 @else
-                                                    [{{ $waktu }}] -
+                                                    {{ $waktu }}
                                                 @endif
                                             </td>
                                         @else
-                                            <td>-</td>
+                                            <td></td>
                                         @endif
                                     @endforeach
                                 </tr>
@@ -209,6 +251,19 @@ $(document).ready(function() {
     @if($selected_class_id && !$groupedMaster->isEmpty())
     let className = '{{ collect($kelases)->firstWhere("id", $selected_class_id)->nama_kelas ?? "" }}';
     let dtTitle = 'Jadwal Pelajaran Kelas ' + className;
+    let exportFormatter = {
+        body: function ( data, row, column, node ) {
+            if (node) {
+                let html = node.innerHTML;
+                let text = html.replace(/<br\s*\/?>/ig, "\n");
+                let temp = document.createElement("div");
+                temp.innerHTML = text;
+                return temp.textContent || temp.innerText || "";
+            }
+            return data;
+        }
+    };
+
     let dt = $('#hiddenJadwalTable').DataTable({
         "responsive": false, "paging": false, "info": false, "ordering": false,
         "buttons": [
@@ -216,7 +271,10 @@ $(document).ready(function() {
                 extend: 'excelHtml5',
                 text: '<i class="fas fa-file-excel mr-1"></i> Export Excel',
                 className: 'btn btn-success btn-sm px-3 mr-2 rounded-pill shadow-sm',
-                title: dtTitle
+                title: dtTitle,
+                exportOptions: {
+                    format: exportFormatter
+                }
             },
             {
                 extend: 'pdfHtml5',
@@ -224,7 +282,46 @@ $(document).ready(function() {
                 className: 'btn btn-danger btn-sm px-3 mr-2 rounded-pill shadow-sm',
                 orientation: 'landscape',
                 pageSize: 'A4',
-                title: dtTitle
+                title: dtTitle,
+                exportOptions: {
+                    format: exportFormatter
+                },
+                customize: function(doc) {
+                    if (doc.content && doc.content[1] && doc.content[1].table) {
+                        let colCount = doc.content[1].table.body[0].length;
+                        let widths = Array(colCount).fill('*');
+                        widths[0] = '5%'; 
+                        doc.content[1].table.widths = widths;
+                        
+                        doc.content[1].layout = {
+                            hLineWidth: function(i, node) { return 0.5; },
+                            vLineWidth: function(i, node) { return 0.5; },
+                            hLineColor: function(i, node) { return '#ccc'; },
+                            vLineColor: function(i, node) { return '#ccc'; },
+                            paddingLeft: function(i, node) { return 8; },
+                            paddingRight: function(i, node) { return 8; },
+                            paddingTop: function(i, node) { return 8; },
+                            paddingBottom: function(i, node) { return 8; }
+                        };
+                        
+                        let headerRow = doc.content[1].table.body[0];
+                        for (let i = 0; i < headerRow.length; i++) {
+                            headerRow[i].fillColor = '#f8f9fa';
+                            headerRow[i].color = '#000';
+                            headerRow[i].alignment = 'center';
+                            headerRow[i].bold = true;
+                        }
+                        
+                        for (let r = 1; r < doc.content[1].table.body.length; r++) {
+                            let row = doc.content[1].table.body[r];
+                            for (let c = 0; c < row.length; c++) {
+                                row[c].fillColor = null; 
+                                row[c].alignment = 'center';
+                                row[c].fontSize = 8;
+                            }
+                        }
+                    }
+                }
             },
             {
                 extend: 'print',
@@ -232,10 +329,16 @@ $(document).ready(function() {
                 className: 'btn btn-info btn-sm px-3 rounded-pill shadow-sm',
                 title: dtTitle,
                 customize: function (win) {
-                    $(win.document.body).find('table')
-                        .addClass('table-bordered')
-                        .css('font-size', '10pt');
-                    $(win.document.body).find('th').css('text-align', 'center');
+                    $(win.document.head).find('link[rel="stylesheet"], style').remove();
+                    $(win.document.head).append('<style>' +
+                        '@page { size: landscape; margin: 1cm; }' +
+                        'body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #333; background: #fff; padding: 10px; }' +
+                        'h1 { text-align: center; font-size: 16pt; margin-bottom: 20px; font-weight: bold; }' +
+                        'table { width: 100%; border-collapse: collapse; margin-top: 10px; }' +
+                        'th, td { border: 1px solid #ccc; padding: 8px; text-align: center; font-size: 9pt; vertical-align: middle; line-height: 1.4; }' +
+                        'th { background-color: #f8f9fa; color: #000; font-weight: bold; }' +
+                        'tr { background-color: transparent !important; }' +
+                        '</style>');
                 }
             }
         ]

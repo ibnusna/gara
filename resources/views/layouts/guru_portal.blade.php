@@ -37,7 +37,7 @@
         <nav class="main-header navbar navbar-expand-md navbar-light navbar-white border-bottom-0">
             <div class="container-fluid px-3 px-md-4">
                 <a href="#" class="navbar-brand d-flex align-items-center">
-                    <img src="{{ asset('assets/img/FARA_BLACK.svg') }}" alt="Logo"
+                    <img src="{{ \App\Models\AppSetting::getLogo('FARA_BLACK.svg', true) }}" alt="Logo"
                         style="height: 35px; margin-right: 10px;">
                     <span class="brand-text font-weight-bold text-dark">Garuda Akademi</span>
                 </a>

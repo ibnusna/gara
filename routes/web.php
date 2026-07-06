@@ -107,6 +107,9 @@ Route::middleware(['auth', IsSuperAdmin::class])->prefix('super-admin')->name('s
     Route::post('/backup/store', [BackupController::class, 'store'])->name('backup.store');
     Route::get('/backup/download', [BackupController::class, 'download'])->name('backup.download');
     Route::delete('/backup/destroy', [BackupController::class, 'destroy'])->name('backup.destroy');
+    
+    Route::get('/semester', [\App\Http\Controllers\SuperAdmin\SemesterController::class, 'index'])->name('semester.index');
+    Route::post('/semester/upgrade', [\App\Http\Controllers\SuperAdmin\SemesterController::class, 'upgrade'])->name('semester.upgrade');
 
     
     Route::get('/ubah-password', [PasswordController::class, 'showForm'])->name('password.form');

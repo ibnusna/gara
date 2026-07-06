@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GARA LMS - Installation Wizard</title>
 
-    <link rel="icon" href="{{ asset('exam/img/GARA_ICON.svg') }}" type="image/png">
+    <link rel="icon" href="{{ \App\Models\AppSetting::getLogo('GARA_ICON.svg') }}" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
@@ -164,7 +164,7 @@
         
         <header class="app-header">
             <div class="header-container">
-                <img src="{{ asset('exam/img/FARA_BLACK (1).svg') }}" alt="Logo GARA" class="brand-logo" onerror="this.src='{{ asset('assets/img/FARA_BLACK.svg') }}'">
+                <img src="{{ \App\Models\AppSetting::getLogo('FARA_BLACK.svg') }}" alt="Logo GARA" class="brand-logo" onerror="this.src='{{ \App\Models\AppSetting::getLogo('FARA_BLACK.svg') }}'">
                 <div class="brand-divider">
                     <h1 class="brand-title">
                     INSTALASI<br>GARUDA AKADEMI

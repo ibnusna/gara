@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Ujian - {{ $sekolahNama ?? 'Garuda Akademi' }}</title>
-    <link rel="icon" href="{{ asset('exam/img/GARA_ICON.svg') }}" type="image/png">
+    <link rel="icon" href="{{ \App\Models\AppSetting::getLogo('GARA_ICON.svg') }}" type="image/png">
 
     
     <link rel="stylesheet"
@@ -228,8 +228,8 @@
             <div class="brand-header">
                 <div class="brand-logo-container">
                     
-                    <img src="{{ asset('exam/img/GARA_ICON.svg') }}"
-                        onerror="this.src='{{ asset('assets/img/logo.png') }}'" alt="Logo" class="brand-logo">
+                    <img src="{{ \App\Models\AppSetting::getLogo('GARA_ICON.svg') }}"
+                        onerror="this.src='{{ \App\Models\AppSetting::getLogo('logo.png') }}'" alt="Logo" class="brand-logo">
                 </div>
                 <h1 class="brand-title">Ruang Asesmen</h1>
                 <div class="brand-subtitle">{{ $sekolahNama ?? 'GARUDA AKADEMI' }}</div>

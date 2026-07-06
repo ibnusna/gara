@@ -216,7 +216,7 @@
 
     @if(!empty($autoLoginPending))
         <div id="gara-autologin-overlay">
-            <img src="{{ asset('assets/img/GARA_WHITE.svg') }}" alt="GARA" class="al-logo">
+            <img src="{{ \App\Models\AppSetting::getLogo('GARA_WHITE.svg', true) }}" alt="GARA" class="al-logo">
             <div class="al-spinner"></div>
             <span class="al-text">Mengautentikasi sesi Anda...</span>
         </div>
@@ -226,7 +226,7 @@
         <section id="welcome-screen" class="screen active">
             <div class="screen-content">
                 <div class="brand-display">
-                    <img src="{{ asset('assets/img/GARA_WHITE.svg') }}" alt="GARA Logo" class="app-logo animate-in">
+                    <img src="{{ \App\Models\AppSetting::getLogo('GARA_WHITE.svg', true) }}" alt="GARA Logo" class="app-logo animate-in">
                     <h1 class="app-name animate-in delay-1">GARA</h1>
                     <p class="app-tagline animate-in delay-2">
                         {{ $sekolah_nama ?? 'Garuda Akademi' }}
@@ -273,7 +273,7 @@
             <div class="overlay-layer"></div>
             <div class="screen-content login-layout">
                 <div class="login-header">
-                    <img src="{{ asset('assets/img/GARA_WHITE.svg') }}" alt="GARA Logo" class="mini-logo">
+                    <img src="{{ \App\Models\AppSetting::getLogo('GARA_WHITE.svg', false) }}" alt="GARA Logo" class="mini-logo">
                     <h3>Masuk Akun</h3>
                     <p>Silakan login untuk melanjutkan</p>
                 </div>

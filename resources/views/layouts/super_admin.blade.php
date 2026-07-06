@@ -83,7 +83,7 @@
                 </li>
                 <li class="nav-item">
                     <span class="nav-link font-weight-bold text-primary d-flex align-items-center">
-                        <img src="{{ asset('assets/img/FARA_BLACK.svg') }}" alt="GARA Logo"
+                        <img src="{{ \App\Models\AppSetting::getLogo('FARA_BLACK.svg', true) }}" alt="GARA Logo"
                             style="height: 30px; margin-right: 8px;">
                         Garuda Akademi
                     </span>
@@ -165,6 +165,13 @@
                                 class="nav-link {{ request()->routeIs('superadmin.security.*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-shield-alt"></i>
                                 <p>Keamanan Sistem</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('superadmin.semester.index') }}"
+                                class="nav-link {{ request()->routeIs('superadmin.semester.*') ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-calendar-alt"></i>
+                                <p>Ganti Semester</p>
                             </a>
                         </li>
 

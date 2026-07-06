@@ -35,7 +35,7 @@
 
 <aside class="tw-sidebar-left">
     <a href="{{ route('student.dashboard') }}" class="brand" hx-boost="false">
-        <img src="{{ asset('assets/img/FARA_BLACK.svg') }}" alt="GARA Logo" style="height: 32px;">
+        <img src="{{ \App\Models\AppSetting::getLogo('FARA_BLACK.svg', true) }}" alt="GARA Logo" style="height: 32px;">
         GARA
     </a>
     

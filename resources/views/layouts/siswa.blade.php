@@ -207,7 +207,7 @@
                 transform: translateZ(0);
                 will-change: transform;
             ">
-                    <img src="{{ asset('assets/img/FARA_BLACK.svg') }}" alt="GARA Logo" width="35" height="35" style="
+                    <img src="{{ \App\Models\AppSetting::getLogo('FARA_BLACK.svg', true) }}" alt="GARA Logo" width="35" height="35" style="
                         display: block;
                         width: 35px;
                         height: 35px;
@@ -237,7 +237,7 @@
 
     
     @if(!$isWebView)
-        <div style="height: 80px;"></div>
+        <div class="bottom-nav-spacer" style="height: 80px;"></div>
     @endif
 
     

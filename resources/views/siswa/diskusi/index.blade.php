@@ -91,7 +91,7 @@
                 </div>
 
 
-                <div style="height: 80px;"></div>
+                <div class="bottom-nav-spacer" style="height: 80px;"></div>
 
             </div>
         </main>

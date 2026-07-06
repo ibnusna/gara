@@ -39,7 +39,7 @@
 
         @if (empty($list_bab))
             <div class="empty-state text-center py-5">
-                <img src="{{ asset('assets/img/3dlogo.svg') }}" alt="Empty"
+                <img src="{{ \App\Models\AppSetting::getLogo('3dlogo.svg') }}" alt="Empty"
                     style="width: 80px; opacity: 0.5; margin-bottom: 20px;">
                 <h5 class="text-muted">Belum ada materi</h5>
                 <p class="text-muted small">Guru belum mengupload materi untuk pelajaran ini.</p>

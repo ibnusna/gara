@@ -422,7 +422,7 @@
     <div id="exam-header">
         <div class="brand-section">
             <div class="brand-text-exam">
-                <img src="{{ asset('assets/img/FARA_BLACK.svg') }}" alt="GARA Logo"
+                <img src="{{ \App\Models\AppSetting::getLogo('FARA_BLACK.svg') }}" alt="GARA Logo"
                     style="height: 35px; margin-right: 8px;">
                 <span>Garuda Akademi</span>
             </div>

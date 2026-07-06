@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     
-    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/img/FARA_BLACK.svg') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ \App\Models\AppSetting::getLogo('FARA_BLACK.svg', true) }}">
 
     <style>
         :root {
@@ -418,7 +418,7 @@
         
         <div class="gt-topbar">
             <a href="#" class="brand">
-                <img src="{{ asset('assets/img/FARA_BLACK.svg') }}" alt="GARA">
+                <img src="{{ \App\Models\AppSetting::getLogo('FARA_BLACK.svg', true) }}" alt="GARA">
                 <span class="brand-name">Garuda <span>Akademi</span></span>
             </a>
             <span style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--gt-text-muted);">
