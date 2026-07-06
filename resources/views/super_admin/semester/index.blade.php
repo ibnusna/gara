@@ -91,8 +91,20 @@
                             <form action="{{ route('superadmin.semester.upgrade') }}" method="POST" id="formUpgrade">
                                 @csrf
                                 <input type="hidden" name="mode" value="{{ $mode_aksi }}">
-                                <input type="hidden" name="next_tahun" value="{{ $next_tahun_ajaran }}">
-                                <input type="hidden" name="next_semester" value="{{ $next_semester_code }}">
+                                
+                                <div class="form-group text-left">
+                                    <label>Target Tahun Ajaran</label>
+                                    <input type="text" class="form-control" name="next_tahun" value="{{ $next_tahun_ajaran }}" required placeholder="Contoh: 2025/2026">
+                                    <small class="text-muted">Format yang disarankan: YYYY/YYYY (misal: 2025/2026)</small>
+                                </div>
+
+                                <div class="form-group text-left">
+                                    <label>Target Semester</label>
+                                    <select class="form-control" name="next_semester" required>
+                                        <option value="1" {{ $next_semester_code == '1' ? 'selected' : '' }}>Ganjil (1)</option>
+                                        <option value="2" {{ $next_semester_code == '2' ? 'selected' : '' }}>Genap (2)</option>
+                                    </select>
+                                </div>
                                 
                                 <button type="button" class="btn {{ $tombol_class }} btn-lg" onclick="konfirmasiUpgrade()" {{ !$is_backup_valid ? 'disabled' : '' }}>
                                     <i class="{{ $icon }} mr-2"></i> {{ $tombol_text }}

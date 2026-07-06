@@ -12,7 +12,7 @@ class SemesterController extends Controller
 {
     public function index()
     {
-        $tahun_ajaran = DB::connection('mysql_apps')->table('app_settings')->where('setting_key', 'tahun_ajaran_aktif')->value('setting_value');
+        $tahun_ajaran = DB::connection('mysql_apps')->table('app_settings')->where('setting_key', 'tahun_ajaran')->value('setting_value');
         $semester = DB::connection('mysql_apps')->table('app_settings')->where('setting_key', 'semester_aktif')->value('setting_value');
         $semester_label = $semester == '1' ? 'Ganjil' : 'Genap';
 
@@ -162,7 +162,7 @@ class SemesterController extends Controller
 
             // 4. Update Konfigurasi Semester
             DB::connection('mysql_apps')->table('app_settings')->updateOrInsert(
-                ['setting_key' => 'tahun_ajaran_aktif'],
+                ['setting_key' => 'tahun_ajaran'],
                 ['setting_value' => $next_tahun]
             );
             
