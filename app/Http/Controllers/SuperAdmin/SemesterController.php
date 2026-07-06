@@ -97,6 +97,14 @@ class SemesterController extends Controller
             return redirect()->back()->with('error_message', 'Backup database keseluruhan (all) tidak valid atau belum dilakukan dalam 10 menit terakhir. Silakan lakukan backup terlebih dahulu.');
         }
 
+        // Jalankan DDL (ALTER TABLE) di luar transaksi karena DDL memicu implicit commit di MySQL
+        try {
+            DB::connection('mysql_apps')->statement("ALTER TABLE tugas MODIFY COLUMN status ENUM('aktif', 'draft', 'arsip') DEFAULT 'aktif'");
+        } catch (\Exception $e) {}
+        try {
+            DB::connection('mysql_apps')->statement("ALTER TABLE diskusi_threads MODIFY COLUMN status ENUM('aktif', 'draft', 'arsip') DEFAULT 'aktif'");
+        } catch (\Exception $e) {}
+
         try {
             DB::connection('mysql_apps')->beginTransaction();
             DB::connection('mysql_asesmen')->beginTransaction();
@@ -121,16 +129,7 @@ class SemesterController extends Controller
             }
 
             // 2. Arsipkan Tugas dan Diskusi
-            // Pastikan enum 'arsip' ada pada kolom status
-            try {
-                DB::connection('mysql_apps')->statement("ALTER TABLE tugas MODIFY COLUMN status ENUM('aktif', 'draft', 'arsip') DEFAULT 'aktif'");
-            } catch (\Exception $e) {}
-            
             DB::connection('mysql_apps')->table('tugas')->update(['status' => 'arsip']);
-
-            try {
-                DB::connection('mysql_apps')->statement("ALTER TABLE diskusi_threads MODIFY COLUMN status ENUM('aktif', 'draft', 'arsip') DEFAULT 'aktif'");
-            } catch (\Exception $e) {}
             
             // Arsipkan diskusi yang diupload guru
             DB::connection('mysql_apps')->table('diskusi_threads')->where('role_pembuat', 'guru')->update(['status' => 'arsip']);
