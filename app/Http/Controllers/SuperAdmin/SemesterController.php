@@ -108,10 +108,12 @@ class SemesterController extends Controller
         try {
             DB::connection('mysql_apps')->beginTransaction();
             DB::connection('mysql_asesmen')->beginTransaction();
+            DB::connection('mysql_auth')->beginTransaction();
 
             // Matikan foreign key checks sementara jika diperlukan
             DB::connection('mysql_apps')->statement('SET FOREIGN_KEY_CHECKS=0;');
             DB::connection('mysql_asesmen')->statement('SET FOREIGN_KEY_CHECKS=0;');
+            DB::connection('mysql_auth')->statement('SET FOREIGN_KEY_CHECKS=0;');
 
             $tables_apps = [
                 'absensi_detail', 'absensi', 'agenda_harian', 'catatan_kelas',
@@ -141,21 +143,30 @@ class SemesterController extends Controller
 
             // 3. Logika Naik Kelas
             if ($mode === 'naik_kelas') {
-                $kelas_9 = DB::connection('mysql_apps')->table('kelas')->where('nama_kelas', 'IX')->value('id');
-                $kelas_8 = DB::connection('mysql_apps')->table('kelas')->where('nama_kelas', 'VIII')->value('id');
-                $kelas_7 = DB::connection('mysql_apps')->table('kelas')->where('nama_kelas', 'VII')->value('id');
+                $kelas_9 = DB::connection('mysql_auth')->table('kelas')->where('nama_kelas', 'IX')->value('id');
+                $kelas_8 = DB::connection('mysql_auth')->table('kelas')->where('nama_kelas', 'VIII')->value('id');
+                $kelas_7 = DB::connection('mysql_auth')->table('kelas')->where('nama_kelas', 'VII')->value('id');
 
                 if ($kelas_9 && $kelas_8 && $kelas_7) {
                     // A. Luluskan Kelas 9
-                    DB::connection('mysql_apps')->table('siswa')->where('kelas_id', $kelas_9)->delete();
+                    // Ambil ID User untuk dihapus dari tabel users
+                    $siswa_lulus_user_ids = DB::connection('mysql_auth')->table('siswa')->where('kelas_id', $kelas_9)->pluck('user_id')->filter();
+                    
+                    // Hapus dari tabel siswa
+                    DB::connection('mysql_auth')->table('siswa')->where('kelas_id', $kelas_9)->delete();
+                    
+                    // Hapus dari tabel users
+                    if ($siswa_lulus_user_ids->isNotEmpty()) {
+                        DB::connection('mysql_auth')->table('users')->whereIn('id', $siswa_lulus_user_ids)->delete();
+                    }
                     
                     // B. Naikkan 8 ke 9
-                    DB::connection('mysql_apps')->table('siswa')->where('kelas_id', $kelas_8)->update(['kelas_id' => $kelas_9]);
+                    DB::connection('mysql_auth')->table('siswa')->where('kelas_id', $kelas_8)->update(['kelas_id' => $kelas_9]);
                     
                     // C. Naikkan 7 ke 8
-                    DB::connection('mysql_apps')->table('siswa')->where('kelas_id', $kelas_7)->update(['kelas_id' => $kelas_8]);
+                    DB::connection('mysql_auth')->table('siswa')->where('kelas_id', $kelas_7)->update(['kelas_id' => $kelas_8]);
                 } else {
-                    throw new \Exception("Data kelas Master (VII, VIII, IX) tidak ditemukan.");
+                    throw new \Exception("Data kelas Master (VII, VIII, IX) tidak ditemukan di database Auth.");
                 }
             }
 
@@ -181,19 +192,23 @@ class SemesterController extends Controller
 
             DB::connection('mysql_apps')->statement('SET FOREIGN_KEY_CHECKS=1;');
             DB::connection('mysql_asesmen')->statement('SET FOREIGN_KEY_CHECKS=1;');
+            DB::connection('mysql_auth')->statement('SET FOREIGN_KEY_CHECKS=1;');
 
             DB::connection('mysql_apps')->commit();
             DB::connection('mysql_asesmen')->commit();
+            DB::connection('mysql_auth')->commit();
 
             return redirect()->route('superadmin.semester.index')->with('success_message', "Sistem berhasil beralih ke Tahun Ajaran $next_tahun Semester $next_semester. Data transaksi lama telah dibersihkan/diarsipkan.");
         } catch (\Exception $e) {
             DB::connection('mysql_apps')->rollBack();
             DB::connection('mysql_asesmen')->rollBack();
+            DB::connection('mysql_auth')->rollBack();
             Log::error("Ganti Semester Error: " . $e->getMessage());
             
             // Restore FK checks
             try { DB::connection('mysql_apps')->statement('SET FOREIGN_KEY_CHECKS=1;'); } catch (\Exception $ex) {}
             try { DB::connection('mysql_asesmen')->statement('SET FOREIGN_KEY_CHECKS=1;'); } catch (\Exception $ex) {}
+            try { DB::connection('mysql_auth')->statement('SET FOREIGN_KEY_CHECKS=1;'); } catch (\Exception $ex) {}
 
             return redirect()->back()->with('error_message', 'Terjadi kesalahan sistem: ' . $e->getMessage());
         }
