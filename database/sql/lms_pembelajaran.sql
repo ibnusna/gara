@@ -537,6 +537,8 @@ CREATE TABLE `rpp_materi` (
 CREATE TABLE `ruang_kompetensi` (
   `id` bigint UNSIGNED NOT NULL,
   `guru_id` bigint UNSIGNED NOT NULL,
+  `kelas_id` int NULL,
+  `mapel_id` int NULL,
   `judul` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `link_evaluasi` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `waktu_menit` int NOT NULL,

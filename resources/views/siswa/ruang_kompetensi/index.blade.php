@@ -22,28 +22,11 @@
 
     <div class="dashboard-container">
 
-        <div class="stats-card glass-card"
-            style="border-radius: 20px; margin-bottom: 20px; display: flex; justify-content: space-around; padding: 20px;">
-            <div class="stat-item text-center">
-                <h3 class="stat-value text-primary" style="margin: 0;">{{ $totalTopikSelesai ?? 0 }}<span class="text-muted"
-                        style="font-size: 0.9rem;">/{{ $totalTopikMapel ?? 0 }}</span></h3>
-                <p class="stat-label" style="font-size: 0.8rem; margin: 0;">Topik Selesai</p>
-            </div>
-            <div class="stat-item text-center">
-                <h3 class="stat-value text-success" style="margin: 0;">{{ $rata_nilai ?? 0 }}</h3>
-                <p class="stat-label" style="font-size: 0.8rem; margin: 0;">Rata-rata Nilai</p>
-            </div>
-            <div class="stat-item text-center">
-                <h3 class="stat-value text-warning" style="margin: 0;">{{ $total_diskusi ?? 0 }}</h3>
-                <p class="stat-label" style="font-size: 0.8rem; margin: 0;">Diskusi Aktif</p>
-            </div>
-        </div>
-
         @if($evaluasi->isEmpty())
             <div class="empty-state animate-up glass-card" style="border-radius: 20px; padding: 30px; text-align: center;">
                 <i class="fas fa-box-open" style="font-size: 2rem; color: #ccc; margin-bottom: 10px;"></i>
                 <h5 class="text-dark font-weight-bold">Belum Ada Evaluasi Aktif</h5>
-                <p class="text-muted">Saat ini belum ada jadwal evaluasi hari ini. Silakan kembali lagi nanti.</p>
+                <p class="text-muted">Saat ini belum ada jadwal evaluasi untuk mata pelajaran ini. Silakan kembali lagi nanti.</p>
             </div>
         @else
 

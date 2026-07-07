@@ -11,6 +11,8 @@ class RuangKompetensi extends Model
 
     protected $fillable = [
         'guru_id',
+        'kelas_id',
+        'mapel_id',
         'judul',
         'link_evaluasi',
         'waktu_menit',

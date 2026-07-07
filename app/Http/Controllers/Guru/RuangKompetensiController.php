@@ -25,6 +25,8 @@ class RuangKompetensiController extends Controller
 
         \App\Models\RuangKompetensi::create([
             'guru_id' => auth()->id(),
+            'kelas_id' => session('kelas_id'),
+            'mapel_id' => session('mapel_id'),
             'judul' => $request->judul,
             'link_evaluasi' => $request->link_evaluasi,
             'waktu_menit' => $request->waktu_menit,

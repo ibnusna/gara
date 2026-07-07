@@ -134,6 +134,15 @@
             border-radius: 50px;
             background: rgba(220, 53, 69, 0.1);
         }
+
+        .btn-logout:hover {
+            background: rgba(220, 53, 69, 0.2);
+        }
+
+        @keyframes jam-pulse {
+            0%, 100% { box-shadow: 0 0 0 3px rgba(16,185,129,0.25), 0 2px 8px rgba(16,185,129,0.3); }
+            50%       { box-shadow: 0 0 0 6px rgba(16,185,129,0.12), 0 2px 12px rgba(16,185,129,0.4); }
+        }
     </style>
     <link rel="stylesheet" href="{{ asset('assets/student/css/dashboard_v2.css') }}?v={{ time() }}">
 </head>
@@ -211,21 +220,33 @@
                                     <div class="mapel-name" style="{{ $isOngoing ? 'color: #059669;' : '' }}">
                                         {{ $mapel->nama_mapel }}
                                     </div>
-                                    <div class="mt-1 d-flex flex-wrap" style="gap: 4px; margin-top: 5px;">
+                                    {{-- Jadwal: redesigned with active-day contrast and pulsing now-indicator --}}
+                                    <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 5px;">
                                         @forelse($jadwals as $j)
                                             @php
-                                                $active = ($j->hari == $hariIni && $waktuSekarang >= $j->jam_mulai && $waktuSekarang <= $j->jam_selesai);
+                                                $isToday  = ($j->hari == $hariIni);
+                                                $active   = ($isToday && $waktuSekarang >= $j->jam_mulai && $waktuSekarang <= $j->jam_selesai);
                                             @endphp
-                                            <span style="font-size:10px; font-weight:600; padding:2px 8px; border-radius:12px; 
-                                                background: {{ $active ? 'rgba(16, 185, 129, 0.15)' : 'rgba(0, 86, 179, 0.08)' }}; 
-                                                color: {{ $active ? '#059669' : 'var(--primary)' }}; 
-                                                border: 1px solid {{ $active ? 'rgba(16, 185, 129, 0.3)' : 'rgba(0, 86, 179, 0.15)' }};">
-                                                @if($active) <i class="fas fa-circle fa-beat text-success mr-1" style="font-size:8px;"></i> @endif
-                                                {{ $j->hari }}, {{ substr($j->jam_mulai, 0, 5) }} - {{ substr($j->jam_selesai, 0, 5) }}
-                                            </span>
+                                            @if($active)
+                                                <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:5px 11px;border-radius:50px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;box-shadow:0 0 0 3px rgba(16,185,129,0.25),0 2px 8px rgba(16,185,129,0.3);animation:jam-pulse 2s infinite;">
+                                                    <span style="width:7px;height:7px;background:#fff;border-radius:50%;display:inline-block;box-shadow:0 0 6px rgba(255,255,255,0.9);flex-shrink:0;"></span>
+                                                    {{ $j->hari }}, {{ substr($j->jam_mulai,0,5) }}&ndash;{{ substr($j->jam_selesai,0,5) }}
+                                                    &nbsp;<span style="font-size:9px;font-weight:800;opacity:0.9;letter-spacing:0.04em;">SEKARANG</span>
+                                                </span>
+                                            @elseif($isToday)
+                                                <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:50px;background:rgba(16,185,129,0.12);color:#059669;border:1.5px solid rgba(16,185,129,0.4);">
+                                                    <i class="fas fa-calendar-check" style="font-size:9px;"></i>
+                                                    {{ $j->hari }}, {{ substr($j->jam_mulai,0,5) }}&ndash;{{ substr($j->jam_selesai,0,5) }}
+                                                </span>
+                                            @else
+                                                <span style="display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:3px 9px;border-radius:50px;background:rgba(0,86,179,0.07);color:var(--primary);border:1px solid rgba(0,86,179,0.15);">
+                                                    <i class="far fa-clock" style="font-size:9px;"></i>
+                                                    {{ $j->hari }}, {{ substr($j->jam_mulai,0,5) }}&ndash;{{ substr($j->jam_selesai,0,5) }}
+                                                </span>
+                                            @endif
                                         @empty
-                                            <span style="font-size:10px; font-weight:600; padding:2px 8px; border-radius:12px; background:var(--bg-light); color:var(--secondary); border:1px dashed #ccc;">
-                                                <i class="fas fa-calendar-times mr-1"></i>Belum Terjadwal
+                                            <span style="display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:3px 9px;border-radius:50px;background:var(--bg-light);color:var(--secondary);border:1px dashed #ccc;">
+                                                <i class="fas fa-calendar-times" style="font-size:9px;"></i>Belum Terjadwal
                                             </span>
                                         @endforelse
                                     </div>

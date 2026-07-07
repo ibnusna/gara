@@ -409,6 +409,11 @@
             .gt-sesi-card { padding: 0; height: 110px; }
             .gt-kelas-title { font-size: 1rem; }
         }
+
+        @keyframes jam-pulse-gt {
+            0%, 100% { box-shadow: 0 0 0 3px rgba(16,185,129,0.25), 0 2px 8px rgba(16,185,129,0.3); }
+            50%       { box-shadow: 0 0 0 6px rgba(16,185,129,0.12), 0 2px 12px rgba(16,185,129,0.4); }
+        }
     </style>
 </head>
 
@@ -482,27 +487,37 @@
                                                 <div class="gt-sesi-sub">{{ $sesi->subjudul }}</div>
                                             </div>
                                             
-                                            <div class="mt-2 mb-2 d-flex flex-wrap gap-1" style="gap: 4px;">
+                                            <div class="mt-2 mb-2" style="display:flex;flex-direction:column;gap:5px;">
                                                 @php
                                                     $isOngoing = false;
                                                     $jadwals = $jadwalMap[$sesi->kelas_id][$sesi->mapel_id] ?? [];
                                                 @endphp
                                                 @forelse($jadwals as $j)
                                                     @php
-                                                        $active = ($j->hari == $hariIni && $waktuSekarang >= $j->jam_mulai && $waktuSekarang <= $j->jam_selesai);
-                                                        if($active) $isOngoing = true;
+                                                        $isToday = ($j->hari == $hariIni);
+                                                        $active  = ($isToday && $waktuSekarang >= $j->jam_mulai && $waktuSekarang <= $j->jam_selesai);
+                                                        if ($active) $isOngoing = true;
                                                     @endphp
-                                                    <span style="font-size:10px; font-weight:600; padding:3px 8px; border-radius:12px; 
-                                                        background: {{ $active ? 'rgba(16, 185, 129, 0.15)' : 'rgba(0, 80, 203, 0.08)' }}; 
-                                                        color: {{ $active ? '#059669' : 'var(--gt-primary)' }}; 
-                                                        border: 1px solid {{ $active ? 'rgba(16, 185, 129, 0.3)' : 'rgba(0, 80, 203, 0.15)' }};
-                                                        backdrop-filter: blur(4px);">
-                                                        @if($active) <i class="fas fa-circle fa-beat text-success mr-1" style="font-size:8px;"></i> @endif
-                                                        {{ $j->hari }}, {{ substr($j->jam_mulai, 0, 5) }} - {{ substr($j->jam_selesai, 0, 5) }}
-                                                    </span>
+                                                    @if($active)
+                                                        <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:5px 11px;border-radius:50px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;box-shadow:0 0 0 3px rgba(16,185,129,0.25),0 2px 8px rgba(16,185,129,0.3);animation:jam-pulse-gt 2s infinite;">
+                                                            <span style="width:7px;height:7px;background:#fff;border-radius:50%;display:inline-block;box-shadow:0 0 6px rgba(255,255,255,0.9);flex-shrink:0;"></span>
+                                                            {{ $j->hari }}, {{ substr($j->jam_mulai,0,5) }}&ndash;{{ substr($j->jam_selesai,0,5) }}
+                                                            &nbsp;<span style="font-size:9px;font-weight:800;opacity:0.9;letter-spacing:0.04em;">SEKARANG</span>
+                                                        </span>
+                                                    @elseif($isToday)
+                                                        <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:50px;background:rgba(16,185,129,0.12);color:#059669;border:1.5px solid rgba(16,185,129,0.4);">
+                                                            <i class="fas fa-calendar-check" style="font-size:9px;"></i>
+                                                            {{ $j->hari }}, {{ substr($j->jam_mulai,0,5) }}&ndash;{{ substr($j->jam_selesai,0,5) }}
+                                                        </span>
+                                                    @else
+                                                        <span style="display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:3px 9px;border-radius:50px;background:rgba(0,80,203,0.07);color:var(--gt-primary);border:1px solid rgba(0,80,203,0.15);">
+                                                            <i class="far fa-clock" style="font-size:9px;"></i>
+                                                            {{ $j->hari }}, {{ substr($j->jam_mulai,0,5) }}&ndash;{{ substr($j->jam_selesai,0,5) }}
+                                                        </span>
+                                                    @endif
                                                 @empty
-                                                    <span style="font-size:10px; font-weight:600; padding:3px 8px; border-radius:12px; background:var(--gt-surface-low); color:var(--gt-text-muted); border:1px dashed var(--gt-border);">
-                                                        <i class="fas fa-calendar-times mr-1"></i>Belum Terjadwal
+                                                    <span style="display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:3px 9px;border-radius:50px;background:var(--gt-surface-low);color:var(--gt-text-muted);border:1px dashed var(--gt-border);">
+                                                        <i class="fas fa-calendar-times" style="font-size:9px;"></i>Belum Terjadwal
                                                     </span>
                                                 @endforelse
                                             </div>
