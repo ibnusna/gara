@@ -1,0 +1,274 @@
+
+
+
+
+
+
+
+
+
+
+
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+
+
+
+
+body.guru-workspace {
+    --gt-primary:            #0050CB;
+    --gt-primary-hover:      #003FA4;
+    --gt-primary-dim:        #B3C5FF;
+    --gt-primary-light:      #DAE1FF;
+    --gt-primary-surf:       #EEF2FF;
+    --gt-primary-container:  #0066FF;
+
+    --gt-sidebar-bg:         #0050CB;
+    --gt-sidebar-text:       rgba(255,255,255,0.92);
+    --gt-sidebar-muted:      rgba(179,197,255,0.85);
+    --gt-sidebar-hover:      rgba(255,255,255,0.10);
+    --gt-sidebar-border:     rgba(255,255,255,0.12);
+
+    --gt-bg:                 #F3F4F6;
+    --gt-surface:            #FFFFFF;
+    --gt-surface-low:        #F8F9FA;
+    --gt-surface-mid:        #EDEEEF;
+    --gt-surface-high:       #E7E8E9;
+
+    --gt-text:               #1A1D23;
+    --gt-text-2:             #424656;
+    --gt-text-muted:         #6B7280;
+
+    --gt-border:             #D1D5DB;
+    --gt-border-light:       #E5E7EB;
+
+    --gt-success:            #10B981;
+    --gt-success-bg:         #ECFDF5;
+    --gt-success-bd:         #A7F3D0;
+
+    --gt-warning:            #F59E0B;
+    --gt-warning-bg:         #FFFBEB;
+    --gt-warning-bd:         #FDE68A;
+
+    --gt-danger:             #EF4444;
+    --gt-danger-bg:          #FEF2F2;
+    --gt-danger-bd:          #FECACA;
+
+    --gt-info:               #0EA5E9;
+    --gt-info-bg:            #F0F9FF;
+    --gt-info-bd:            #BAE6FD;
+
+    --gt-shadow-xs:          0 1px 2px rgba(0,0,0,0.04);
+    --gt-shadow-sm:          0 2px 8px rgba(0,0,0,0.06);
+    --gt-shadow-md:          0 4px 16px rgba(0,0,0,0.08);
+    --gt-shadow-lg:          0 8px 28px rgba(0,0,0,0.11);
+    --gt-shadow-xl:          0 16px 48px rgba(0,0,0,0.14);
+    --gt-shadow-primary:     0 8px 24px rgba(0,80,203,0.22);
+
+    --gt-r-xs:  4px;
+    --gt-r-sm:  8px;
+    --gt-r-md:  12px;
+    --gt-r-lg:  16px;
+    --gt-r-xl:  20px;
+    --gt-r-2xl: 24px;
+    --gt-r-full:9999px;
+
+    --gt-font: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --gt-ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --gt-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+
+
+
+body.guru-workspace {
+    background: var(--gt-bg) !important;
+    background-attachment: initial !important;
+    font-family: var(--gt-font) !important;
+    color: var(--gt-text) !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+}
+
+
+body.guru-workspace::before {
+    display: none !important;
+    background: none !important;
+}
+
+
+body.guru-workspace .wrapper {
+    background: transparent !important;
+}
+
+
+
+
+body.guru-workspace .content-wrapper {
+    background: var(--gt-bg) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    min-height: calc(100vh - 57px);
+}
+
+body.guru-workspace .content-header {
+    padding: 20px 28px 12px;
+}
+
+body.guru-workspace .content-header h1 {
+    font-family: var(--gt-font) !important;
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    color: var(--gt-text) !important;
+    letter-spacing: -0.03em !important;
+}
+
+body.guru-workspace .breadcrumb {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+body.guru-workspace .breadcrumb-item,
+body.guru-workspace .breadcrumb-item a {
+    font-size: 12px !important;
+    color: var(--gt-text-muted) !important;
+    font-family: var(--gt-font) !important;
+    text-decoration: none !important;
+}
+
+body.guru-workspace .breadcrumb-item.active {
+    color: var(--gt-primary) !important;
+    font-weight: 600 !important;
+}
+
+body.guru-workspace .breadcrumb-item + .breadcrumb-item::before {
+    content: '›' !important;
+    color: var(--gt-border) !important;
+}
+
+body.guru-workspace section.content {
+    padding: 0 28px 28px !important;
+}
+
+
+
+
+body.guru-workspace h1,
+body.guru-workspace h2,
+body.guru-workspace h3,
+body.guru-workspace h4,
+body.guru-workspace h5,
+body.guru-workspace h6 {
+    font-family: var(--gt-font) !important;
+    color: var(--gt-text) !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.3 !important;
+}
+
+body.guru-workspace p {
+    font-family: var(--gt-font) !important;
+    color: var(--gt-text-2);
+    line-height: 1.65;
+}
+
+
+
+
+body.guru-workspace .main-footer {
+    background: var(--gt-surface) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-top: 1px solid var(--gt-border-light) !important;
+    color: var(--gt-text-muted) !important;
+    font-family: var(--gt-font) !important;
+    font-size: 13px !important;
+    padding: 14px 28px !important;
+}
+
+body.guru-workspace .main-footer a,
+body.guru-workspace .main-footer strong {
+    color: var(--gt-primary) !important;
+    font-weight: 600 !important;
+}
+
+
+
+
+body.guru-workspace .alert {
+    border-radius: var(--gt-r-md) !important;
+    font-family: var(--gt-font) !important;
+    font-size: 14px !important;
+    padding: 14px 18px !important;
+    border-width: 1px !important;
+    backdrop-filter: none !important;
+}
+
+body.guru-workspace .alert-success {
+    background: var(--gt-success-bg) !important;
+    border-color: var(--gt-success-bd) !important;
+    color: #065F46 !important;
+}
+
+body.guru-workspace .alert-warning {
+    background: var(--gt-warning-bg) !important;
+    border-color: var(--gt-warning-bd) !important;
+    color: #92400E !important;
+}
+
+body.guru-workspace .alert-danger {
+    background: var(--gt-danger-bg) !important;
+    border-color: var(--gt-danger-bd) !important;
+    color: #991B1B !important;
+}
+
+body.guru-workspace .alert-info {
+    background: var(--gt-info-bg) !important;
+    border-color: var(--gt-info-bd) !important;
+    color: #0C4A6E !important;
+}
+
+
+
+
+body.guru-workspace ::-webkit-scrollbar { width: 5px; height: 5px; }
+body.guru-workspace ::-webkit-scrollbar-track { background: transparent; }
+body.guru-workspace ::-webkit-scrollbar-thumb { background: var(--gt-border); border-radius: 99px; }
+body.guru-workspace ::-webkit-scrollbar-thumb:hover { background: var(--gt-primary-dim); }
+
+
+
+
+@keyframes gt-fade-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes gt-spin {
+    to { transform: rotate(360deg); }
+}
+
+body.guru-workspace .content-header {
+    animation: gt-fade-up 0.3s var(--gt-ease) both;
+}
+
+body.guru-workspace section.content {
+    animation: gt-fade-up 0.35s var(--gt-ease) 0.05s both;
+}
+
+
+
+
+body.guru-workspace .text-primary { color: var(--gt-primary) !important; }
+body.guru-workspace .text-muted   { color: var(--gt-text-muted) !important; }
+body.guru-workspace .text-success { color: var(--gt-success) !important; }
+body.guru-workspace .text-warning { color: var(--gt-warning) !important; }
+body.guru-workspace .text-danger  { color: var(--gt-danger) !important; }
+
+
+
+
+@media (max-width: 768px) {
+    body.guru-workspace section.content { padding: 0 16px 16px !important; }
+    body.guru-workspace .content-header { padding: 14px 16px 8px !important; }
+}

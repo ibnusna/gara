@@ -1,0 +1,621 @@
+
+
+
+
+
+
+
+
+
+
+
+body.guru-workspace .card {
+    background: var(--gt-surface) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 1px solid var(--gt-border-light) !important;
+    border-radius: var(--gt-r-lg) !important;
+    box-shadow: var(--gt-shadow-sm) !important;
+    transition: all 0.22s var(--gt-ease) !important;
+}
+
+body.guru-workspace .card:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: var(--gt-shadow-md) !important;
+    border-color: var(--gt-border) !important;
+}
+
+body.guru-workspace .card-header {
+    background: var(--gt-surface) !important;
+    backdrop-filter: none !important;
+    border-bottom: 1px solid var(--gt-border-light) !important;
+    padding: 16px 22px !important;
+    font-weight: 600 !important;
+}
+
+body.guru-workspace .card-header.bg-white {
+    background: var(--gt-surface) !important;
+}
+
+body.guru-workspace .card-header.border-bottom-0 {
+    border-bottom: none !important;
+}
+
+body.guru-workspace .card-header h3,
+body.guru-workspace .card-header h4,
+body.guru-workspace .card-header h5,
+body.guru-workspace .card-header h6 {
+    font-family: var(--gt-font) !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: var(--gt-text) !important;
+    letter-spacing: -0.02em !important;
+    margin: 0 !important;
+}
+
+body.guru-workspace .card-body {
+    padding: 20px 22px !important;
+    background: var(--gt-surface) !important;
+}
+
+body.guru-workspace .card-footer {
+    background: var(--gt-surface-low) !important;
+    border-top: 1px solid var(--gt-border-light) !important;
+    padding: 13px 22px !important;
+}
+
+
+body.guru-workspace .card.card-danger:not(.card-outline) > .card-header,
+body.guru-workspace .card.card-info:not(.card-outline) > .card-header,
+body.guru-workspace .card.card-success:not(.card-outline) > .card-header,
+body.guru-workspace .card.card-warning:not(.card-outline) > .card-header,
+body.guru-workspace .card.card-primary:not(.card-outline) > .card-header {
+    color: #fff !important;
+}
+
+body.guru-workspace .card.card-primary:not(.card-outline) > .card-header { background: var(--gt-primary) !important; }
+body.guru-workspace .card.card-success:not(.card-outline) > .card-header { background: var(--gt-success) !important; }
+body.guru-workspace .card.card-danger:not(.card-outline) > .card-header  { background: var(--gt-danger) !important; }
+body.guru-workspace .card.card-warning:not(.card-outline) > .card-header { background: var(--gt-warning) !important; color: var(--gt-text) !important; }
+body.guru-workspace .card.card-info:not(.card-outline) > .card-header    { background: var(--gt-info) !important; }
+
+
+
+
+body.guru-workspace .btn {
+    font-family: var(--gt-font) !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em !important;
+    border-radius: var(--gt-r-sm) !important;
+    transition: all 0.2s var(--gt-ease) !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+body.guru-workspace .btn-primary {
+    background: var(--gt-primary) !important;
+    background-image: none !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+body.guru-workspace .btn-primary:hover,
+body.guru-workspace .btn-primary:focus {
+    background: var(--gt-primary-hover) !important;
+    background-image: none !important;
+    box-shadow: 0 4px 14px rgba(0,80,203,0.3) !important;
+    transform: translateY(-1px) !important;
+    color: #FFFFFF !important;
+}
+
+body.guru-workspace .btn-success {
+    background: var(--gt-success) !important;
+    background-image: none !important;
+    color: #FFFFFF !important;
+    border: none !important;
+}
+
+body.guru-workspace .btn-success:hover {
+    background: #059669 !important;
+    background-image: none !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(16,185,129,0.3) !important;
+}
+
+body.guru-workspace .btn-danger {
+    background: var(--gt-danger) !important;
+    background-image: none !important;
+    color: #FFFFFF !important;
+    border: none !important;
+}
+
+body.guru-workspace .btn-danger:hover {
+    background: #DC2626 !important;
+    background-image: none !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(239,68,68,0.3) !important;
+}
+
+body.guru-workspace .btn-warning {
+    background: var(--gt-warning) !important;
+    background-image: none !important;
+    color: var(--gt-text) !important;
+    border: none !important;
+}
+
+body.guru-workspace .btn-warning:hover {
+    background: #D97706 !important;
+    background-image: none !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px) !important;
+}
+
+body.guru-workspace .btn-info {
+    background: var(--gt-info) !important;
+    background-image: none !important;
+    color: #FFFFFF !important;
+    border: none !important;
+}
+
+body.guru-workspace .btn-info:hover {
+    background: #0284C7 !important;
+    background-image: none !important;
+    transform: translateY(-1px) !important;
+}
+
+body.guru-workspace .btn-secondary {
+    background: var(--gt-surface-mid) !important;
+    background-image: none !important;
+    color: var(--gt-text-2) !important;
+    border: 1px solid var(--gt-border) !important;
+}
+
+body.guru-workspace .btn-secondary:hover {
+    background: var(--gt-surface-high) !important;
+    color: var(--gt-text) !important;
+    transform: translateY(-1px) !important;
+}
+
+body.guru-workspace .btn-outline-primary {
+    background: transparent !important;
+    background-image: none !important;
+    border: 1.5px solid var(--gt-primary) !important;
+    color: var(--gt-primary) !important;
+}
+
+body.guru-workspace .btn-outline-primary:hover {
+    background: var(--gt-primary-surf) !important;
+    color: var(--gt-primary) !important;
+    transform: translateY(-1px) !important;
+}
+
+body.guru-workspace .btn-sm {
+    font-size: 12px !important;
+    padding: 5px 11px !important;
+    border-radius: var(--gt-r-xs) !important;
+}
+
+body.guru-workspace .btn-lg {
+    font-size: 15px !important;
+    padding: 11px 22px !important;
+    border-radius: var(--gt-r-md) !important;
+}
+
+
+
+
+body.guru-workspace .form-control,
+body.guru-workspace .form-select {
+    background: var(--gt-surface) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 1.5px solid var(--gt-border) !important;
+    border-radius: var(--gt-r-sm) !important;
+    color: var(--gt-text) !important;
+    font-family: var(--gt-font) !important;
+    font-size: 14px !important;
+    padding: 9px 13px !important;
+    height: auto !important;
+    transition: all 0.18s ease !important;
+    box-shadow: none !important;
+}
+
+body.guru-workspace .form-control:focus,
+body.guru-workspace .form-select:focus {
+    background: var(--gt-surface) !important;
+    border-color: var(--gt-primary) !important;
+    box-shadow: 0 0 0 3px rgba(0,80,203,0.12) !important;
+    color: var(--gt-text) !important;
+    outline: none !important;
+}
+
+body.guru-workspace .form-control::placeholder {
+    color: var(--gt-text-muted) !important;
+    font-size: 13px !important;
+}
+
+body.guru-workspace .form-control:disabled,
+body.guru-workspace .form-control[readonly] {
+    background: var(--gt-surface-low) !important;
+    color: var(--gt-text-muted) !important;
+}
+
+body.guru-workspace textarea.form-control {
+    resize: vertical !important;
+    min-height: 96px !important;
+    line-height: 1.6 !important;
+}
+
+body.guru-workspace select.form-control {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B7280' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 12px center !important;
+    padding-right: 32px !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+}
+
+body.guru-workspace .form-group {
+    margin-bottom: 18px !important;
+}
+
+body.guru-workspace .form-group label {
+    font-family: var(--gt-font) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: var(--gt-text-2) !important;
+    margin-bottom: 6px !important;
+    display: block !important;
+    letter-spacing: -0.01em !important;
+}
+
+body.guru-workspace .input-group .input-group-text {
+    background: var(--gt-surface-low) !important;
+    border: 1.5px solid var(--gt-border) !important;
+    color: var(--gt-text-muted) !important;
+    font-family: var(--gt-font) !important;
+    border-radius: var(--gt-r-sm) 0 0 var(--gt-r-sm) !important;
+}
+
+
+
+
+body.guru-workspace .table {
+    font-family: var(--gt-font) !important;
+    font-size: 14px !important;
+    color: var(--gt-text) !important;
+    border-color: transparent !important;
+}
+
+body.guru-workspace .table thead th,
+body.guru-workspace .table > thead > tr > th {
+    background: var(--gt-surface-low) !important;
+    color: var(--gt-text-muted) !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.07em !important;
+    text-transform: uppercase !important;
+    padding: 12px 16px !important;
+    border-top: none !important;
+    border-bottom: 1px solid var(--gt-border-light) !important;
+    white-space: nowrap !important;
+}
+
+body.guru-workspace .table tbody tr {
+    transition: background 0.15s ease !important;
+    border-bottom: 1px solid var(--gt-border-light) !important;
+}
+
+body.guru-workspace .table tbody tr:last-child {
+    border-bottom: none !important;
+}
+
+body.guru-workspace .table-hover tbody tr:hover,
+body.guru-workspace .table tbody tr:hover {
+    background: var(--gt-primary-surf) !important;
+}
+
+body.guru-workspace .table tbody td,
+body.guru-workspace .table > tbody > tr > td {
+    padding: 13px 16px !important;
+    vertical-align: middle !important;
+    border-top: none !important;
+    color: var(--gt-text-2) !important;
+    font-family: var(--gt-font) !important;
+}
+
+
+body.guru-workspace .dataTables_wrapper .dataTables_filter input {
+    background: var(--gt-surface-low) !important;
+    border: 1.5px solid var(--gt-border) !important;
+    border-radius: var(--gt-r-sm) !important;
+    padding: 6px 11px !important;
+    font-family: var(--gt-font) !important;
+    font-size: 13px !important;
+    color: var(--gt-text) !important;
+    margin-left: 6px !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+}
+
+body.guru-workspace .dataTables_wrapper .dataTables_length select {
+    background: var(--gt-surface-low) !important;
+    border: 1.5px solid var(--gt-border) !important;
+    border-radius: var(--gt-r-xs) !important;
+    font-family: var(--gt-font) !important;
+    font-size: 13px !important;
+    color: var(--gt-text) !important;
+    padding: 4px 8px !important;
+}
+
+body.guru-workspace .dataTables_wrapper .dataTables_info,
+body.guru-workspace .dataTables_wrapper .dataTables_paginate {
+    font-family: var(--gt-font) !important;
+    font-size: 13px !important;
+    padding-top: 12px !important;
+}
+
+
+
+
+body.guru-workspace .pagination .page-link {
+    font-family: var(--gt-font) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: var(--gt-text-2) !important;
+    background: var(--gt-surface) !important;
+    border: 1px solid var(--gt-border-light) !important;
+    border-radius: 0 !important;
+    padding: 7px 13px !important;
+    transition: all 0.15s ease !important;
+}
+
+body.guru-workspace .pagination .page-item:first-child .page-link {
+    border-radius: var(--gt-r-sm) 0 0 var(--gt-r-sm) !important;
+}
+
+body.guru-workspace .pagination .page-item:last-child .page-link {
+    border-radius: 0 var(--gt-r-sm) var(--gt-r-sm) 0 !important;
+}
+
+body.guru-workspace .pagination .page-item.active .page-link {
+    background: var(--gt-primary) !important;
+    background-image: none !important;
+    border-color: var(--gt-primary) !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 2px 8px rgba(0,80,203,0.3) !important;
+}
+
+body.guru-workspace .pagination .page-link:hover {
+    background: var(--gt-primary-surf) !important;
+    color: var(--gt-primary) !important;
+    border-color: var(--gt-primary-dim) !important;
+}
+
+
+
+
+body.guru-workspace .modal-content {
+    background: var(--gt-surface) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: none !important;
+    border-radius: var(--gt-r-xl) !important;
+    box-shadow: var(--gt-shadow-xl) !important;
+}
+
+body.guru-workspace .modal-header {
+    background: var(--gt-surface) !important;
+    border-bottom: 1px solid var(--gt-border-light) !important;
+    padding: 18px 22px !important;
+}
+
+body.guru-workspace .modal-header .modal-title {
+    font-family: var(--gt-font) !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: var(--gt-text) !important;
+    letter-spacing: -0.02em !important;
+}
+
+body.guru-workspace .modal-header .close {
+    color: var(--gt-text-muted) !important;
+    opacity: 1 !important;
+    font-size: 20px !important;
+    background: none !important;
+    border: none !important;
+}
+
+body.guru-workspace .modal-header .close:hover {
+    color: var(--gt-text) !important;
+    background: var(--gt-surface-low) !important;
+    border-radius: var(--gt-r-xs) !important;
+}
+
+body.guru-workspace .modal-body {
+    padding: 22px !important;
+    background: var(--gt-surface) !important;
+}
+
+body.guru-workspace .modal-footer {
+    background: var(--gt-surface-low) !important;
+    border-top: 1px solid var(--gt-border-light) !important;
+    padding: 14px 22px !important;
+}
+
+
+
+
+body.guru-workspace .badge {
+    font-family: var(--gt-font) !important;
+    font-weight: 700 !important;
+    font-size: 11px !important;
+    letter-spacing: 0.04em !important;
+    padding: 4px 9px !important;
+    border-radius: var(--gt-r-full) !important;
+}
+
+body.guru-workspace .badge-primary   { background: var(--gt-primary-surf) !important; color: var(--gt-primary) !important; border: 1px solid var(--gt-primary-light) !important; }
+body.guru-workspace .badge-success   { background: var(--gt-success-bg) !important; color: #065F46 !important; border: 1px solid var(--gt-success-bd) !important; }
+body.guru-workspace .badge-warning   { background: var(--gt-warning-bg) !important; color: #92400E !important; border: 1px solid var(--gt-warning-bd) !important; }
+body.guru-workspace .badge-danger    { background: var(--gt-danger-bg) !important; color: #991B1B !important; border: 1px solid var(--gt-danger-bd) !important; }
+body.guru-workspace .badge-info      { background: var(--gt-info-bg) !important; color: #0C4A6E !important; border: 1px solid var(--gt-info-bd) !important; }
+body.guru-workspace .badge-secondary { background: var(--gt-surface-mid) !important; color: var(--gt-text-2) !important; }
+
+
+
+
+body.guru-workspace .progress {
+    background: var(--gt-surface-high) !important;
+    border-radius: var(--gt-r-full) !important;
+    height: 8px !important;
+    box-shadow: none !important;
+}
+
+body.guru-workspace .progress-bar {
+    border-radius: var(--gt-r-full) !important;
+    transition: width 0.6s var(--gt-ease) !important;
+}
+
+body.guru-workspace .progress-bar.bg-primary { background: var(--gt-primary) !important; }
+body.guru-workspace .progress-bar.bg-success { background: var(--gt-success) !important; }
+body.guru-workspace .progress-bar.bg-warning { background: var(--gt-warning) !important; }
+body.guru-workspace .progress-bar.bg-danger  { background: var(--gt-danger) !important; }
+
+
+
+
+body.guru-workspace .nav-tabs {
+    border-bottom: 2px solid var(--gt-border-light) !important;
+    gap: 2px !important;
+}
+
+body.guru-workspace .nav-tabs .nav-link {
+    font-family: var(--gt-font) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: var(--gt-text-muted) !important;
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 2.5px solid transparent !important;
+    border-radius: 0 !important;
+    padding: 9px 15px !important;
+    margin-bottom: -2px !important;
+    transition: all 0.15s ease !important;
+}
+
+body.guru-workspace .nav-tabs .nav-link:hover {
+    color: var(--gt-text) !important;
+    background: var(--gt-surface-low) !important;
+    border-bottom-color: var(--gt-border) !important;
+    border-radius: var(--gt-r-sm) var(--gt-r-sm) 0 0 !important;
+}
+
+body.guru-workspace .nav-tabs .nav-link.active {
+    color: var(--gt-primary) !important;
+    background: transparent !important;
+    border-bottom-color: var(--gt-primary) !important;
+    border-radius: 0 !important;
+}
+
+body.guru-workspace .tab-content {
+    padding-top: 18px !important;
+}
+
+
+
+
+body.guru-workspace .list-group-item {
+    background: var(--gt-surface) !important;
+    color: var(--gt-text-2) !important;
+    border-color: var(--gt-border-light) !important;
+    font-family: var(--gt-font) !important;
+    font-size: 14px !important;
+    transition: all 0.15s ease !important;
+}
+
+body.guru-workspace .list-group-item-action:hover {
+    background: var(--gt-primary-surf) !important;
+    color: var(--gt-primary) !important;
+    transform: none !important;
+}
+
+body.guru-workspace .list-group-item.active {
+    background: var(--gt-primary) !important;
+    border-color: var(--gt-primary) !important;
+    color: #FFFFFF !important;
+    box-shadow: none !important;
+}
+
+
+
+
+body.guru-workspace .info-box {
+    background: var(--gt-surface) !important;
+    backdrop-filter: none !important;
+    border: 1px solid var(--gt-border-light) !important;
+    border-radius: var(--gt-r-lg) !important;
+    box-shadow: var(--gt-shadow-sm) !important;
+    min-height: auto !important;
+    overflow: hidden !important;
+    transition: all 0.22s var(--gt-ease) !important;
+}
+
+body.guru-workspace .info-box:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: var(--gt-shadow-md) !important;
+}
+
+body.guru-workspace .info-box-icon {
+    border-radius: 0 !important;
+    width: 80px !important;
+}
+
+body.guru-workspace .info-box-text {
+    color: var(--gt-text-muted) !important;
+    font-family: var(--gt-font) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+}
+
+body.guru-workspace .info-box-number {
+    font-family: var(--gt-font) !important;
+    font-size: 26px !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.04em !important;
+    color: var(--gt-text) !important;
+}
+
+
+
+
+body.guru-workspace .small-box {
+    background: var(--gt-surface) !important;
+    border-radius: var(--gt-r-lg) !important;
+    border: 1px solid var(--gt-border-light) !important;
+    box-shadow: var(--gt-shadow-sm) !important;
+    transition: all 0.22s var(--gt-ease) !important;
+}
+
+body.guru-workspace .small-box::before {
+    display: none !important;
+}
+
+body.guru-workspace .small-box:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: var(--gt-shadow-md) !important;
+}
+
+
+
+
+@media (max-width: 768px) {
+    body.guru-workspace .card-body { padding: 16px !important; }
+    body.guru-workspace .card-header { padding: 13px 16px !important; }
+    body.guru-workspace .modal-content { border-radius: var(--gt-r-lg) !important; }
+    body.guru-workspace .table tbody td,
+    body.guru-workspace .table thead th { padding: 10px 12px !important; }
+}

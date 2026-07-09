@@ -16,7 +16,7 @@ class PengumumanModel {
       id: json['id'] is int ? json['id'] : int.tryParse(json['id'].toString()) ?? 0,
       judul: json['judul']?.toString() ?? 'Pengumuman',
       isi: json['isi']?.toString() ?? '',
-      tanggal: json['updated_at']?.toString(), // Asumsikan API mengirimkan `updated_at` atau `created_at`
+      tanggal: json['updated_at']?.toString(), 
     );
   }
 }

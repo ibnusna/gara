@@ -1,0 +1,656 @@
+/*
+ * GARA - NextGen Dashboard CSS (Murni Vanilla CSS)
+ * Menghilangkan dependensi Tailwind/Bootstrap, Menggunakan Design System Baru
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --font-sans: "Poppins", sans-serif;
+    --gara-blue: #1d4ed8;
+    --gara-light: #3b82f6;
+    --gara-ice: #e0f2fe;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --bg-main: #f1f5f9;
+}
+
+body, p, h1, h2, h3, h4, h5, h6, a, button, input, textarea, label, .page-title, .page-subtitle, .sub-text, .text-muted, div:not(.fas):not(.far):not(.fab):not(.fa), span:not(.fas):not(.far):not(.fab):not(.fa) {
+    font-family: var(--font-sans) !important;
+}
+
+/* Gradient background ditempatkan di html agar body transparent tidak menutupi mesh-bg z-index:-1 */
+html {
+    /* Gradient subtle: sama dengan warna mesh-blob (biru, ungu, cyan) agar area di luar container juga terlihat bagus */
+    background: linear-gradient(135deg, #e0f2fe 0%, #f3e8ff 50%, #cffafe 100%);
+    background-attachment: fixed;
+    min-height: 100%;
+}
+
+body {
+    background-color: transparent !important;
+    color: var(--text-main);
+    margin: 0;
+}
+
+/* 1. Latar Belakang Mesh Dinamis
+   Menggunakan position:fixed + z-index:-1 agar berada DI BAWAH konten halaman
+   tapi DI ATAS html background (terima kasih body transparent) */
+.mesh-bg,
+.layout-mesh-bg {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: -1;
+    background-color: transparent;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.mesh-blob {
+    position: absolute;
+    filter: blur(80px);
+    opacity: 0.8;
+    border-radius: 50%;
+    animation: drift 25s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.blob-blue  { width: 40vw; height: 40vw; background: #93c5fd; top: -10%; left: -10%; }
+.blob-purple{ width: 50vw; height: 50vw; background: #d8b4fe; top: 40%; right: -20%; animation-delay: -5s; }
+.blob-cyan  { width: 35vw; height: 35vw; background: #67e8f9; bottom: -10%; left: 10%; animation-delay: -10s; }
+
+@keyframes drift {
+    0%   { transform: translate(0px,   0px)   scale(1);   }
+    33%  { transform: translate(30px, -50px)  scale(1.1); }
+    66%  { transform: translate(-20px, 20px)  scale(0.9); }
+    100% { transform: translate(0px,   0px)   scale(1);   }
+}
+
+/* 2. Komponen Glassmorphism */
+.glass-card {
+    background: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.05), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+    border-radius: 24px;
+    padding: 16px;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+}
+
+.glass-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Stronger glass for page sub-headers / nav bars */
+.glass-card-strong {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 2px 16px -2px rgba(0, 0, 0, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+}
+
+/* Sub-page navigation header — Ruang Belajar, Tugas, Diskusi, Kompetensi, dll.
+   DESAIN: Full-width, menyambung dari global header (tidak mengambang/floating).
+   Sama persis glass-nya dengan .app-header sehingga keduanya terlihat MENYATU. */
+.page-sub-header {
+    /* Glass — sama dengan global .app-header */
+    background: rgba(255, 255, 255, 0.75) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: none !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.6) !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06) !important;
+
+    /* Bentuk: full-width, tanpa rounded corners, tanpa margin mengambang */
+    border-radius: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 10px 20px !important;
+
+    /* Layout */
+    display: flex !important;
+    align-items: center !important;
+    font-family: var(--font-sans) !important;
+
+    /* Sticky tepat di bawah global header */
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 99 !important;
+}
+
+/* Konten dalam page-sub-header dibatasi max-width agar terlihat rapi di desktop */
+.page-sub-header .header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+}
+
+/* Judul halaman dalam page-sub-header */
+.page-sub-header .page-title {
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    color: var(--text-main) !important;
+    margin: 0 !important;
+    font-family: var(--font-sans) !important;
+}
+
+.page-sub-header .page-subtitle {
+    font-size: 0.78rem !important;
+    color: var(--text-muted) !important;
+    font-family: var(--font-sans) !important;
+}
+
+/* Tombol back dalam page-sub-header */
+.page-sub-header .btn-back {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    background: rgba(0, 0, 0, 0.05) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: var(--text-main) !important;
+    text-decoration: none !important;
+    flex-shrink: 0 !important;
+    transition: background 0.2s !important;
+}
+
+.page-sub-header .btn-back:hover {
+    background: rgba(0, 0, 0, 0.10) !important;
+}
+
+
+/* 3. Kartu Pelajar (Hero Baru) */
+.student-id-card {
+    background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+    border-radius: 24px;
+    padding: 24px;
+    color: white;
+    box-shadow: 0 10px 25px -5px rgba(29, 78, 216, 0.4);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.student-id-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 30px -5px rgba(29, 78, 216, 0.5);
+}
+
+.student-id-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 250px;
+    height: 250px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    z-index: 0;
+}
+
+.student-id-card::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -10%;
+    width: 150px;
+    height: 150px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    z-index: 0;
+}
+
+.id-card-content {
+    position: relative;
+    z-index: 10;
+}
+
+.id-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding-bottom: 12px;
+}
+
+.id-school-name {
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.id-tahun-ajaran {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: rgba(255,255,255,0.25);
+    padding: 6px 10px;
+    border-radius: 8px;
+    letter-spacing: 0.5px;
+    color: rgba(255,255,255,0.95);
+}
+
+.id-card-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.id-info h2 {
+    font-size: 24px;
+    font-weight: 800;
+    margin: 0 0 6px 0;
+    line-height: 1.2;
+}
+
+.id-info p {
+    font-size: 13px;
+    margin: 0 0 10px 0;
+    opacity: 0.9;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.id-info .id-mapel {
+    background: rgba(255,255,255,0.2);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.id-avatar {
+    width: 70px;
+    height: 70px;
+    background: white;
+    border-radius: 16px;
+    padding: 3px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    flex-shrink: 0;
+}
+
+.id-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 13px;
+    object-fit: cover;
+}
+
+/* 4. Efek Interaksi Ripple MD3 */
+.ripple { position: relative; overflow: hidden; }
+.ripple .ink {
+    position: absolute; border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4); 
+    transform: scale(0); pointer-events: none;
+    animation: ripple-animation 0.6s linear;
+}
+@keyframes ripple-animation { to { transform: scale(4); opacity: 0; } }
+
+/* Layout & Containers */
+.dashboard-container {
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+    z-index: 10;
+}
+
+/* Titles */
+.section-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: #1e293b;
+    letter-spacing: 0.025em;
+    margin-bottom: -4px;
+    padding-left: 4px;
+}
+
+.mt-2 { margin-top: 8px; }
+.mt-4 { margin-top: 16px; }
+.mb-5 { margin-bottom: 24px; }
+
+/* Eksplorasi (Teras Ilmu) */
+.exploration-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.main-feature {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 128px;
+}
+
+.icon-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: white;
+}
+
+.bg-blue { background: #3b82f6; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+.bg-orange { background: #f97316; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3); }
+
+.feature-text h4 {
+    font-weight: 700;
+    font-size: 14px;
+    margin: 0 0 2px 0;
+    color: #1e293b;
+}
+
+.feature-text p {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.sub-features-grid {
+    grid-column: span 2;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.sub-feature {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 20px;
+}
+
+.icon-box-small {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.bg-rose { background: #ffe4e6; color: #e11d48; }
+.bg-purple { background: #f3e8ff; color: #9333ea; }
+.bg-emerald { background: #d1fae5; color: #10b981; }
+.bg-amber { background: #fef3c7; color: #d97706; }
+.bg-orange { background: #ffedd5; color: #ea580c; }
+
+/* bg-emerald untuk icon-box besar (main-feature Ruang Diskusi) */
+.icon-box.bg-emerald { background: #10b981; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); color: white; }
+/* bg-orange untuk icon-box-small (sub-feature Ruang Tugas) */
+.icon-box-small.bg-orange { background: #ffedd5; color: #ea580c; }
+
+.sub-feature span {
+    font-size: 9px;
+    font-weight: 800;
+    color: #334155;
+    text-align: center;
+    line-height: 1.3;
+    word-break: keep-all;
+}
+
+/* Zona Produktif */
+.productivity-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+@media (min-width: 768px) {
+    .productivity-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.productivity-widget {
+    display: flex;
+    flex-direction: column;
+}
+
+.widget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.widget-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.widget-action {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 700;
+}
+
+.badge-light {
+    background: rgba(255,255,255,0.7);
+    border: 1px solid rgba(0,0,0,0.05);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+/* Jadwal Sholat Widget */
+.sholat-location {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.sholat-times-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+}
+
+.time-box {
+    background: rgba(255, 255, 255, 0.4);
+    padding: 10px 4px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.time-box.active {
+    background: var(--gara-blue);
+    color: white;
+}
+
+.time-name {
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.time-value {
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* TRIVIA: Brain Warmup */
+.trivia-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.trivia-question {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #334155;
+    line-height: 1.5;
+}
+
+/* PERBAIKAN: Layout opsi jawaban trivia agar tidak numpuk */
+.trivia-options {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    width: 100%;
+}
+
+.btn-trivia {
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 12px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.btn-trivia:hover {
+    background: white;
+    border-color: var(--gara-light);
+    transform: translateY(-2px);
+}
+
+.btn-trivia.correct {
+    background: #dcfce7 !important;
+    border-color: #22c55e !important;
+    color: #14532d !important;
+}
+
+.btn-trivia.wrong {
+    background: #fee2e2 !important;
+    border-color: #ef4444 !important;
+    color: #7f1d1d !important;
+}
+
+/* Jelajah Ilmu (Eksternal) */
+.external-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+@media (min-width: 768px) {
+    .external-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.ext-link-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    text-align: center;
+    gap: 10px;
+}
+
+.ext-icon {
+    font-size: 26px;
+}
+
+.ext-title {
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* Data komponen Pengumuman tidak tersedia di Design System */
+#pengumuman-container {
+    margin-bottom: 8px;
+}
+
+/* Overlays / Loading */
+#loading-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    z-index: 9999;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.spinner-box {
+    width: 60px; height: 60px;
+    border: 5px solid var(--gara-ice);
+    border-top: 5px solid var(--gara-blue);
+    border-radius: 50%;
+    animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    margin-bottom: 20px;
+}
+
+.loading-text {
+    font-weight: 800;
+    color: #1e293b;
+    font-size: 18px;
+}
+
+.loading-subtext {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* Skeletons */
+.skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.4) 25%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0.4) 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 8px;
+}
+
+.sk-text { height: 14px; margin-bottom: 8px; }
+.sk-text-lg { height: 18px; width: 80%; }
+.sk-text-sm { height: 12px; }
+.sk-btn { height: 40px; border-radius: 12px; width: 100%; }
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* No-Scrollbar utility */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

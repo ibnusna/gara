@@ -18,7 +18,7 @@ class RuangDiskusiService {
     };
   }
 
-  // Base method for the RPC-style `api` endpoint
+  
   Future<Map<String, dynamic>> _callApi(Map<String, String> bodyMap, {File? mediaFile}) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString(GaraPrefKeys.authToken);
@@ -72,7 +72,7 @@ class RuangDiskusiService {
     }
   }
 
-  // 1. GET THREADS
+  
   Future<Map<String, dynamic>> getThreads(int page) async {
     final res = await _callApi({
       'action': 'get_threads',
@@ -88,7 +88,7 @@ class RuangDiskusiService {
     throw Exception(res['message'] ?? 'Gagal memuat diskusi');
   }
 
-  // 2. GET THREAD DETAIL
+  
   Future<DiskusiThread> getThreadDetail(int threadId) async {
     final res = await _callApi({
       'action': 'get_thread_detail',
@@ -100,7 +100,7 @@ class RuangDiskusiService {
     throw Exception(res['message'] ?? 'Gagal memuat detail diskusi');
   }
 
-  // 3. GET REPLIES
+  
   Future<List<DiskusiReply>> getReplies(int threadId) async {
     final res = await _callApi({
       'action': 'get_replies',
@@ -112,7 +112,7 @@ class RuangDiskusiService {
     throw Exception(res['message'] ?? 'Gagal memuat balasan');
   }
 
-  // 4. CREATE THREAD
+  
   Future<DiskusiThread?> createThread(String judul, String isiKonten, {File? mediaFile}) async {
     final res = await _callApi({
       'action': 'create_thread',
@@ -129,7 +129,7 @@ class RuangDiskusiService {
     throw Exception(res['message'] ?? 'Gagal membuat postingan');
   }
 
-  // 5. POST REPLY
+  
   Future<DiskusiReply?> postReply(int threadId, String isiBalasan, {File? mediaFile}) async {
     final res = await _callApi({
       'action': 'post_reply',
@@ -146,7 +146,7 @@ class RuangDiskusiService {
     throw Exception(res['message'] ?? 'Gagal mengirim balasan');
   }
 
-  // 6. EDIT THREAD
+  
   Future<bool> editThread(int id, String isiKonten) async {
     final res = await _callApi({
       'action': 'edit_thread',
@@ -157,7 +157,7 @@ class RuangDiskusiService {
     throw Exception(res['message'] ?? 'Gagal mengedit');
   }
 
-  // 7. EDIT REPLY
+  
   Future<bool> editReply(int id, String isiBalasan) async {
     final res = await _callApi({
       'action': 'edit_reply',
@@ -168,7 +168,7 @@ class RuangDiskusiService {
     throw Exception(res['message'] ?? 'Gagal mengedit');
   }
 
-  // 8. DELETE THREAD
+  
   Future<bool> deleteThread(int id) async {
     final res = await _callApi({
       'action': 'delete_thread',
@@ -178,7 +178,7 @@ class RuangDiskusiService {
     throw Exception(res['message'] ?? 'Gagal menghapus');
   }
 
-  // 9. DELETE REPLY
+  
   Future<bool> deleteReply(int id) async {
     final res = await _callApi({
       'action': 'delete_reply',
@@ -188,7 +188,7 @@ class RuangDiskusiService {
     throw Exception(res['message'] ?? 'Gagal menghapus');
   }
 
-  // 10. CHECK UPDATES
+  
   Future<Map<String, dynamic>> checkUpdates(int lastThreadId, int activeThreadId, int lastReplyId) async {
     final res = await _callApi({
       'action': 'check_updates',

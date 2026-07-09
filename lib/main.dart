@@ -1,15 +1,15 @@
-// ============================================================
-//  GARA Flutter — main.dart (Performance Optimized v10.0)
-//  Garuda Akademi Mobile
-//
-//  Perubahan v10.0 (Low-End Optimization):
-//   1. PerformanceConfig.initialize() dipanggil sebelum runApp
-//   2. Shader warm-up via scheduleWarmUpFrame
-//   3. GoogleFonts di-cache sekali via TextTheme, bukan per-widget
-//   4. FutureBuilder diganti StatefulWidget untuk menghindari rebuild
-//   5. Route transitions via garaFadeSlideRoute (adaptive)
-//   6. Tidak ada animasi pada initial route (instant load)
-// ============================================================
+
+
+
+
+
+
+
+
+
+
+
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -28,15 +28,15 @@ import 'widgets/hybrid_wrapper.dart';
 Future<void> main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
 
-  // ── [OPT 1] Preserve splash — harus sebelum await lain
+  
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  // ── [OPT 2] Deteksi low-end SEBELUM runApp ─────────────────
-  // Ini satu-satunya saat yang aman untuk operasi I/O sync sebelum UI
+  
+  
   await PerformanceConfig.initialize();
 
-  // ── [OPT 3] Izinkan semua orientasi — mendukung tablet & split-screen Android
-  // Portrait tetap default di phone, tablet dapat rotate landscape dengan bebas.
+  
+  
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -62,7 +62,7 @@ class GaraApp extends StatefulWidget {
 }
 
 class _GaraAppState extends State<GaraApp> {
-  // ── [OPT 4] Simpan future sebagai field — TIDAK buat ulang di build()
+  
   late final Future<Map<String, dynamic>> _sessionFuture = _loadSession();
   bool _assetsCached = false;
 
@@ -89,12 +89,12 @@ class _GaraAppState extends State<GaraApp> {
     return {'isLoggedIn': validSession, 'role': role, 'token': token};
   }
 
-  /// Warm-up: pre-cache gambar BERAT saja; SVG dimuat on-demand via flutter_svg.
-  /// Tidak perlu delay buatan — splash sudah di-preserve hingga _init selesai.
+  
+  
   Future<void> _warmUp() async {
     try {
-      // ── [OPT 5] Hanya pre-cache bglogin.jpg (gambar bitmap besar)
-      // SVG tidak perlu pre-cache karena flutter_svg menggunakan parser ringan
+      
+      
       if (mounted) {
         await precacheImage(
           const AssetImage('assets/images/bglogin.jpg'),
@@ -104,13 +104,13 @@ class _GaraAppState extends State<GaraApp> {
     } catch (e) {
       debugPrint('[GARA Warmup] Error pre-cache: $e');
     }
-    // ── [OPT 6] Hapus splash setelah asset ready — tanpa delay buatan
+    
     FlutterNativeSplash.remove();
   }
 
-  // ── [OPT 7] TextTheme di-cache di level MaterialApp —
-  // Semua widget mendapatkan Poppins dari Theme.of(context) tanpa
-  // memanggil GoogleFonts.poppins() berulang di setiap widget
+  
+  
+  
   static final TextTheme _poppinsTextTheme = GoogleFonts.poppinsTextTheme();
 
   @override
@@ -124,21 +124,21 @@ class _GaraAppState extends State<GaraApp> {
           seedColor: GaraColors.studentPrimary,
           brightness: Brightness.light,
         ),
-        // ── [OPT 8] TextTheme shared — tidak rebuild per widget
+        
         textTheme: _poppinsTextTheme,
         scaffoldBackgroundColor: GaraColors.studentBgBody,
-        // ── [OPT 9] Matikan ink splash global (hemat GPU pada tap)
+        
         splashFactory: NoSplash.splashFactory,
         splashColor: Colors.transparent,
         highlightColor: Colors.transparent,
-        // ── [OPT 10] Matikan divider theme overhead
+        
         dividerTheme: const DividerThemeData(space: 0),
       ),
       home: FutureBuilder<Map<String, dynamic>>(
         future: _sessionFuture,
         builder: (context, snapshot) {
-          // Tampilkan layar kosong (gelap) selama cek sesi
-          // Splash native sudah menutupi ini — user tidak melihat flicker
+          
+          
           if (!snapshot.hasData) {
             return const Scaffold(
               backgroundColor: GaraColors.bgDark,
@@ -174,7 +174,7 @@ class _GaraAppState extends State<GaraApp> {
       onGenerateRoute: (settings) {
         if (settings.name == GaraRoutes.dashboard) {
           final mapel = settings.arguments as String? ?? '';
-          // ── [OPT 11] Gunakan route builder adaptive
+          
           return garaSlideRightRoute(
             DashboardPage(selectedMapel: mapel),
             settings: settings,

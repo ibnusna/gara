@@ -21,6 +21,35 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+subprojects {
+    tasks.whenTaskAdded { task ->
+        if (task.name.contains("extractDebugAnnotations") || task.name.contains("extractReleaseAnnotations")) {
+            task.enabled = false
+        }
+    }
+}
+
+subprojects {
+    // Buat file typedefs.txt kosong secara instan pada configuration phase
+    // agar lolos validasi awal input file Gradle.
+    def debugDir = new File(project.buildDir, "intermediates/annotations_typedef_file/debug/extractDebugAnnotations")
+    if (!debugDir.exists()) debugDir.mkdirs()
+    def debugFile = new File(debugDir, "typedefs.txt")
+    if (!debugFile.exists()) debugFile.text = ""
+
+    def releaseDir = new File(project.buildDir, "intermediates/annotations_typedef_file/release/extractReleaseAnnotations")
+    if (!releaseDir.exists()) releaseDir.mkdirs()
+    def releaseFile = new File(releaseDir, "typedefs.txt")
+    if (!releaseFile.exists()) releaseFile.text = ""
+}
+
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
+}
+subprojects {
+    project.plugins.withId('com.android.library') {
+        project.android {
+            compileSdkVersion 35
+        }
+    }
 }

@@ -1,0 +1,357 @@
+
+
+
+
+
+
+
+
+
+
+
+body.guru-workspace .main-sidebar,
+body.guru-workspace .main-sidebar.sidebar-dark-primary {
+    background: var(--gt-sidebar-bg) !important;
+    background-image: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 2px 0 16px rgba(0, 20, 80, 0.18) !important;
+    border-right: none !important;
+    width: 260px !important;
+    overflow: hidden !important;  
+    z-index: 1038 !important;
+}
+
+
+
+
+body.guru-workspace .main-sidebar .brand-link {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255,255,255,0.10) !important;
+    padding: 16px 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    text-decoration: none !important;
+    transition: background 0.2s ease !important;
+}
+
+body.guru-workspace .main-sidebar .brand-link:hover {
+    background: rgba(0,0,0,0.28) !important;
+}
+
+body.guru-workspace .main-sidebar .brand-text,
+body.guru-workspace .main-sidebar .brand-text b {
+    color: #FFFFFF !important;
+    font-family: var(--gt-font) !important;
+    font-size: 15px !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.03em !important;
+}
+
+body.guru-workspace .main-sidebar .brand-text b {
+    color: var(--gt-primary-dim) !important;
+}
+
+
+body.guru-workspace .main-sidebar .brand-link > div {
+    color: rgba(179,197,255,0.75) !important;
+    font-family: var(--gt-font) !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+}
+
+
+
+
+body.guru-workspace .main-sidebar .sidebar {
+    padding-bottom: 24px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    background: transparent !important;
+}
+
+body.guru-workspace .main-sidebar .sidebar::-webkit-scrollbar { width: 3px !important; }
+body.guru-workspace .main-sidebar .sidebar::-webkit-scrollbar-track { background: transparent !important; }
+body.guru-workspace .main-sidebar .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18) !important; border-radius: 99px !important; }
+
+
+
+
+body.guru-workspace .main-sidebar .user-panel {
+    background: rgba(255,255,255,0.08) !important;
+    border: 1px solid rgba(255,255,255,0.10) !important;
+    border-bottom: none !important;
+    border-radius: var(--gt-r-md) !important;
+    margin: 12px 12px 8px !important;
+    padding: 12px 14px !important;
+}
+
+body.guru-workspace .main-sidebar .user-panel .image img {
+    border-radius: 50% !important;
+    border: 2px solid rgba(255,255,255,0.25) !important;
+    width: 36px !important;
+    height: 36px !important;
+    object-fit: cover !important;
+}
+
+body.guru-workspace .main-sidebar .user-panel .info a {
+    color: #FFFFFF !important;
+    font-family: var(--gt-font) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em !important;
+}
+
+
+
+
+body.guru-workspace .main-sidebar .sidebar .p-2.mb-3.mx-2 {
+    background: rgba(255,255,255,0.09) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    border-radius: var(--gt-r-md) !important;
+    margin: 0 12px 8px !important;
+    backdrop-filter: none !important;
+}
+
+
+
+
+body.guru-workspace .main-sidebar .nav-header {
+    color: rgba(179,197,255,0.65) !important;
+    font-family: var(--gt-font) !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.10em !important;
+    text-transform: uppercase !important;
+    padding: 14px 22px 5px !important;
+}
+
+
+
+
+body.guru-workspace .main-sidebar .nav-sidebar .nav-item {
+    padding: 0 10px !important;
+    margin-bottom: 1px !important;
+    list-style: none !important;
+}
+
+
+
+
+body.guru-workspace .main-sidebar .nav-sidebar .nav-link,
+body.guru-workspace .main-sidebar .sidebar-dark-primary .nav-sidebar .nav-link {
+    color: rgba(255,255,255,0.82) !important;
+    background: transparent !important;
+    border-radius: var(--gt-r-sm) !important;
+    padding: 9px 13px !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    font-family: var(--gt-font) !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.01em !important;
+    transition: all 0.18s ease !important;
+    border: none !important;
+    position: relative !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+body.guru-workspace .main-sidebar .nav-sidebar .nav-link:hover {
+    background: rgba(255,255,255,0.11) !important;
+    color: #FFFFFF !important;
+    transform: translateX(2px) !important;
+    box-shadow: none !important;
+}
+
+
+
+
+body.guru-workspace .main-sidebar .nav-sidebar .nav-link .nav-icon,
+body.guru-workspace .main-sidebar .sidebar-dark-primary .nav-sidebar .nav-link .nav-icon {
+    color: rgba(179,197,255,0.75) !important;
+    font-size: 14px !important;
+    width: 18px !important;
+    text-align: center !important;
+    flex-shrink: 0 !important;
+    transition: color 0.18s ease !important;
+}
+
+body.guru-workspace .main-sidebar .nav-sidebar .nav-link:hover .nav-icon {
+    color: #FFFFFF !important;
+}
+
+
+body.guru-workspace .main-sidebar .nav-sidebar .nav-link > p {
+    font-family: var(--gt-font) !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.01em !important;
+    margin: 0 !important;
+    line-height: 1.3 !important;
+    flex: 1 !important;
+    color: inherit !important;
+}
+
+
+
+
+body.guru-workspace .main-sidebar .nav-sidebar > .nav-item > .nav-link.active,
+body.guru-workspace .main-sidebar .sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link.active {
+    background: rgba(255,255,255,0.14) !important;
+    background-image: none !important;
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    border-radius: var(--gt-r-sm) !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-right: 3px solid rgba(255,255,255,0.8) !important;
+    transform: none !important;
+    z-index: 1 !important;
+    overflow: hidden !important;
+    margin-right: 0 !important;
+    padding-right: 13px !important;
+}
+
+body.guru-workspace .main-sidebar .nav-sidebar > .nav-item > .nav-link.active .nav-icon,
+body.guru-workspace .main-sidebar .sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link.active .nav-icon {
+    color: #FFFFFF !important;
+}
+
+body.guru-workspace .main-sidebar .nav-sidebar > .nav-item > .nav-link.active > p {
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+}
+
+
+body.guru-workspace .main-sidebar .nav-sidebar > .nav-item > .nav-link.active::before,
+body.guru-workspace .main-sidebar .nav-sidebar > .nav-item > .nav-link.active::after {
+    display: none !important;
+    content: none !important;
+}
+
+
+
+
+body.guru-workspace .main-sidebar .nav-sidebar .nav-link.bg-secondary {
+    background: rgba(255,255,255,0.11) !important;
+    border: 1px solid rgba(255,255,255,0.16) !important;
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
+    border-radius: var(--gt-r-sm) !important;
+    margin-right: 0 !important;
+}
+
+body.guru-workspace .main-sidebar .nav-sidebar .nav-link.bg-secondary:hover {
+    background: rgba(255,255,255,0.20) !important;
+}
+
+
+
+
+body.guru-workspace .main-header {
+    background: #FFFFFF !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-bottom: 1px solid var(--gt-border-light) !important;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.05) !important;
+    min-height: 57px !important;
+    padding: 0 20px !important;
+}
+
+
+body.guru-workspace .main-header .nav-link[data-widget="pushmenu"] {
+    color: var(--gt-text-muted) !important;
+    padding: 8px 10px !important;
+    border-radius: var(--gt-r-sm) !important;
+    transition: all 0.15s ease !important;
+    font-size: 18px !important;
+}
+
+body.guru-workspace .main-header .nav-link[data-widget="pushmenu"]:hover {
+    background: var(--gt-surface-low) !important;
+    color: var(--gt-primary) !important;
+}
+
+
+body.guru-workspace .main-header .navbar-nav .nav-item img {
+    opacity: 1 !important;
+    filter: none !important;
+}
+
+
+body.guru-workspace .main-header .navbar-nav .nav-item span[style*="color:#0b57d0"],
+body.guru-workspace .main-header .navbar-nav .nav-item span {
+    color: var(--gt-primary) !important;
+    font-family: var(--gt-font) !important;
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    letter-spacing: -0.02em !important;
+}
+
+
+body.guru-workspace .main-header .text-muted {
+    color: var(--gt-text-muted) !important;
+    font-size: 11.5px !important;
+    font-weight: 500 !important;
+    font-family: var(--gt-font) !important;
+    letter-spacing: 0.01em !important;
+}
+
+
+body.guru-workspace .main-header .nav-link.text-danger,
+body.guru-workspace .main-header a.text-danger {
+    color: var(--gt-danger) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    font-family: var(--gt-font) !important;
+    padding: 6px 13px !important;
+    border-radius: var(--gt-r-sm) !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    transition: all 0.15s ease !important;
+    transform: none !important;
+}
+
+body.guru-workspace .main-header .nav-link.text-danger:hover {
+    background: var(--gt-danger-bg) !important;
+    border-color: var(--gt-danger-bd) !important;
+    transform: none !important;
+}
+
+
+
+
+body.guru-workspace.sidebar-mini.sidebar-collapse .main-sidebar {
+    width: 4.6rem !important;
+    overflow: hidden !important;
+}
+
+body.guru-workspace.sidebar-mini.sidebar-collapse .main-sidebar .nav-sidebar > .nav-item > .nav-link.active {
+    border-radius: var(--gt-r-sm) !important;
+    margin-right: 0 !important;
+}
+
+body.guru-workspace.sidebar-mini.sidebar-collapse .main-sidebar .nav-sidebar > .nav-item > .nav-link.active::before,
+body.guru-workspace.sidebar-mini.sidebar-collapse .main-sidebar .nav-sidebar > .nav-item > .nav-link.active::after {
+    display: none !important;
+}
+
+
+
+
+@media (max-width: 991.98px) {
+    body.guru-workspace .main-sidebar .nav-sidebar > .nav-item > .nav-link.active {
+        border-radius: var(--gt-r-sm) !important;
+        margin-right: 0 !important;
+    }
+
+    body.guru-workspace .main-sidebar .nav-sidebar > .nav-item > .nav-link.active::before,
+    body.guru-workspace .main-sidebar .nav-sidebar > .nav-item > .nav-link.active::after {
+        display: none !important;
+    }
+}

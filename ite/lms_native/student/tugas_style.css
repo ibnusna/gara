@@ -1,0 +1,466 @@
+/* GARA - Garuda Akademi
+   File: student/tugas_style.css
+   Tujuan: Styling khusus Ruang Tugas dengan nuansa "Native Mobile App"
+   Referensi: Modern Clean UI (White Cards, Soft Shadows, Vibrant Icons)
+*/
+
+:root {
+    --primary-color: #0d6efd;
+    --primary-soft: #e7f1ff;
+    --success-color: #198754;
+    --success-soft: #d1e7dd;
+    --danger-color: #dc3545;
+    --danger-soft: #f8d7da;
+    --warning-color: #ffc107;
+    --text-dark: #2c3e50;
+    --text-grey: #8c98a4;
+    --bg-app: #f4f6f9;
+    --card-radius: 20px;
+}
+
+body {
+    background-color: var(--bg-app);
+}
+
+/* --- 1. STICKY TAB NAVIGATION --- */
+.tabs-container {
+    position: sticky;
+    top: 60px;
+    /* Sesuaikan dengan tinggi Header App Anda */
+    z-index: 900;
+    background: var(--bg-app);
+    /* Samakan dengan background body agar terlihat menyatu */
+    padding: 10px 15px;
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scroll di iOS */
+    box-shadow: 0 4px 10px -5px rgba(0, 0, 0, 0.05);
+    /* Shadow halus di bawah tab */
+}
+
+/* Sembunyikan Scrollbar tapi tetap bisa scroll */
+.tabs-container::-webkit-scrollbar {
+    display: none;
+}
+
+.tab-item {
+    padding: 8px 16px;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-grey);
+    background: white;
+    border: 1px solid transparent;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    cursor: pointer;
+    flex-shrink: 0;
+    /* Agar tidak menciut */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.tab-item.active {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    /* Glow effect biru */
+    transform: translateY(-1px);
+}
+
+.tab-item.active-danger {
+    background: var(--danger-color);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.tab-item.active-success {
+    background: var(--success-color);
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
+}
+
+/* --- 2. CONTAINER KONTEN --- */
+.tab-content {
+    display: none;
+    /* Default hidden */
+    padding: 10px 20px 100px 20px;
+    /* Padding bawah lega untuk scroll */
+    animation: fadeIn 0.4s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- 3. MODERN TASK CARD --- */
+.app-card {
+    background: white;
+    border-radius: var(--card-radius);
+    padding: 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    /* Shadow sangat lembut */
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    border: 1px solid rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s;
+    overflow: hidden;
+}
+
+.app-card:active {
+    transform: scale(0.98);
+}
+
+/* Bagian Atas: Icon & Judul */
+.card-header-flex {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+/* Kotak Icon Mapel (Kiri) */
+.icon-box {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+/* Varian Warna Icon Box */
+.icon-box.blue {
+    background: var(--primary-soft);
+    color: var(--primary-color);
+}
+
+.icon-box.green {
+    background: var(--success-soft);
+    color: var(--success-color);
+}
+
+.icon-box.red {
+    background: var(--danger-soft);
+    color: var(--danger-color);
+}
+
+.icon-box.yellow {
+    background: #fff3cd;
+    color: #ffc107;
+}
+
+.card-info {
+    flex-grow: 1;
+}
+
+.task-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    line-height: 1.3;
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    /* Batasi 2 baris */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.task-deadline {
+    font-size: 0.8rem;
+    color: var(--text-grey);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.task-deadline.urgent {
+    color: var(--danger-color);
+    font-weight: 600;
+}
+
+/* Deskripsi Singkat */
+.task-desc-preview {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 15px;
+    line-height: 1.5;
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+/* Bagian Bawah: Tombol & Status */
+.card-footer-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #f0f2f5;
+    padding-top: 12px;
+}
+
+/* Status Badge di dalam Card */
+.status-pill {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.status-pill.submitted {
+    background: var(--success-soft);
+    color: var(--success-color);
+}
+
+.status-pill.missed {
+    background: var(--danger-soft);
+    color: var(--danger-color);
+}
+
+.status-pill.score {
+    background: var(--primary-soft);
+    color: var(--primary-color);
+    font-size: 0.9rem;
+}
+
+/* Tombol Aksi */
+.btn-app {
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-app.primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-app.primary:hover {
+    background: #0b5ed7;
+}
+
+.btn-app.outline {
+    background: white;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+.btn-app.disabled {
+    background: #e9ecef;
+    color: #adb5bd;
+    cursor: not-allowed;
+}
+
+.btn-app-block {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 12px;
+}
+
+/* --- 4. EMPTY STATE (Gambar Kosong) --- */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-grey);
+}
+
+.empty-state img {
+    width: 120px;
+    opacity: 0.6;
+    margin-bottom: 15px;
+    filter: grayscale(100%);
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+/* --- 5. BOTTOM SHEET OVERRIDES (Jika perlu penyesuaian dari belajar.css) --- */
+/* Kita gunakan class 'sheet-handle' untuk garis kecil di atas sheet agar user tahu bisa ditarik */
+.sheet-handle-bar {
+    width: 40px;
+    height: 4px;
+    background: #e0e0e0;
+    border-radius: 2px;
+    margin: 10px auto 15px auto;
+}
+
+/* Styling untuk Input Form di dalam Sheet */
+.sheet-form-group {
+    margin-bottom: 15px;
+}
+
+.sheet-form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.sheet-form-input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #dee2e6;
+    font-size: 1rem;
+    background: #f8f9fa;
+    transition: border 0.2s;
+    box-sizing: border-box;
+    /* Penting agar padding tidak jebol */
+}
+
+.sheet-form-input:focus {
+    border-color: var(--primary-color);
+    background: white;
+    outline: none;
+}
+
+/* --- 6. CLOSE BUTTON CIRCLE --- */
+.btn-icon-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #f0f2f5;
+    color: #555;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1rem;
+    text-decoration: none;
+    /* In case it's an anchor tag */
+}
+
+.btn-icon-circle:hover {
+    background: #e4e6eb;
+    color: #333;
+    transform: rotate(90deg);
+    /* Little rotation effect */
+}
+
+.btn-icon-circle.primary {
+    background: var(--primary-soft);
+    color: var(--primary-color);
+}
+
+.btn-icon-circle.primary:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* --- 7. NEW: MULTI-MEDIA SUBMISSION UI (V9) --- */
+
+/* Radio Card Selection */
+.radio-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    border: 2px solid #eee;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    width: 100%;
+    text-align: center;
+    position: relative;
+    background: white;
+}
+
+.radio-card input[type="radio"] {
+    display: none;
+    /* Hide default radio */
+}
+
+.radio-card i {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+    color: var(--text-grey);
+    transition: color 0.2s;
+}
+
+.radio-card.active {
+    border-color: var(--primary-color);
+    background: var(--primary-soft);
+}
+
+.radio-card.active i {
+    color: var(--primary-color);
+}
+
+.radio-card.active {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* File Upload Box */
+.file-upload-box {
+    position: relative;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    background: #f8f9fa;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.file-upload-box:hover {
+    border-color: var(--primary-color);
+    background: #fff;
+}
+
+.file-upload-box input[type="file"] {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.file-content i {
+    color: #94a3b8;
+    transition: color 0.2s;
+}
+
+.file-upload-box:hover .file-content i {
+    color: var(--primary-color);
+    transform: translateY(-2px);
+}

@@ -1,0 +1,466 @@
+
+/* ================================================================
+   GARA — Twitter-Style Desktop Layout
+   Arsitektur: body scroll, sidebar kiri/kanan FIXED ke viewport
+   ================================================================ */
+
+:root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f7f9f9;
+    --border-color: #eff3f4;
+    --text-primary: #0f1419;
+    --text-secondary: #536471;
+    --color-primary: #1d9bf0;
+    /* Lebar kolom (sinkron dengan tw-main-feed max-width) */
+    --col-sidebar-left: 256px;
+    --col-center: 600px;
+    --col-max: 1280px;
+}
+
+/* ── Avatar umum ── */
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* ── MOBILE: sidebar tersembunyi ── */
+.tw-sidebar-left,
+.tw-sidebar-right {
+    display: none;
+}
+
+.tw-main-feed {
+    width: 100%;
+}
+
+.tw-layout-wrapper {
+    display: flex;
+    min-height: 100vh;
+    background-color: transparent;
+}
+
+/* ================================================================
+   DESKTOP (≥ 768px) — Twitter Layout
+   ================================================================ */
+@media (min-width: 768px) {
+
+    /* ── 1. KRITIS: Batalkan animation pada #app-main ──────────────
+       animation/transform pada ancestor MEMECAH position:fixed pada
+       semua turunan (membuat new stacking context). Ini root cause
+       sidebar ikut scroll! ──────────────────────────────────────── */
+    #app-main {
+        animation: none !important;
+        transform: none !important;
+        will-change: auto !important;
+    }
+
+    /* ── 2. Sembunyikan elemen mobile dan spacer 80px ── */
+    body > .app-header,
+    .bottom-nav,
+    .bottom-nav-spacer {
+        display: none !important;
+    }
+
+    /* ── 3. html/body: scroll container, background solid ── */
+    html, body {
+        background-color: #ffffff !important;
+        /* body adalah scroll container utama — jangan overflow: hidden */
+        overflow-x: hidden;
+    }
+
+    /* ── 4. Wrapper: hanya centering, TIDAK bisa scroll sendiri ── */
+    .tw-layout-wrapper {
+        max-width: var(--col-max);
+        margin: 0 auto;
+        position: relative;
+        min-height: 100vh;
+        /* PENTING: overflow TIDAK hidden — biarkan body yang scroll */
+        overflow: visible;
+        background-color: #ffffff;
+    }
+
+    /* ── 5. SIDEBAR KIRI — position:fixed ke VIEWPORT ──────────────
+       left = jarak dari tepi viewport ke tepi kiri wrapper
+       = max(0, (100vw - 1280px) / 2)
+       Ini agar sidebar tetap di dalam wrapper meski viewport lebar ─ */
+    .tw-sidebar-left {
+        display: flex;
+        flex-direction: column;
+        width: var(--col-sidebar-left);
+        padding: 16px;
+
+        /* FIXED ke viewport, bukan ke parent */
+        position: fixed;
+        top: 0;
+        left: calc(max((100vw - var(--col-max)) / 2, 0px));
+        bottom: 0;
+        z-index: 200; /* di atas segalanya */
+    }
+
+    /* Pseudo-element untuk background full width ke kiri */
+    .tw-sidebar-left::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0; /* sejajar dengan main-feed */
+        width: 50vw; /* extend off-screen ke kiri */
+        height: 100%;
+        background: #ffffff;
+        border-right: 1px solid rgba(0, 0, 0, 0.08);
+        z-index: -1;
+    }
+
+    /* ── 6. SIDEBAR KANAN — position:fixed ke VIEWPORT ── */
+    .tw-sidebar-right {
+        display: flex;
+        flex-direction: column;
+        width: 350px;
+        padding: 16px 20px;
+
+        /* FIXED ke viewport */
+        position: fixed;
+        top: 0;
+        /* left = kiri wrapper + sidebar-kiri + center-feed */
+        left: calc(max((100vw - var(--col-max)) / 2, 0px) + var(--col-sidebar-left) + var(--col-center));
+        bottom: 0;
+        z-index: 200;
+    }
+    
+    /* Pseudo-element untuk background full width ke kanan */
+    .tw-sidebar-right::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0; /* sejajar dengan main-feed */
+        width: 50vw; /* extend off-screen ke kanan */
+        height: 100%;
+        background: #ffffff;
+        border-left: 1px solid rgba(0, 0, 0, 0.08);
+        z-index: -1;
+    }
+
+    .tw-sidebar-right::-webkit-scrollbar { display: none; }
+
+    /* Sembunyikan sidebar kanan kalau layar < 1280px */
+    @media (max-width: 1280px) {
+        .tw-sidebar-right {
+            display: none;
+        }
+    }
+
+    /* ── 7. MAIN FEED — mengisi ruang tengah, body yang scroll ── */
+    .tw-main-feed {
+        /* Geser kanan sejauh sidebar kiri */
+        margin-left: var(--col-sidebar-left);
+        /* Batasi lebar center column */
+        max-width: var(--col-center);
+        /* Tinggi minimal full viewport */
+        min-height: 100vh;
+
+        /* Solid white untuk kolom tengah Diskusi */
+        background-color: #ffffff;
+        border-left: 1px solid var(--border-color);
+        border-right: 1px solid var(--border-color);
+
+        /* TIDAK overflow hidden — body yang handle scroll */
+        overflow: visible;
+        position: relative;
+    }
+
+    /* ── 8. Header dalam main-feed ── */
+    main.tw-main-feed .app-header,
+    .tw-main-feed .page-sub-header {
+        position: sticky !important;
+        top: 0;
+        z-index: 100;
+        background-color: rgba(255, 255, 255, 0.9) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        max-width: var(--col-center) !important;
+        margin: 0 !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        padding: 0 16px !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+    }
+
+    /* ── 9. App container override ── */
+    .app-container {
+        max-width: 100% !important;
+        border-left: none !important;
+        border-right: none !important;
+        margin: 0 !important;
+    }
+
+    /* ── 10. Sidebar kiri — brand & nav ── */
+    .tw-sidebar-left .brand {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--color-primary);
+        margin-bottom: 28px;
+        padding: 0 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .tw-nav-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin-bottom: 12px;
+    }
+
+    .tw-nav-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 12px 16px;
+        border-radius: 9999px;
+        color: var(--text-primary);
+        font-size: 17px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: background-color 0.2s ease;
+    }
+
+    .tw-nav-item i {
+        font-size: 22px;
+        width: 24px;
+        text-align: center;
+    }
+
+    .tw-nav-item:hover {
+        background-color: rgba(15, 20, 25, 0.08);
+    }
+
+    .tw-nav-item.active {
+        font-weight: 700;
+        color: var(--color-primary);
+    }
+
+    .tw-nav-item.active:hover {
+        background-color: rgba(29, 155, 240, 0.08);
+    }
+
+    /* ── 11. Tombol Posting ── */
+    .tw-btn-post-large {
+        background-color: var(--color-primary);
+        color: white;
+        font-weight: 700;
+        padding: 15px;
+        border-radius: 9999px;
+        text-align: center;
+        margin-top: 12px;
+        margin-bottom: 12px;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.2s;
+        box-shadow: 0 4px 12px rgba(29, 155, 240, 0.3);
+        width: 100%;
+    }
+
+    .tw-btn-post-large:hover {
+        background-color: #1a8cd8;
+    }
+
+    /* ── 12. User menu di bottom sidebar ── */
+    .tw-user-menu {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 9999px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-top: auto;
+    }
+
+    .tw-user-menu:hover {
+        background-color: rgba(15, 20, 25, 0.08);
+    }
+
+    .tw-user-info {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        overflow: hidden;
+    }
+
+    .tw-user-name {
+        font-weight: 700;
+        font-size: 14px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        color: var(--text-primary);
+    }
+
+    .tw-user-handle {
+        color: var(--text-secondary);
+        font-size: 13px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+
+    /* ── 13. Widget sidebar kanan ── */
+    .tw-search-bar {
+        position: sticky;
+        top: 0;
+        padding-top: 8px;
+        padding-bottom: 12px;
+        z-index: 10;
+    }
+
+    .tw-search-input-wrapper {
+        display: flex;
+        align-items: center;
+        background-color: rgba(239, 243, 244, 0.8);
+        border-radius: 9999px;
+        padding: 10px 16px;
+        gap: 12px;
+        border: 1px solid transparent;
+        transition: all 0.2s;
+    }
+
+    .tw-search-input-wrapper:focus-within {
+        background-color: #fff;
+        border-color: var(--color-primary);
+    }
+
+    .tw-search-input-wrapper i { color: var(--text-secondary); }
+    .tw-search-input-wrapper:focus-within i { color: var(--color-primary); }
+
+    .tw-search-input {
+        border: none;
+        background: transparent;
+        outline: none;
+        font-size: 15px;
+        width: 100%;
+        color: var(--text-primary);
+        font-family: inherit;
+    }
+
+    .tw-widget {
+        background: rgba(247, 249, 249, 0.9);
+        border-radius: 16px;
+        margin-bottom: 16px;
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+
+    .tw-widget-title {
+        font-size: 18px;
+        font-weight: 800;
+        padding: 12px 16px;
+        color: var(--text-primary);
+    }
+
+    .tw-widget-item {
+        padding: 12px 16px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        border-top: 1px solid rgba(0,0,0,0.04);
+    }
+
+    .tw-widget-item:hover {
+        background-color: rgba(0, 0, 0, 0.03);
+    }
+
+    .tw-widget-meta {
+        font-size: 13px;
+        color: var(--text-secondary);
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .tw-widget-content {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-top: 2px;
+    }
+
+    .tw-widget-btn {
+        background-color: var(--text-primary);
+        color: #fff;
+        font-weight: 700;
+        padding: 6px 16px;
+        border-radius: 9999px;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        transition: opacity 0.2s;
+    }
+
+    .tw-widget-btn:hover { opacity: 0.85; }
+
+    /* ── 14. Modal post ── */
+    #modal-post .modal-box {
+        max-width: var(--col-center);
+        border-radius: 16px;
+        height: auto;
+        min-height: 250px;
+        max-height: 90vh;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    }
+
+    /* ── 15. Modal detail (reply thread) — fixed, sejajar center feed ── */
+    #modal-detail {
+        position: fixed;
+        /* Posisi sama dengan left edge center feed */
+        left: calc(max((100vw - var(--col-max)) / 2, 0px) + var(--col-sidebar-left));
+        width: var(--col-center);
+        right: auto;
+        top: 0;
+        bottom: 0;
+        background-color: rgba(255,255,255,0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        align-items: flex-start;
+        padding-top: 0;
+        z-index: 300;
+    }
+
+    #modal-detail .modal-box {
+        width: 100%;
+        max-width: 100%;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+        border-left: 1px solid var(--border-color);
+        border-right: 1px solid var(--border-color);
+    }
+
+    #modal-detail .modal-header {
+        position: sticky;
+        top: 0;
+        background-color: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        z-index: 10;
+    }
+
+    #modal-detail .modal-scroll-content {
+        flex: 1;
+        overflow-y: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    #modal-detail .modal-scroll-content::-webkit-scrollbar { display: none; }
+}
+
+/* ── Scrollbar custom ── */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 10px;
+}

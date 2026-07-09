@@ -1,8 +1,8 @@
-// ============================================================
-//  GARA Flutter — Screen: Notifikasi (Legacy)
-//  Note: Dashboard menggunakan NotifikasiTab dengan API real.
-//  File ini adalah fallback standalone page.
-// ============================================================
+
+
+
+
+
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,7 +21,7 @@ class _NotifikasiPageState extends State<NotifikasiPage>
   late AnimationController _ctrl;
   late Animation<double> _fade;
 
-  // Dummy notification data — FASE 2: ganti dengan data dari API
+  
   final List<_NotifItem> _dummyNotifs = [
     _NotifItem(
       icon: Icons.assignment_rounded,
@@ -102,7 +102,7 @@ class _NotifikasiPageState extends State<NotifikasiPage>
           ],
         ),
         actions: [
-          // Tandai semua dibaca
+          
           TextButton.icon(
             onPressed: () => setState(() {
               for (final n in _dummyNotifs) {
@@ -143,7 +143,7 @@ class _NotifikasiPageState extends State<NotifikasiPage>
   }
 }
 
-// ── Notification Item Model ──────────────────────────────────
+
 class _NotifItem {
   final IconData icon;
   final Color iconColor;
@@ -164,7 +164,7 @@ class _NotifItem {
   });
 }
 
-// ── Notification Tile Widget ─────────────────────────────────
+
 class _NotifTile extends StatelessWidget {
   final _NotifItem item;
   final VoidCallback onTap;
@@ -181,7 +181,7 @@ class _NotifTile extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Icon
+            
             Container(
               width: 44,
               height: 44,
@@ -192,7 +192,7 @@ class _NotifTile extends StatelessWidget {
               child: Icon(item.icon, color: item.iconColor, size: 20),
             ),
             const SizedBox(width: 12),
-            // Content
+            
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

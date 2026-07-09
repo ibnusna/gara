@@ -101,7 +101,7 @@ class _GaraPlaceholderPageState extends State<GaraPlaceholderPage>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Icon besar dalam lingkaran berwarna
+                  
                   Container(
                     width: 100,
                     height: 100,
@@ -121,7 +121,7 @@ class _GaraPlaceholderPageState extends State<GaraPlaceholderPage>
                   ),
                   const SizedBox(height: 28),
 
-                  // Label halaman
+                  
                   Text(
                     widget.title,
                     style: GoogleFonts.poppins(
@@ -133,7 +133,7 @@ class _GaraPlaceholderPageState extends State<GaraPlaceholderPage>
                   ),
                   const SizedBox(height: 10),
 
-                  // Subtitle / deskripsi
+                  
                   Text(
                     widget.subtitle,
                     style: GoogleFonts.poppins(
@@ -145,7 +145,7 @@ class _GaraPlaceholderPageState extends State<GaraPlaceholderPage>
                   ),
                   const SizedBox(height: 32),
 
-                  // Banner FASE 2
+                  
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 14),
@@ -188,7 +188,7 @@ class _GaraPlaceholderPageState extends State<GaraPlaceholderPage>
                   ),
                   const SizedBox(height: 24),
 
-                  // Tombol kembali
+                  
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(

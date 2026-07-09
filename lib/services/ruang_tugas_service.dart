@@ -1,11 +1,11 @@
-// ============================================================
-//  GARA Flutter — RuangTugasService
-//  Stateless API service for the native Ruang Tugas screens.
-//
-//  Upload progress is tracked via http.StreamedResponse
-//  for multipart file submissions, mirroring the web form's
-//  progress feedback expectation.
-// ============================================================
+
+
+
+
+
+
+
+
 
 import 'dart:convert';
 import 'dart:io';
@@ -19,7 +19,7 @@ import '../models/ruang_tugas_model.dart';
 class RuangTugasService {
   RuangTugasService._();
 
-  // ── Internal helpers ──────────────────────────────────────
+  
 
   static Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -32,13 +32,13 @@ class RuangTugasService {
         'X-App': 'GARA_MOBILE',
       };
 
-  // ── GET: Assignment List ──────────────────────────────────
+  
 
-  /// GET /api/mobile/ruang-tugas/list?mapel_id=X
-  ///
-  /// Returns all assignments pre-categorized into aktif/selesai/terlewat.
-  /// Business logic (categorization) is done server-side, matching
-  /// TugasController::index() exactly.
+  
+  
+  
+  
+  
   static Future<TugasListResponse> getList(String mapelId) async {
     try {
       final token = await _getToken();
@@ -88,9 +88,9 @@ class RuangTugasService {
     }
   }
 
-  // ── POST: Submit via Link ─────────────────────────────────
+  
 
-  /// POST /api/mobile/ruang-tugas/submit (metode=link)
+  
   static Future<TugasApiResponse> submitLink({
     required int tugasId,
     required String mapelId,
@@ -135,16 +135,16 @@ class RuangTugasService {
     }
   }
 
-  // ── POST: Submit via File Upload ──────────────────────────
+  
 
-  /// POST /api/mobile/ruang-tugas/submit (metode=file)
-  ///
-  /// Uses http.MultipartRequest with StreamedResponse so we can
-  /// track upload progress and report it via [onProgress].
-  ///
-  /// Validation (mirrors web):
-  ///   - Max 5MB
-  ///   - Accepted: pdf, doc, docx, ppt, pptx, jpg, jpeg, png, webp
+  
+  
+  
+  
+  
+  
+  
+  
   static Future<TugasApiResponse> submitFile({
     required int tugasId,
     required String mapelId,
@@ -152,14 +152,14 @@ class RuangTugasService {
     String catatan = '',
     void Function(double progress)? onProgress,
   }) async {
-    // Client-side size check (5MB) — mirrors JS check in Blade
+    
     const maxBytes = 5 * 1024 * 1024;
     final fileSize = await file.length();
     if (fileSize > maxBytes) {
       return const TugasApiResponse(success: false, message: 'File maksimal 5MB.');
     }
 
-    // Accepted types check — mirrors Blade accept attribute
+    
     final ext = file.path.split('.').last.toLowerCase();
     const allowed = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'jpg', 'jpeg', 'png', 'webp'];
     if (!allowed.contains(ext)) {
@@ -188,7 +188,7 @@ class RuangTugasService {
           filename: file.path.split('/').last,
         ));
 
-      // Stream response to track progress
+      
       final stream   = await request.send().timeout(const Duration(seconds: 60));
       final total    = stream.contentLength ?? 0;
       var   received = 0;
@@ -216,10 +216,10 @@ class RuangTugasService {
     }
   }
 
-  // ── POST: Mark as Read (Manual mode) ─────────────────────
+  
 
-  /// POST /api/mobile/ruang-tugas/submit (metode=manual)
-  /// Used for assignments with allow_upload=false.
+  
+  
   static Future<TugasApiResponse> markAsRead({
     required int tugasId,
     required String mapelId,
@@ -260,10 +260,10 @@ class RuangTugasService {
     }
   }
 
-  // ── POST: Delete/Cancel Submission ───────────────────────
+  
 
-  /// POST /api/mobile/ruang-tugas/delete
-  /// Blocked server-side if nilai !== null.
+  
+  
   static Future<TugasApiResponse> deleteSubmission({
     required int tugasId,
   }) async {
@@ -298,10 +298,10 @@ class RuangTugasService {
     }
   }
 
-  // ── Helper: Build public URL for file submissions ─────────
+  
 
-  /// Resolves the public URL for a file-type submission.
-  /// Storage path: public_path('lms/uploads/tugas') → served at BASE_URL/lms/uploads/tugas/
+  
+  
   static String fileSubmissionUrl(String filename) {
     return '${AppConfig.baseUrl}/lms/uploads/tugas/$filename';
   }

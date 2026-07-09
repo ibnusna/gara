@@ -1,15 +1,15 @@
-// ============================================================
-//  GARA Flutter — Route Builders (Premium, konsisten semua device)
-//
-//  Semua route menggunakan durasi dan kurva yang sama.
-//  Perbedaan dari PageRouteBuilder manual: RepaintBoundary
-//  otomatis di-wrap agar GPU tidak repaint halaman lama saat transisi.
-// ============================================================
+
+
+
+
+
+
+
 
 import 'package:flutter/material.dart';
 import 'performance_config.dart';
 
-/// Fade transition — paling ringan, digunakan untuk overlay/dialog-style push
+
 Route<T> garaFadeRoute<T>(Widget page, {RouteSettings? settings}) {
   return PageRouteBuilder<T>(
     settings: settings,
@@ -26,7 +26,7 @@ Route<T> garaFadeRoute<T>(Widget page, {RouteSettings? settings}) {
   );
 }
 
-/// Fade + slide vertikal mikro (4%) — transisi login ke halaman utama
+
 Route<T> garaFadeSlideRoute<T>(Widget page, {RouteSettings? settings}) {
   return PageRouteBuilder<T>(
     settings: settings,
@@ -52,7 +52,7 @@ Route<T> garaFadeSlideRoute<T>(Widget page, {RouteSettings? settings}) {
   );
 }
 
-/// Slide kanan ke kiri — untuk navigasi masuk lebih dalam (PilihMapel → Dashboard)
+
 Route<T> garaSlideRightRoute<T>(Widget page, {RouteSettings? settings}) {
   return PageRouteBuilder<T>(
     settings: settings,
@@ -72,7 +72,7 @@ Route<T> garaSlideRightRoute<T>(Widget page, {RouteSettings? settings}) {
   );
 }
 
-/// Tanpa animasi — untuk pushReplacement setelah logout
+
 Route<T> garaInstantRoute<T>(Widget page, {RouteSettings? settings}) {
   return PageRouteBuilder<T>(
     settings: settings,

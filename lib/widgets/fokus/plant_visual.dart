@@ -1,8 +1,8 @@
-// Widget: visualisasi tanaman emoji — level 1-5 identik dari blade
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// Emoji tanaman per level — sesuai nama dari Laravel plantLevels
+
 const _plants = [
   (emoji: '🌱', name: 'Bibit'),
   (emoji: '🌿', name: 'Tunas'),
@@ -12,7 +12,7 @@ const _plants = [
 ];
 
 class PlantVisual extends StatelessWidget {
-  final int level; // 1–5
+  final int level; 
 
   const PlantVisual({super.key, required this.level});
 

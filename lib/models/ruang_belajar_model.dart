@@ -1,14 +1,14 @@
-// ============================================================
-//  GARA Flutter — RuangBelajarModel
-//  Data models for the native Ruang Belajar screens.
-//
-//  Matches JSON response from RuangBelajarApiController:
-//   GET /api/mobile/ruang-belajar/bab-list
-//   GET /api/mobile/ruang-belajar/topic-list
-//   GET /api/mobile/ruang-belajar/detail/{id}
-// ============================================================
 
-// ── Guru Info (used in BabListResponse and MateriDetailModel) ─────────────
+
+
+
+
+
+
+
+
+
+
 class GuruInfoModel {
   final String namaLengkap;
   final String avatarUrl;
@@ -21,7 +21,7 @@ class GuruInfoModel {
       );
 }
 
-// ── BAB Model (Level 1 — Chapter List) ───────────────────────────────────
+
 class BabModel {
   final int bab;
   final int semester;
@@ -42,11 +42,11 @@ class BabModel {
         namaBab: json['nama_bab_otomatis'] as String? ?? 'Bab ${json['bab']}',
       );
 
-  /// Formatted chapter number as "01", "02", etc. — matches PHP str_pad logic.
+  
   String get babFormatted => bab.toString().padLeft(2, '0');
 }
 
-/// Response wrapper for babList endpoint.
+
 class BabListResponse {
   final bool success;
   final String? errorMessage;
@@ -68,7 +68,7 @@ class BabListResponse {
       BabListResponse(success: false, errorMessage: message);
 }
 
-// ── Topic Model (Level 2 — Topic List per BAB) ───────────────────────────
+
 class TopicModel {
   final int id;
   final String idMateri;
@@ -76,7 +76,7 @@ class TopicModel {
   final int bagian;
   final String judulMateri;
   final int semester;
-  // Content-type presence flags
+  
   final bool hasYoutube;
   final bool hasPpt;
   final bool hasModul;
@@ -112,7 +112,7 @@ class TopicModel {
       );
 }
 
-/// Response wrapper for topicList endpoint.
+
 class TopicListResponse {
   final bool success;
   final String? errorMessage;
@@ -132,7 +132,7 @@ class TopicListResponse {
       TopicListResponse(success: false, errorMessage: message);
 }
 
-// ── Materi Detail Model (Level 3 — Full Material) ────────────────────────
+
 class MateriDetailModel {
   final int id;
   final String idMateri;
@@ -140,21 +140,21 @@ class MateriDetailModel {
   final int bagian;
   final String judulMateri;
   final int semester;
-  // Video
+  
   final bool hasVideo;
   final String? youtubeId;
   final String? youtubeEmbedUrl;
   final String? youtubeThumb;
-  // Resource links (nullable)
+  
   final String? linkPpt;
   final String? linkModul;
   final String? linkTugas;
   final String? linkNotebook;
-  // Google Drive flags
+  
   final bool pptIsGdrive;
   final bool modulIsGdrive;
   final bool tugasIsGdrive;
-  // Guru
+  
   final GuruInfoModel? guru;
 
   const MateriDetailModel({
@@ -202,12 +202,12 @@ class MateriDetailModel {
     );
   }
 
-  /// Formatted "BAB 01 - Bagian X" label
+  
   String get babBagianLabel =>
       'BAB ${bab.toString().padLeft(2, '0')} - Bagian $bagian';
 }
 
-/// Response wrapper for detail endpoint.
+
 class MateriDetailResponse {
   final bool success;
   final String? errorMessage;

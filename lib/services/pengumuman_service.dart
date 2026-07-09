@@ -8,7 +8,7 @@ import 'auth_service.dart';
 class PengumumanService {
   PengumumanService._();
 
-  /// Fetch list pengumuman from backend
+  
   static Future<PengumumanResponse> getPengumumanList() async {
     try {
       final token = await AuthService.getToken();

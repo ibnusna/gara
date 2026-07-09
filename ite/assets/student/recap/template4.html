@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Student Recap - GARA (Comic Ver)</title>
+    
+    
+    <script src="../../components/cdn.tailwindcss.com/index.js"></script>
+    
+    
+    <link href="../../components/fonts.googleapis.com/css/family_Bangers_family_Comic_Neue_wght_400_700_display_swap.css" rel="stylesheet">
+    
+    
+    <link rel="stylesheet" href="../../components/cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    
+    <style>
+        body {
+            font-family: 'Comic Neue', cursive;
+            background-color: #f0f0f0;
+            overflow: hidden;
+            color: black;
+        }
+
+        h1, h2, h3, .comic-font {
+            font-family: 'Bangers', cursive;
+            letter-spacing: 1px;
+        }
+
+        
+        ::-webkit-scrollbar { display: none; }
+
+        
+
+        
+        .halftone-bg {
+            background-image: radial-gradient(circle, #000 1.5px, transparent 2px);
+            background-size: 10px 10px;
+            opacity: 0.1;
+        }
+        
+        .halftone-color {
+            background-image: radial-gradient(circle, rgba(255,255,255,0.3) 1.5px, transparent 2px);
+            background-size: 6px 6px;
+        }
+
+        
+        .comic-box {
+            border: 3px solid black;
+            box-shadow: 6px 6px 0px 0px black;
+            background: white;
+            transition: transform 0.1s;
+        }
+        .comic-box:active {
+            transform: translate(2px, 2px);
+            box-shadow: 4px 4px 0px 0px black;
+        }
+
+        .comic-text-stroke {
+            -webkit-text-stroke: 1.5px black;
+            color: white;
+            text-shadow: 3px 3px 0px black;
+        }
+        
+        .comic-text-shadow {
+            text-shadow: 2px 2px 0px black;
+        }
+
+        
+        .speech-bubble {
+            position: relative;
+            background: white;
+            border: 3px solid black;
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 4px 4px 0px black;
+        }
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -15px; left: 20px;
+            border-width: 15px 15px 0;
+            border-style: solid;
+            border-color: black transparent;
+            display: block;
+            width: 0;
+        }
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            bottom: -9px; left: 23px;
+            border-width: 12px 12px 0;
+            border-style: solid;
+            border-color: white transparent;
+            display: block;
+            width: 0;
+            z-index: 1;
+        }
+
+        
+        .burst-shape {
+            clip-path: polygon(20% 0%, 30% 10%, 45% 0%, 50% 15%, 65% 5%, 75% 20%, 95% 5%, 85% 30%, 100% 40%, 85% 55%, 100% 70%, 85% 85%, 70% 100%, 55% 85%, 35% 100%, 25% 80%, 0% 90%, 10% 65%, 0% 50%, 15% 35%, 0% 15%);
+        }
+
+        
+        .comic-panel {
+            overflow: hidden;
+            border: 3px solid black;
+            background: white;
+            position: relative;
+        }
+
+        
+        @keyframes popUp {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(100%) skewX(-10deg); opacity: 0; }
+            to { transform: translateX(0) skewX(0deg); opacity: 1; }
+        }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        @keyframes comicZoom {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .animate-pop { animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .animate-slide-comic { animation: slideInRight 0.3s ease-out forwards; }
+        .animate-shake { animation: shake 0.5s; }
+        .animate-zoom { animation: comicZoom 3s infinite; }
+
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        .delay-500 { animation-delay: 500ms; }
+
+        
+        .progress-container {
+            display: flex; gap: 4px; padding: 12px 0;
+            position: absolute; top: 0; left: 16px; right: 16px; z-index: 60;
+        }
+        .progress-bg {
+            height: 6px;
+            background: white; 
+            border: 2px solid black;
+            flex: 1; 
+            transform: skewX(-10deg);
+        }
+        .progress-fill {
+            height: 100%; background: #FACC15; 
+            width: 0%;
+        }
+
+    </style>
+</head>
+<body>
+
+    
+    <div id="loading-screen" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-yellow-400 transition-opacity duration-500">
+        <div class="absolute inset-0 halftone-bg opacity-20"></div>
+        
+        
+        <div class="relative z-10 animate-zoom">
+            <div class="burst-shape bg-white w-72 h-72 flex items-center justify-center border-[3px] border-black shadow-[8px_8px_0px_black]">
+                <div class="text-center transform rotate-[-5deg]">
+                    <h2 class="text-4xl font-black mb-0 leading-none">LOADING...</h2>
+                    <p class="font-bold text-sm bg-black text-white px-2 mt-1 inline-block">MOHON TUNGGU</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div id="app-container" class="fixed inset-0 hidden flex items-center justify-center bg-zinc-800">
+        
+        
+        <div id="story-viewport" class="relative w-full max-w-md h-full max-h-[900px] bg-white shadow-2xl overflow-hidden md:border-[4px] md:border-black">
+            
+            
+            <div class="absolute inset-0 halftone-bg pointer-events-none z-0"></div>
+
+            
+            <div id="progress-wrapper" class="progress-container"></div>
+
+            
+            <button onclick="closeRecap()" class="absolute top-10 right-6 z-[70] bg-white border-2 border-black w-10 h-10 flex items-center justify-center shadow-[3px_3px_0px_black] active:shadow-none active:translate-x-[3px] active:translate-y-[3px] transition-all">
+                <i class="fa-solid fa-xmark text-xl font-bold"></i>
+            </button>
+
+            
+            <div id="touch-left" class="absolute top-0 left-0 w-1/3 h-full z-40"></div>
+            <div id="touch-right" class="absolute top-0 right-0 w-1/3 h-full z-40"></div>
+            <div id="touch-hold" class="absolute top-0 left-1/3 w-1/3 h-full z-40"></div>
+
+            
+            <div id="slide-content" class="w-full h-full relative z-20">
+                
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        
+        
+        
+        const userData = {
+            student_name: "Raka",
+            period: "Triwulan I 2026",
+            stats: {
+                total_days: 14,
+                streak: 5,
+                total_hours: 6,
+                total_minutes: 42,
+                top_feature: "Ruang Belajar",
+                feature_percentage: 70,
+                exams_count: 6,
+                assignments_count: 12,
+                avg_score_trend: "up",
+                best_day_date: "17 JAN",
+                best_day_count: 8
+            },
+            persona: {
+                type: "Deadline Ninja",
+                desc: "Tenang tapi mematikan di detik-detik terakhir!",
+                icon: "fa-user-ninja"
+            }
+        };
+
+        
+        
+        
+        
+        const slides = [
+            
+            {
+                bgColor: "bg-blue-500",
+                render: (data) => `
+                    <div class="flex flex-col justify-center h-full p-6 relative overflow-hidden">
+                        <!-- Background Stripes -->
+                        <div class="absolute inset-0 opacity-20" style="background: repeating-linear-gradient(45deg, #000, #000 10px, transparent 10px, transparent 20px);"></div>
+                        
+                        <div class="speech-bubble mb-8 animate-pop origin-bottom-left transform -rotate-2 w-3/4 mx-auto">
+                            <h3 class="text-xl font-bold">HALO, ${data.student_name.toUpperCase()}!</h3>
+                        </div>
+
+                        <div class="relative z-10 transform rotate-2">
+                            <h1 class="text-8xl font-black text-yellow-400 comic-text-stroke leading-none animate-slide-comic">
+                                INI<br>RECAP<br>KAMU!
+                            </h1>
+                        </div>
+                        
+                        <div class="mt-12 bg-white border-4 border-black p-4 shadow-[8px_8px_0px_black] animate-pop delay-200">
+                            <p class="text-xl font-bold text-center">SIAP LIHAT JEJAKMU?!</p>
+                        </div>
+                        
+                        <div class="absolute bottom-10 right-4 animate-pop delay-500">
+                             <div class="bg-red-500 text-white font-bold border-2 border-black px-4 py-2 shadow-[4px_4px_0px_black] cursor-pointer">
+                                TAP >>
+                             </div>
+                        </div>
+                    </div>
+                `
+            },
+            
+            {
+                bgColor: "bg-yellow-300",
+                render: (data) => `
+                    <div class="h-full relative p-4 flex flex-col justify-center">
+                        
+                        <!-- Panel 1: Number -->
+                        <div class="comic-panel bg-white p-6 mb-4 transform -rotate-1 shadow-[6px_6px_0px_black] animate-slide-comic">
+                             <div class="absolute top-0 right-0 bg-red-500 text-white font-bold px-2 border-l-2 border-b-2 border-black">TOTAL HARI</div>
+                             <div class="text-9xl font-black text-center text-blue-500 comic-text-shadow mt-4">${data.stats.total_days}</div>
+                        </div>
+
+                        <!-- Panel 2: Text -->
+                        <div class="comic-panel bg-blue-400 p-6 transform rotate-1 shadow-[6px_6px_0px_black] animate-slide-comic delay-100">
+                            <h2 class="text-3xl font-black text-white comic-text-stroke text-center leading-tight">
+                                KAMU HADIR MENEMANI KAMI!
+                            </h2>
+                        </div>
+                        
+                        <!-- Grid Days -->
+                        <div class="grid grid-cols-7 gap-1 mt-6 animate-pop delay-300">
+                            ${Array(14).fill(0).map(() => `<div class="h-8 bg-black"></div>`).join('')}
+                            ${Array(14).fill(0).map(() => `<div class="h-8 border-2 border-black bg-white"></div>`).join('')}
+                        </div>
+                    </div>
+                `
+            },
+            
+            {
+                bgColor: "bg-red-500",
+                render: (data) => `
+                    <div class="flex flex-col items-center justify-center h-full p-4 relative overflow-hidden">
+                        <!-- Sunburst BG -->
+                        <div class="absolute inset-0 flex items-center justify-center opacity-30 animate-spin-slow" style="animation-duration: 20s;">
+                            ${Array(12).fill(0).map((_,i) => `<div class="absolute w-[200%] h-12 bg-black top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style="transform: translate(-50%, -50%) rotate(${i*30}deg)"></div>`).join('')}
+                        </div>
+
+                        <div class="burst-shape bg-yellow-400 w-80 h-80 flex items-center justify-center border-[4px] border-black absolute animate-pop">
+                        </div>
+                        
+                        <div class="relative z-10 text-center transform -rotate-3">
+                            <div class="bg-white border-2 border-black px-4 py-1 inline-block font-bold mb-2 shadow-[4px_4px_0px_black]">STREAK TERBAIK</div>
+                            <div class="text-[10rem] font-black text-white comic-text-stroke leading-none drop-shadow-lg">${data.stats.streak}</div>
+                            <h2 class="text-4xl font-black text-black bg-white px-2 border-2 border-black inline-block mt-[-20px] shadow-[4px_4px_0px_black]">HARI!</h2>
+                        </div>
+                        
+                        <i class="fa-solid fa-fire text-6xl text-orange-500 absolute bottom-20 left-10 animate-shake border-2 border-black rounded-full p-2 bg-yellow-200"></i>
+                    </div>
+                `
+            },
+            
+            {
+                bgColor: "bg-sky-400",
+                render: (data) => `
+                    <div class="flex flex-col h-full p-4 justify-center gap-4">
+                        <div class="bg-black text-white p-2 font-bold w-fit border-2 border-white transform rotate-2">WAKTU NONGKRONG</div>
+                        
+                        <!-- Strip 1 -->
+                        <div class="comic-panel p-0 flex h-32 animate-slide-comic shadow-[8px_8px_0px_black]">
+                            <div class="w-1/3 bg-yellow-400 border-r-4 border-black flex items-center justify-center">
+                                <i class="fa-solid fa-clock text-5xl"></i>
+                            </div>
+                            <div class="w-2/3 bg-white flex flex-col justify-center px-4 halftone-color">
+                                <span class="text-6xl font-black">${data.stats.total_hours}</span>
+                                <span class="font-bold bg-black text-white px-1 w-fit">JAM</span>
+                            </div>
+                        </div>
+
+                        <!-- Strip 2 -->
+                        <div class="comic-panel p-0 flex h-32 animate-slide-comic delay-100 shadow-[8px_8px_0px_black] ml-4">
+                            <div class="w-2/3 bg-white flex flex-col items-end justify-center px-4 halftone-color">
+                                <span class="text-6xl font-black">${data.stats.total_minutes}</span>
+                                <span class="font-bold bg-black text-white px-1 w-fit">MENIT</span>
+                            </div>
+                            <div class="w-1/3 bg-pink-500 border-l-4 border-black flex items-center justify-center">
+                                <i class="fa-solid fa-bolt text-5xl text-yellow-300 comic-text-stroke"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="speech-bubble mt-4 text-center font-bold transform rotate-1 animate-pop delay-300">
+                            LEBIH LAMA DARI NONTON FILM!
+                        </div>
+                    </div>
+                `
+            },
+            
+            {
+                bgColor: "bg-purple-500",
+                render: (data) => `
+                    <div class="flex flex-col justify-center h-full p-6">
+                        <h2 class="text-4xl font-black text-white comic-text-stroke text-center mb-8 transform -rotate-2">ZONA NYAMAN!</h2>
+                        
+                        <div class="comic-panel bg-white p-8 shadow-[10px_10px_0px_black] animate-pop text-center relative">
+                            <div class="absolute -top-6 -left-6 bg-yellow-400 border-4 border-black rounded-full w-20 h-20 flex items-center justify-center font-black text-xl animate-shake">
+                                ${data.stats.feature_percentage}%
+                            </div>
+
+                            <i class="fa-solid fa-book-open text-8xl text-purple-600 mb-4 filter drop-shadow-[4px_4px_0px_black]"></i>
+                            <h1 class="text-4xl font-black border-t-4 border-black pt-4">${data.stats.top_feature.toUpperCase()}</h1>
+                        </div>
+                    </div>
+                `
+            },
+            
+            {
+                bgColor: "bg-green-500",
+                render: (data) => `
+                    <div class="flex flex-col items-center justify-center h-full p-6">
+                        <div class="bg-black text-white px-4 py-1 font-bold mb-4 transform -rotate-3 text-xl">PERSONA 2026</div>
+                        
+                        <!-- Card Border -->
+                        <div class="w-full aspect-[3/4] bg-yellow-400 border-[6px] border-black p-2 shadow-[12px_12px_0px_black] animate-pop">
+                            <div class="bg-white h-full border-[3px] border-black flex flex-col relative halftone-color">
+                                <!-- Image Area -->
+                                <div class="h-1/2 bg-blue-500 border-b-[4px] border-black flex items-center justify-center overflow-hidden relative">
+                                    <div class="burst-shape bg-white w-full h-full absolute scale-150"></div>
+                                    <i class="fa-solid ${data.persona.icon} text-8xl relative z-10 text-black"></i>
+                                </div>
+                                
+                                <!-- Text Area -->
+                                <div class="p-4 flex-1 flex flex-col justify-center text-center">
+                                    <h2 class="text-3xl font-black leading-none mb-2 uppercase">${data.persona.type}</h2>
+                                    <p class="font-bold text-sm leading-tight border-2 border-black p-2 bg-gray-100 rounded">
+                                        "${data.persona.desc}"
+                                    </p>
+                                </div>
+                                
+                                <div class="absolute bottom-2 right-2 font-mono text-xs font-bold">#RARE</div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            
+            {
+                bgColor: "bg-orange-500",
+                render: (data) => `
+                    <div class="flex flex-col justify-center h-full p-6 gap-6">
+                        <div class="relative">
+                            <h2 class="text-6xl font-black text-white comic-text-stroke transform -rotate-3 z-10 relative">ACTION<br>TAKER!</h2>
+                            <div class="absolute top-0 left-2 text-6xl font-black text-black transform -rotate-3 opacity-100 z-0 translate-x-[6px] translate-y-[6px]">ACTION<br>TAKER!</div>
+                        </div>
+                        
+                        <div class="comic-panel bg-white p-4 flex items-center gap-4 shadow-[6px_6px_0px_black] animate-slide-comic">
+                             <div class="bg-red-500 border-2 border-black w-16 h-16 flex items-center justify-center text-white text-2xl font-bold">
+                                ${data.stats.exams_count}
+                             </div>
+                             <div class="font-black text-xl">UJIAN<br>SELESAI</div>
+                        </div>
+
+                        <div class="comic-panel bg-white p-4 flex items-center gap-4 shadow-[6px_6px_0px_black] animate-slide-comic delay-100 ml-8">
+                             <div class="bg-blue-500 border-2 border-black w-16 h-16 flex items-center justify-center text-white text-2xl font-bold">
+                                ${data.stats.assignments_count}
+                             </div>
+                             <div class="font-black text-xl">TUGAS<br>SUBMIT</div>
+                        </div>
+                    </div>
+                `
+            },
+            
+            {
+                bgColor: "bg-teal-400",
+                render: (data) => `
+                    <div class="flex flex-col justify-center h-full p-6">
+                        <div class="speech-bubble mb-6 w-fit font-bold transform rotate-2">ANALITIK NILAI</div>
+                        
+                        <h2 class="text-5xl font-black mb-6 transform -rotate-2">GRAFIK <span class="text-white comic-text-stroke">NAIK!</span> 🚀</h2>
+                        
+                        <div class="w-full h-64 bg-white border-4 border-black relative shadow-[8px_8px_0px_black] animate-pop">
+                            <div class="absolute inset-0 halftone-bg opacity-30"></div>
+                            
+                            <!-- Zig Zag Chart Line -->
+                            <svg class="absolute inset-0 w-full h-full p-4 overflow-visible">
+                                <path d="M0,200 L80,180 L140,100 L200,120 L300,20" 
+                                      fill="none" stroke="black" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M0,200 L80,180 L140,100 L200,120 L300,20" 
+                                      fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" transform="translate(-2, -4)"/>
+                                
+                                <circle cx="300" cy="20" r="10" fill="white" stroke="black" stroke-width="3" class="animate-ping" />
+                            </svg>
+                        </div>
+                    </div>
+                `
+            },
+            
+            {
+                bgColor: "bg-pink-500",
+                render: (data) => `
+                    <div class="flex flex-col items-center justify-center h-full p-6 text-center">
+                        <h2 class="text-3xl font-black text-white comic-text-stroke mb-8 bg-black px-4 transform rotate-2">HARI TERBAIK</h2>
+                        
+                        <div class="relative animate-zoom">
+                             <!-- Spiky Shape behind -->
+                             <div class="burst-shape bg-black w-80 h-80 absolute top-2 left-2"></div>
+                             <div class="burst-shape bg-white w-80 h-80 flex flex-col items-center justify-center border-[3px] border-black relative z-10">
+                                <h1 class="text-6xl font-black mb-0 leading-none">${data.stats.best_day_date}</h1>
+                                <div class="w-16 h-2 bg-black my-2"></div>
+                                <div class="bg-yellow-400 border-2 border-black px-2 font-bold transform -rotate-3">
+                                    ${data.stats.best_day_count} AKTIVITAS
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+                `
+            },
+            
+            {
+                bgColor: "bg-white",
+                render: (data) => `
+                    <div class="flex flex-col items-center justify-center h-full p-6 text-center relative">
+                        <div class="absolute inset-0 halftone-bg opacity-20"></div>
+
+                        <h2 class="text-4xl font-black mb-8 transform -rotate-2">SAMPAI JUMPA!</h2>
+                        
+                        <div class="w-full bg-blue-100 border-4 border-black p-6 shadow-[10px_10px_0px_black] mb-8 text-left animate-slide-comic relative">
+                            <div class="absolute -top-6 -right-6 bg-yellow-400 border-4 border-black rounded-full w-16 h-16 flex items-center justify-center text-2xl animate-bounce">👋</div>
+                            
+                            <h3 class="font-black text-2xl mb-2 border-b-4 border-black pb-2">GARA RECAP</h3>
+                            <div class="flex justify-between font-bold text-lg">
+                                <span>${data.persona.type}</span>
+                                <span>${data.stats.streak} Streak</span>
+                            </div>
+                        </div>
+
+                        <button class="w-full py-4 bg-black text-white font-black text-2xl border-4 border-black shadow-[4px_4px_0px_white,8px_8px_0px_black] hover:translate-x-1 hover:translate-y-1 hover:shadow-[4px_4px_0px_black] transition-all mb-4 animate-pop delay-200">
+                            SHARE IMAGE
+                        </button>
+                        
+                        <button onclick="closeRecap()" class="text-xl font-bold underline decoration-4 decoration-yellow-400">
+                            [ CLOSE ]
+                        </button>
+                    </div>
+                `
+            }
+        ];
+
+        
+        
+        
+        let currentSlide = 0;
+        let isPaused = false;
+        let slideDuration = 6000;
+        let progressInterval;
+        let startTime;
+
+        const appContainer = document.getElementById('app-container');
+        const loadingScreen = document.getElementById('loading-screen');
+        const storyViewport = document.getElementById('story-viewport');
+        const slideContent = document.getElementById('slide-content');
+        const progressWrapper = document.getElementById('progress-wrapper');
+
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                loadingScreen.classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => {
+                   loadingScreen.style.display = 'none';
+                   appContainer.classList.remove('hidden');
+                   startStory();
+                }, 500);
+            }, 3000); 
+        });
+
+        function startStory() {
+            initProgressBars();
+            showSlide(0);
+        }
+
+        function initProgressBars() {
+            progressWrapper.innerHTML = '';
+            slides.forEach((_, idx) => {
+                const barContainer = document.createElement('div');
+                barContainer.className = 'progress-bg';
+                const fill = document.createElement('div');
+                fill.className = 'progress-fill';
+                fill.id = `progress-${idx}`;
+                barContainer.appendChild(fill);
+                progressWrapper.appendChild(barContainer);
+            });
+        }
+
+        function showSlide(index) {
+            if (index < 0 || index >= slides.length) {
+                if(index >= slides.length) closeRecap();
+                return;
+            }
+            currentSlide = index;
+            
+            
+            storyViewport.className = `relative w-full max-w-md h-full max-h-[900px] shadow-2xl overflow-hidden md:border-[4px] md:border-black transition-colors duration-300 ${slides[index].bgColor}`;
+            
+            slideContent.innerHTML = slides[index].render(userData);
+            resetProgressBars(index);
+            startProgressBar(index);
+        }
+
+        function resetProgressBars(currentIndex) {
+            slides.forEach((_, idx) => {
+                const bar = document.getElementById(`progress-${idx}`);
+                if (idx < currentIndex) {
+                    bar.style.width = '100%';
+                    bar.style.transition = 'none';
+                } else {
+                    bar.style.width = '0%';
+                    bar.style.transition = 'none';
+                }
+            });
+        }
+
+        function startProgressBar(index) {
+            clearInterval(progressInterval);
+            startTime = Date.now();
+            isPaused = false;
+            const bar = document.getElementById(`progress-${index}`);
+            
+            progressInterval = setInterval(() => {
+                if (!isPaused) {
+                    const elapsed = Date.now() - startTime;
+                    const percent = Math.min((elapsed / slideDuration) * 100, 100);
+                    bar.style.width = `${percent}%`;
+
+                    if (elapsed >= slideDuration) {
+                        clearInterval(progressInterval);
+                        nextSlide();
+                    }
+                } else {
+                    startTime = Date.now() - ((parseFloat(bar.style.width) / 100) * slideDuration);
+                }
+            }, 16);
+        }
+
+        function nextSlide() { showSlide(currentSlide + 1); }
+        function prevSlide() { if(currentSlide > 0) showSlide(currentSlide - 1); else showSlide(0); }
+
+        function closeRecap() {
+            clearInterval(progressInterval);
+            appContainer.classList.add('opacity-0');
+            setTimeout(() => {
+                appContainer.classList.add('hidden');
+                appContainer.classList.remove('opacity-0');
+                alert("Recap Closed");
+            }, 500);
+        }
+
+        const touchLeft = document.getElementById('touch-left');
+        const touchRight = document.getElementById('touch-right');
+        const touchHold = document.getElementById('touch-hold');
+
+        touchRight.addEventListener('click', nextSlide);
+        touchLeft.addEventListener('click', prevSlide);
+
+        [touchLeft, touchRight, touchHold].forEach(area => {
+            ['mousedown', 'touchstart'].forEach(evt => {
+                area.addEventListener(evt, () => { isPaused = true; });
+            });
+            ['mouseup', 'touchend', 'mouseleave'].forEach(evt => {
+                area.addEventListener(evt, () => { isPaused = false; });
+            });
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (appContainer.classList.contains('hidden')) return;
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+            if (e.key === ' ') isPaused = true;
+        });
+        document.addEventListener('keyup', (e) => { if (e.key === ' ') isPaused = false; });
+
+    </script>
+</body>
+</html>

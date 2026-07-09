@@ -1,30 +1,56 @@
-// ============================================================
-//  GARA Flutter — Model: Mata Pelajaran (Mapel)
-//  Fase 2: Real data mapping dari Laravel API
-// ============================================================
+
+
+
+
+
+class JadwalModel {
+  final String hari;
+  final String jamMulai;
+  final String jamSelesai;
+
+  const JadwalModel({
+    required this.hari,
+    required this.jamMulai,
+    required this.jamSelesai,
+  });
+
+  factory JadwalModel.fromJson(Map<String, dynamic> json) {
+    return JadwalModel(
+      hari: json['hari'] as String,
+      jamMulai: json['jam_mulai'] as String,
+      jamSelesai: json['jam_selesai'] as String,
+    );
+  }
+}
 
 class MapelModel {
   final int id;
   final String namaMapel;
   final String? kodeMapel;
+  final List<JadwalModel> jadwal;
 
   const MapelModel({
     required this.id,
     required this.namaMapel,
     this.kodeMapel,
+    this.jadwal = const [],
   });
 
-  /// Factory untuk parsing data mapel dari JSON API Laravel
+  
   factory MapelModel.fromJson(Map<String, dynamic> json) {
+    var jadwalList = json['jadwal'] as List? ?? [];
+    List<JadwalModel> parsedJadwal = jadwalList.map((j) => JadwalModel.fromJson(j as Map<String, dynamic>)).toList();
+    
     return MapelModel(
       id:        json['id'] as int,
       namaMapel: json['nama_mapel'] as String,
       kodeMapel: json['kode_mapel'] as String?,
+      jadwal:    parsedJadwal,
     );
   }
 }
 
-/// Model untuk membungkus seluruh respons dari /api/mobile/mapel
+
 class MapelResponse {
   final bool success;
   final String namaSiswa;
@@ -33,6 +59,8 @@ class MapelResponse {
   final bool gateUjianOpen;
   final List<MapelModel> mapelList;
   final String? errorMessage;
+  /// true jika data diambil dari cache lokal (mode offline)
+  final bool fromCache;
 
   const MapelResponse({
     required this.success,
@@ -42,15 +70,38 @@ class MapelResponse {
     this.gateUjianOpen = false,
     this.mapelList = const [],
     this.errorMessage,
+    this.fromCache = false,
   });
 
   factory MapelResponse.error(String message) {
     return MapelResponse(success: false, errorMessage: message);
   }
+
+  MapelResponse copyWith({
+    bool? success,
+    String? namaSiswa,
+    String? kelasSiswa,
+    String? sekolahNama,
+    bool? gateUjianOpen,
+    List<MapelModel>? mapelList,
+    String? errorMessage,
+    bool? fromCache,
+  }) {
+    return MapelResponse(
+      success:       success       ?? this.success,
+      namaSiswa:     namaSiswa     ?? this.namaSiswa,
+      kelasSiswa:    kelasSiswa    ?? this.kelasSiswa,
+      sekolahNama:   sekolahNama   ?? this.sekolahNama,
+      gateUjianOpen: gateUjianOpen ?? this.gateUjianOpen,
+      mapelList:     mapelList     ?? this.mapelList,
+      errorMessage:  errorMessage  ?? this.errorMessage,
+      fromCache:     fromCache     ?? this.fromCache,
+    );
+  }
 }
 
-/// Data dummy untuk FASE 1 (Frontend only)
-/// FASE 2: Hapus dummy ini, ganti dengan data dari API /student/pilih-mapel
+
+
 class DummyMapelData {
   static const List<MapelModel> mapelList = [
     MapelModel(id: 1, namaMapel: 'Matematika', kodeMapel: 'MTK'),

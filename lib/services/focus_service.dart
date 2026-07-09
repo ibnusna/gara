@@ -1,5 +1,5 @@
-// Service: baca/tulis FocusData ke shared_preferences
-// Key: 'garuda_akademi_ruang_fokus' — sama persis dengan Laravel
+
+
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/focus_model.dart';
 
@@ -22,7 +22,7 @@ class FocusService {
     await prefs.setString(_kKey, data.encode());
   }
 
-  // Catat sesi selesai — identik dengan completeSession() di blade
+  
   static void completeSession(FocusData data) {
     data.stats.totalSessions++;
     data.stats.totalFocusMinutes += data.settings.focusDuration;
@@ -48,7 +48,7 @@ class FocusService {
     data.streak.lastFocusDate = today;
   }
 
-  // Threshold identik dari blade: 8→L2, 15→L3, 25→L4, 40→L5
+  
   static void _updatePlantLevel(FocusData data) {
     final pts = data.plantWaterPoints;
     final newLevel = pts >= 40 ? 5 : pts >= 25 ? 4 : pts >= 15 ? 3 : pts >= 8 ? 2 : 1;

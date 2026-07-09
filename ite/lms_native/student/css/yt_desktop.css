@@ -1,0 +1,177 @@
+/* GARA - Garuda Akademi 
+   File: yt_desktop.css
+   Tujuan: Styling khusus Desktop (Youtube Style)
+   Note: File ini hanya dimuat saat layar >= 992px
+*/
+
+body {
+    overflow-y: scroll;
+    /* Force scrollbar */
+    padding-bottom: 0;
+    background: #f9f9f9;
+    /* Background luar putih abu */
+}
+
+/* Layout Grid Utama */
+.desktop-layout-container {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    /* Video Left (Big), Sidebar Right (Fixed) */
+    min-height: 100vh;
+    gap: 0;
+}
+
+/* --- STATE: NO-VIDEO (Centered Reading Mode) --- */
+.desktop-layout-container.no-video {
+    display: block;
+    /* Disable Grid */
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.desktop-layout-container.no-video .desktop-content-column {
+    border-left: none;
+    position: static;
+    height: auto;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+    border-radius: 16px !important;
+    border: 1px solid #e0e0e0;
+}
+
+/* --- COLUMN 1: VIDEO AREA --- */
+.desktop-video-column {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    min-height: 100vh;
+    align-items: flex-start;
+    /* Start from top */
+    padding-top: 24px;
+    /* Space from top */
+    padding-left: 24px;
+    /* Gap kiri */
+    padding-right: 24px;
+    box-sizing: border-box;
+    background: transparent;
+    /* Pastikan tidak ada background hitam */
+}
+
+.video-wrapper {
+    width: 100%;
+    max-width: 1280px;
+    /* Limit lebar max */
+    margin: 0 auto;
+    /* SHADOW: Lebih halus sesuai request (referensi ui_youtube.html) */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding-bottom: 0;
+    /* No padding buffer on desktop */
+    background: transparent;
+    /* No black background */
+}
+
+.video-container {
+    padding-bottom: 56.25%;
+    /* 16:9 Aspect Ratio */
+    border-radius: 12px;
+    /* Rounded corners halus */
+    overflow: hidden;
+    position: relative;
+    background: #000;
+}
+
+.video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+/* --- COLUMN 2: SIDEBAR CONTENT --- */
+.desktop-content-column {
+    background: #ffffff;
+    border-left: 1px solid #e0e0e0;
+    height: 100vh;
+    overflow-y: auto;
+    position: sticky;
+    top: 0;
+    right: 0;
+}
+
+.content-body {
+    margin-top: 0 !important;
+    /* Force reset */
+    border-radius: 0 !important;
+    /* Force square */
+    padding: 24px;
+    min-height: auto;
+    border: none;
+    box-shadow: none !important;
+}
+
+/* Adjust Typography & Elements for Sidebar */
+.materi-title-lg {
+    font-size: 1.25rem;
+    line-height: 1.4;
+    margin-bottom: 12px;
+}
+
+.materi-desc {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #606060;
+    /* Youtube gray text */
+}
+
+/* Resource Grid -> 1 Column Stack */
+.resource-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+}
+
+.btn-resource {
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 10px 16px;
+    gap: 12px;
+    text-align: left;
+    border-radius: 8px;
+    /* Lebih kecil */
+}
+
+.btn-resource i {
+    font-size: 1.2rem;
+    margin-bottom: 0;
+}
+
+.btn-resource span {
+    font-size: 0.9rem;
+}
+
+/* Tombol Kembali */
+.btn-back-bottom {
+    margin-top: 40px;
+    padding: 12px;
+    font-size: 0.9rem;
+}
+
+/* Custom Scrollbar for Sidebar */
+.desktop-content-column::-webkit-scrollbar {
+    width: 8px;
+}
+
+.desktop-content-column::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.desktop-content-column::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+.desktop-content-column::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+}

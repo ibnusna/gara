@@ -1,26 +1,26 @@
-// ============================================================
-//  GARA Flutter — CTA "Aktivitas Terakhir" Card
-//  Refactored: Design System Baru (dashborad.html) — 1:1 match
-//
-//  DS Section 2 — .primary-card
-//  Layout HTML:
-//    [Badge mapel (VII)]          [▶ Play FAB rotate-3]
-//    [Lanjutkan Belajar]
-//    ─────────────────────────────────────────────────
-//    Progres Modul            65%
-//    [████████████░░░░░░]
-//
-//  Implementasi Flutter:
-//  - Outer: gradient #2563eb→#1d4ed8, rounded-32px, box-shadow
-//  - Inner: Container white/10, rounded-26px, border white/25
-//  - Play FAB: Container putih solid, rounded-16px, rotasi 3°
-//  - Progress: track white/20 + fill white solid, height 8px
-//  - Tap seluruh card → Ruang Belajar via HybridWrapper + Sanctum handoff
-//  - Press animation: scale(0.98) ease-out 150ms
-//
-//  LOGIKA TIDAK DIUBAH: Sanctum handoff URL, SharedPreferences,
-//  HybridWrapper navigation — identik
-// ============================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
@@ -34,12 +34,12 @@ import '../../screens/pilih_mapel_page.dart';
 import '../hybrid_wrapper.dart';
 
 class HeroCard extends StatefulWidget {
-  // Props yang dibutuhkan untuk CTA card
+  
   final String selectedMapel;
   final String kelasSiswa;
 
-  // Props lama dipertahankan untuk kompatibilitas (tidak ditampilkan di CTA card,
-  // sudah dipindahkan ke AppHeader — lihat dashboard_page.dart)
+  
+  
   final String namaSiswa;
   final String sapaan;
   final String quoteHarian;
@@ -62,7 +62,7 @@ class HeroCard extends StatefulWidget {
 class _HeroCardState extends State<HeroCard> {
   bool _pressed = false;
 
-  /// Tap → Ruang Belajar via Sanctum handoff (logika sama dengan LargeMenuTile)
+  
   Future<void> _openRuangBelajar() async {
     HapticFeedback.lightImpact();
     final prefs   = await SharedPreferences.getInstance();
@@ -88,7 +88,7 @@ class _HeroCardState extends State<HeroCard> {
     );
   }
 
-  /// Tap badge mapel → PilihMapelPage (logika sama dengan sebelumnya)
+  
   void _gantiMapel() {
     Navigator.pushReplacement(
       context,
@@ -106,7 +106,7 @@ class _HeroCardState extends State<HeroCard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Section Label (DS: h2.text-sm.font-bold.text-slate-800) ──
+        
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 12),
           child: Row(
@@ -136,7 +136,7 @@ class _HeroCardState extends State<HeroCard> {
           ),
         ),
 
-        // ── Primary Card (DS: .primary-card.rounded-[32px].p-1.5) ──
+        
         GestureDetector(
           onTapDown: (_) => setState(() => _pressed = true),
           onTapUp: (_) {
@@ -147,7 +147,7 @@ class _HeroCardState extends State<HeroCard> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             curve: Curves.easeOut,
-            // DS: active:scale-[0.98]
+            
             transform: Matrix4.identity()..scale(_pressed ? 0.98 : 1.0),
             transformAlignment: Alignment.center,
             width: double.infinity,
@@ -155,11 +155,11 @@ class _HeroCardState extends State<HeroCard> {
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                // DS: background: linear-gradient(145deg, #2563eb, #1d4ed8)
+                
                 colors: [GaraColors.dsPrimaryBright, GaraColors.dsPrimaryDeep],
               ),
               borderRadius: BorderRadius.circular(32),
-              // DS: box-shadow 0 12px 32px -8px rgba(29,78,216,0.5)
+              
               boxShadow: [
                 BoxShadow(
                   color: GaraColors.dsPrimaryDeep
@@ -170,7 +170,7 @@ class _HeroCardState extends State<HeroCard> {
                 ),
               ],
             ),
-            // DS: p-1.5 (6px) — jarak antara outer & inner card
+            
             padding: const EdgeInsets.all(6),
             child: _buildInnerCard(),
           ),
@@ -179,7 +179,7 @@ class _HeroCardState extends State<HeroCard> {
     );
   }
 
-  /// Inner card — DS: .bg-white/10.rounded-[26px].p-5.border.border-white/20
+  
   Widget _buildInnerCard() {
     return Container(
       decoration: BoxDecoration(
@@ -191,17 +191,17 @@ class _HeroCardState extends State<HeroCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Baris atas: Info mapel + Play FAB ──
+          
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Kiri: Badge mapel + judul CTA
+              
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // DS: badge mapel — inline-flex bg-white/20 px-2.5 py-1 rounded-lg
-                    // Tap → ganti mapel
+                    
+                    
                     GestureDetector(
                       onTap: _gantiMapel,
                       child: Container(
@@ -218,12 +218,12 @@ class _HeroCardState extends State<HeroCard> {
                                 size: 10, color: Color(0xFFBFDBFE)),
                             const SizedBox(width: 4),
                             Text(
-                              // DS: "IPA Terpadu (VII)" pattern
+                              
                               '${widget.selectedMapel} (${widget.kelasSiswa})',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
-                                color: const Color(0xFFBFDBFE), // blue-100
+                                color: const Color(0xFFBFDBFE), 
                                 letterSpacing: 0.5,
                               ),
                             ),
@@ -237,7 +237,7 @@ class _HeroCardState extends State<HeroCard> {
 
                     const SizedBox(height: 10),
 
-                    // DS: h3.text-xl.font-bold.text-white
+                    
                     Text(
                       'Lanjutkan\nBelajar',
                       style: GoogleFonts.plusJakartaSans(
@@ -284,8 +284,8 @@ class _HeroCardState extends State<HeroCard> {
 
               const SizedBox(width: 16),
 
-              // DS: FAB Play Button — w-12 h-12 bg-white rounded-[16px]
-              // rotate-3 hover:rotate-0 — implementasi Flutter: Transform.rotate(3°)
+              
+              
               Transform.rotate(
                 angle: 3 * math.pi / 180,
                 child: Builder(
@@ -319,7 +319,7 @@ class _HeroCardState extends State<HeroCard> {
 
           const SizedBox(height: 22),
 
-          // ── Progress Section (DS: .progress-track + .progress-fill) ──
+          
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -331,7 +331,7 @@ class _HeroCardState extends State<HeroCard> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFFEFF6FF), // blue-50
+                      color: const Color(0xFFEFF6FF), 
                     ),
                   ),
                   Text(
@@ -345,7 +345,7 @@ class _HeroCardState extends State<HeroCard> {
                 ],
               ),
               const SizedBox(height: 8),
-              // DS: progress-track (.bg-white/20 h-2 rounded-full)
+              
               Container(
                 height: 8,
                 decoration: BoxDecoration(
@@ -357,7 +357,7 @@ class _HeroCardState extends State<HeroCard> {
                   widthFactor: 0.65,
                   child: Container(
                     decoration: BoxDecoration(
-                      // DS: progress-fill gradient white
+                      
                       gradient: LinearGradient(
                         colors: [
                           Colors.white.withOpacity(0.90),

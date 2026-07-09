@@ -1,14 +1,14 @@
-// ============================================================
-//  GARA Flutter — RuangBelajarService
-//  Stateless API service for the native Ruang Belajar screens.
-//
-//  All methods follow the exact same pattern as AuthService.
-//  Endpoints:
-//    GET  /api/mobile/ruang-belajar/bab-list?mapel_id=X
-//    GET  /api/mobile/ruang-belajar/topic-list?mapel_id=X&bab=Y
-//    GET  /api/mobile/ruang-belajar/detail/{id}?mapel_id=X
-//    POST /api/mobile/ruang-belajar/mark-selesai
-// ============================================================
+
+
+
+
+
+
+
+
+
+
+
 
 import 'dart:convert';
 import 'dart:io';
@@ -19,14 +19,14 @@ import '../utils/app_config.dart';
 import '../utils/app_constants.dart';
 import '../models/ruang_belajar_model.dart';
 
-/// Key used to persist locally which materi IDs the student has completed.
-/// Stored as JSON list: '["IPA-IX-S1-B1-P1", "IPA-IX-S1-B1-P2", ...]'
+
+
 const _kCompletedMateriKey = 'completed_materi_ids';
 
 class RuangBelajarService {
   RuangBelajarService._();
 
-  // ── Internal helper ───────────────────────────────────────
+  
 
   static Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -39,9 +39,9 @@ class RuangBelajarService {
         'X-App': 'GARA_MOBILE',
       };
 
-  // ── Completed Materi — Local SharedPreferences ────────────
+  
 
-  /// Returns the set of id_materi strings the student has marked as complete.
+  
   static Future<Set<String>> getCompletedMateri() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_kCompletedMateriKey) ?? '[]';
@@ -53,14 +53,14 @@ class RuangBelajarService {
     }
   }
 
-  /// Marks a materi as completed locally (SharedPreferences).
-  /// Also calls the server endpoint as a lightweight hook (fire-and-forget).
+  
+  
   static Future<void> markSelesai({
     required int materId,
     required String idMateri,
     required int mapelId,
   }) async {
-    // 1. Local persistence (primary — works offline)
+    
     final prefs = await SharedPreferences.getInstance();
     final completed = await getCompletedMateri();
     if (!completed.contains(idMateri)) {
@@ -68,7 +68,7 @@ class RuangBelajarService {
       await prefs.setString(_kCompletedMateriKey, jsonEncode(completed.toList()));
     }
 
-    // 2. Server hook (secondary — fire-and-forget, failure is silent)
+    
     try {
       final token = await _getToken();
       if (token == null) return;
@@ -81,15 +81,15 @@ class RuangBelajarService {
         body: jsonEncode({'materi_id': materId, 'mapel_id': mapelId}),
       ).timeout(const Duration(seconds: 5));
     } catch (_) {
-      // Intentionally silenced — completion is already persisted locally
+      
     }
   }
 
-  // ── API Calls ─────────────────────────────────────────────
+  
 
-  /// GET /api/mobile/ruang-belajar/bab-list?mapel_id=X
-  ///
-  /// Returns the grouped list of BABs (chapters) for the selected subject.
+  
+  
+  
   static Future<BabListResponse> getBabList(String mapelId) async {
     try {
       final token = await _getToken();
@@ -134,9 +134,9 @@ class RuangBelajarService {
     }
   }
 
-  /// GET /api/mobile/ruang-belajar/topic-list?mapel_id=X&bab=Y
-  ///
-  /// Returns all topics within a specific chapter.
+  
+  
+  
   static Future<TopicListResponse> getTopicList(String mapelId, int bab) async {
     try {
       final token = await _getToken();
@@ -179,9 +179,9 @@ class RuangBelajarService {
     }
   }
 
-  /// GET /api/mobile/ruang-belajar/detail/{id}?mapel_id=X
-  ///
-  /// Returns full material detail including resource URLs and YouTube embed ID.
+  
+  
+  
   static Future<MateriDetailResponse> getDetail(int materId, String mapelId) async {
     try {
       final token = await _getToken();

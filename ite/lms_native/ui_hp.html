@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garuda Academy - Mobile UI</title>
+    <style>
+        /* =========================================
+           1. VARIABLES
+           ========================================= */
+        :root {
+            --bg-color: #ffffff;
+            --text-main: #0f0f0f;
+            --text-secondary: #606060;
+            --shape-bg: #f2f2f2; /* Warna isi shape (abu muda) */
+            --border-color: #000000; /* Hitam tegas */
+            --accent-blue: #065fd4;
+        }
+
+        /* =========================================
+           2. RESET
+           ========================================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Roboto, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding-bottom: 20px;
+        }
+
+        /* =========================================
+           3. VIDEO (NO HEADER)
+           ========================================= */
+        .video-wrapper {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            background-color: #000;
+        }
+
+        .video-container {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+        }
+
+        .video-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* =========================================
+           4. MAIN CONTENT
+           ========================================= */
+        .content-body {
+            padding: 12px 16px;
+        }
+
+        /* Title */
+        .video-title {
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .video-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        /* =========================================
+           5. ACTION BUTTONS (Pill Shapes)
+           ========================================= */
+        .action-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            margin-bottom: 16px;
+            scrollbar-width: none;
+        }
+        .action-scroll::-webkit-scrollbar { display: none; }
+
+        .btn-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background-color: var(--shape-bg);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 18px; /* Sangat bulat (Pill) */
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            flex-shrink: 0;
+            /* Border tipis transparan atau hitam jika ingin sangat tegas, disini saya beri hitam tipis sesuai tema */
+            border: 1px solid rgba(0,0,0,0.1); 
+        }
+        
+        .btn-pill:active {
+            background-color: #e5e5e5;
+        }
+
+        .btn-pill svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* =========================================
+           6. DESCRIPTION & MATERIALS (UNIFIED SHAPE STYLE)
+           Ini adalah "Shape" yang dimaksud: 
+           - Tidak kotak (border-radius besar)
+           - Border Hitam di sisinya
+           ========================================= */
+        
+        /* Shared Style untuk Deskripsi & Materi agar konsisten */
+        .ui-shape {
+            background-color: var(--shape-bg);
+            border: 1px solid var(--border-color); /* GARIS HITAM TEGAS */
+            border-radius: 16px; /* Sudut melengkung, tidak kotak kaku */
+            padding: 14px;
+            margin-bottom: 12px;
+            color: var(--text-main);
+            display: block;
+            text-decoration: none;
+        }
+
+        /* Specific for Description */
+        .desc-box {
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+        .desc-box strong {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        /* Specific for Material Items */
+        .material-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #fff; /* Materi background putih agar kontras dengan border hitam */
+            /* Overwrite background dari .ui-shape kalau mau putih, atau biarkan abu */
+            background-color: #ffffff; 
+            transition: transform 0.1s;
+        }
+
+        .material-item:active {
+            background-color: #f0f0f0;
+            transform: scale(0.98);
+        }
+
+        .shape-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .shape-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px; /* Icon juga rounded */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--shape-bg);
+            border: 1px solid #e0e0e0;
+        }
+        
+        .shape-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .shape-info h4 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .shape-info span {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 20px 0 12px 0;
+            color: var(--text-main);
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- VIDEO PLAYER -->
+    <div class="video-wrapper">
+        <div class="video-container">
+            <iframe src="https://www.youtube.com/embed/5qap5aO4i9A?modestbranding=1&rel=0&showinfo=0" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content-body">
+        
+        <!-- Judul -->
+        <h1 class="video-title">Konsep Dasar Pertumbuhan dan Perkembangan</h1>
+        <div class="video-meta">
+            124rb x ditonton • 2 jam yang lalu
+        </div>
+
+        <!-- Tombol Aksi (Pill Shape) -->
+        <div class="action-scroll">
+            <a href="#" class="btn-pill">
+                <svg viewBox="0 0 24 24"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1.91l-.01-.01L23 10z"/></svg>
+                1.2rb
+            </a>
+            <a href="#" class="btn-pill">
+                <svg viewBox="0 0 24 24"><path d="M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v1.91l.01.01L1 14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 23l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"/></svg>
+                Tidak Suka
+            </a>
+            <a href="#" class="btn-pill">
+                <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+                Bagikan
+            </a>
+            <a href="#" class="btn-pill">
+                <svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+                Simpan
+            </a>
+        </div>
+
+        <!-- Deskripsi (Shape dengan Border Hitam) -->
+        <div class="ui-shape desc-box">
+            <strong>Deskripsi</strong>
+            Video ini membahas perbedaan mendasar antara pertumbuhan (growth) dan perkembangan (development).
+            <br><br>
+            <span style="font-weight:700; font-size:12px">...selengkapnya</span>
+        </div>
+
+        <!-- Materi (Shape dengan Border Hitam) -->
+        <div class="section-title">Materi Pembelajaran</div>
+
+        <div class="materials-stack">
+            
+            <!-- Shape 1: Modul -->
+            <a href="#" class="ui-shape material-item">
+                <div class="shape-left">
+                    <div class="shape-icon" style="color: #065fd4;">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                    </div>
+                    <div class="shape-info">
+                        <h4>Baca Modul</h4>
+                        <span>PDF • 1.2 MB</span>
+                    </div>
+                </div>
+                <!-- Panah -->
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#000"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+            </a>
+
+            <!-- Shape 2: Notebook -->
+            <a href="#" class="ui-shape material-item">
+                <div class="shape-left">
+                    <div class="shape-icon" style="color: #e65100;">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                    </div>
+                    <div class="shape-info">
+                        <h4>Catatan Kelas</h4>
+                        <span>Interaktif Notebook</span>
+                    </div>
+                </div>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#000"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+            </a>
+
+            <!-- Shape 3: Quiz -->
+            <a href="#" class="ui-shape material-item">
+                <div class="shape-left">
+                    <div class="shape-icon" style="color: #2e7d32;">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </div>
+                    <div class="shape-info">
+                        <h4>Kuis Pemahaman</h4>
+                        <span>10 Soal</span>
+                    </div>
+                </div>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#000"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+            </a>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

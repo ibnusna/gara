@@ -61,7 +61,7 @@ class _RuangFokusPageState extends State<RuangFokusPage> {
     super.dispose();
   }
 
-  // ── Timer controls ────────────────────────────────────────
+  
   void _start() {
     HapticFeedback.mediumImpact();
     setState(() { _running = true; _paused = false; });
@@ -98,7 +98,7 @@ class _RuangFokusPageState extends State<RuangFokusPage> {
       FocusService.completeSession(_data);
       await FocusService.save(_data);
       _showSnack('Sesi Fokus Selesai! Tanaman bertumbuh 🌱', Colors.green);
-      // Switch ke istirahat
+      
       final nextMode = _data.stats.totalSessions % 4 == 0
           ? _TimerMode.longBreak
           : _TimerMode.shortBreak;
@@ -276,7 +276,7 @@ class _RuangFokusPageState extends State<RuangFokusPage> {
       );
 }
 
-// ── Settings Dialog ───────────────────────────────────────────
+
 class _SettingsDialog extends StatefulWidget {
   final int focus;
   final int shortBreak;

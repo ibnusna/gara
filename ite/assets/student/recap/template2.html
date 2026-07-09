@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Student Recap - GARA</title>
+    
+    
+    <script src="../../components/cdn.tailwindcss.com/index.js"></script>
+    
+    
+    <link href="../../components/fonts.googleapis.com/css/family_Plus_Jakarta_Sans_wght_400_500_700_800_display_swap.css" rel="stylesheet">
+    
+    
+    <link rel="stylesheet" href="../../components/cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #000;
+            overflow: hidden;
+            color: white;
+        }
+
+        
+        ::-webkit-scrollbar { display: none; }
+
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes popIn { 
+            0% { transform: scale(0.9); opacity: 0; } 
+            100% { transform: scale(1); opacity: 1; } 
+        }
+        @keyframes float { 
+            0%, 100% { transform: translateY(0px); } 
+            50% { transform: translateY(-10px); } 
+        }
+        @keyframes typing {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        
+        .animate-fade-in { animation: fadeIn 1s ease-out forwards; }
+        .animate-slide-up { animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        .animate-pop { animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-twinkle { animation: twinkle 3s ease-in-out infinite; }
+        
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        .delay-500 { animation-delay: 500ms; }
+        .delay-700 { animation-delay: 700ms; }
+
+        
+
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        
+        .grid-pattern-light {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, #f0f0f0 1px, transparent 1px),
+                              linear-gradient(to bottom, #f0f0f0 1px, transparent 1px);
+        }
+        
+        .grid-pattern-dark {
+            background-size: 50px 50px;
+            background-image: linear-gradient(to right, rgba(255,255,255,0.08) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255,255,255,0.08) 1px, transparent 1px);
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+        }
+
+        
+        .noise-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.08;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        
+        .star-shape {
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            background: white;
+        }
+        
+        
+        .progress-container {
+            display: flex; gap: 4px; padding: 12px 0;
+            position: absolute; top: 0; left: 16px; right: 16px; z-index: 60;
+        }
+        .progress-bg {
+            height: 2px;
+            background: rgba(255, 255, 255, 0.2);
+            flex: 1; border-radius: 2px; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; background: white; width: 0%;
+            box-shadow: 0 0 8px rgba(255,255,255,0.8);
+        }
+
+        
+        .typing-dots::after {
+            content: ''; animation: typing 1.5s infinite;
+            display: inline-block; width: 1em; text-align: left;
+        }
+
+        
+        .glow-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+
+    
+    <div id="loading-screen" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white transition-opacity duration-1000">
+        
+        <div class="absolute inset-0 grid-pattern-light opacity-60"></div>
+        
+        <div class="relative z-10 text-center">
+            <h2 class="text-xl font-bold text-black tracking-tight mb-2">
+                Hal keren akan muncul sebentar lagi<span class="typing-dots"></span>
+            </h2>
+        </div>
+    </div>
+
+    
+    <div id="app-container" class="fixed inset-0 hidden flex items-center justify-center bg-[#0a0a0a]">
+        
+        
+        <div id="blur-bg" class="absolute inset-0 bg-cover bg-center opacity-30 blur-3xl transition-all duration-1000 transform scale-110"></div>
+
+        
+        <div id="story-viewport" class="relative w-full max-w-md h-full max-h-[900px] bg-black shadow-2xl overflow-hidden md:rounded-3xl border border-white/5">
+            
+            
+            <div class="noise-overlay"></div>
+
+            
+            <div class="absolute inset-0 grid-pattern-dark pointer-events-none z-0"></div>
+
+            
+            <div id="progress-wrapper" class="progress-container"></div>
+
+            
+            <button onclick="closeRecap()" class="absolute top-8 right-6 z-[70] text-white/50 hover:text-white p-2 transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+
+            
+            <div id="touch-left" class="absolute top-0 left-0 w-1/3 h-full z-40"></div>
+            <div id="touch-right" class="absolute top-0 right-0 w-1/3 h-full z-40"></div>
+            <div id="touch-hold" class="absolute top-0 left-1/3 w-1/3 h-full z-40"></div>
+
+            
+            <div id="slide-content" class="w-full h-full relative z-20">
+                
+            </div>
+
+            
+            <div id="slide-decor" class="absolute inset-0 z-10 transition-opacity duration-700">
+                
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        
+        
+        
+        const userData = {
+            student_name: "Raka",
+            period: "Triwulan I 2026",
+            stats: {
+                total_days: 14,
+                streak: 5,
+                total_hours: 6,
+                total_minutes: 42,
+                top_feature: "Ruang Belajar",
+                feature_percentage: 70,
+                exams_count: 6,
+                assignments_count: 12,
+                avg_score_trend: "up",
+                best_day_date: "17 Januari",
+                best_day_count: 8
+            },
+            persona: {
+                type: "The Deadline Ninja",
+                desc: "Tenang, tapi mematikan di detik-detik terakhir. Tugas mepet deadline selalu jadi masterpiecemu.",
+                icon: "fa-user-ninja"
+            }
+        };
+
+        
+        const starSVG = (cls) => `
+            <svg class="absolute ${cls} animate-twinkle" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0L14.5 9.5L24 12L14.5 14.5L12 24L9.5 14.5L0 12L9.5 9.5L12 0Z" />
+            </svg>
+        `;
+
+        
+        
+        
+        const getDecor = (index) => {
+            
+            const commonStars = `
+                ${starSVG('text-white w-8 h-8 top-12 left-8 opacity-90')}
+                ${starSVG('text-pink-300 w-4 h-4 top-32 right-12 opacity-60')}
+                ${starSVG('text-white w-6 h-6 bottom-20 right-8 opacity-80')}
+            `;
+
+            const decors = [
+                
+                `<div class="glow-blob bg-pink-600 w-80 h-80 -top-20 -left-20"></div>
+                 <div class="glow-blob bg-purple-900 w-64 h-64 bottom-0 right-0 opacity-40"></div>
+                 ${commonStars}`,
+                
+                
+                `<div class="glow-blob bg-teal-600 w-96 h-96 -top-32 right-0 opacity-30"></div>
+                 <div class="glow-blob bg-blue-800 w-64 h-64 bottom-10 -left-10 opacity-40"></div>
+                 ${starSVG('text-teal-200 w-6 h-6 top-1/4 left-1/4')}`,
+                
+                
+                `<div class="glow-blob bg-orange-600 w-full h-80 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-20 blur-[100px]"></div>
+                 ${starSVG('text-yellow-200 w-10 h-10 top-20 right-10')}`,
+
+                
+                `<div class="glow-blob bg-indigo-600 w-80 h-80 bottom-0 left-0 opacity-40"></div>
+                 <div class="absolute right-0 top-1/3 w-32 h-32 border border-white/20 rounded-full"></div>
+                 ${commonStars}`,
+                
+                
+                `<div class="glow-blob bg-fuchsia-600 w-full h-64 top-0 opacity-30"></div>
+                 <div class="absolute left-0 bottom-0 grid-pattern-light opacity-10 w-full h-1/2"></div>`,
+
+                
+                `<div class="glow-blob bg-yellow-600 w-64 h-64 top-1/4 left-1/2 -translate-x-1/2 opacity-30"></div>
+                 <div class="absolute inset-0 border-[20px] border-white/5"></div>
+                 ${starSVG('text-white w-12 h-12 top-8 left-8')}`,
+
+                
+                `<div class="glow-blob bg-rose-600 w-96 h-96 -right-20 top-20 opacity-20"></div>`,
+
+                
+                 `<div class="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-900/20 to-transparent"></div>
+                  ${starSVG('text-emerald-200 w-5 h-5 bottom-32 left-10')}`,
+
+                
+                `<div class="glow-blob bg-white w-64 h-64 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 mix-blend-overlay"></div>
+                 ${starSVG('text-white w-16 h-16 top-10 left-1/2 -translate-x-1/2')}`,
+
+                
+                `<div class="glow-blob bg-purple-600 w-64 h-64 top-0 right-0 opacity-20"></div>
+                 <div class="glow-blob bg-pink-600 w-64 h-64 bottom-0 left-0 opacity-20"></div>
+                 ${commonStars}`
+            ];
+            return decors[index % decors.length];
+        };
+
+        const slides = [
+            
+            {
+                render: (data) => `
+                    <div class="flex flex-col justify-center h-full p-8 relative z-20">
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] border border-white/10 rounded-full animate-spin-slow pointer-events-none"></div>
+                        
+                        <h3 class="text-lg font-medium mb-2 animate-slide-up delay-100 opacity-70 tracking-widest uppercase">Halo, ${data.student_name}</h3>
+                        <h1 class="text-6xl font-black mb-6 leading-none animate-slide-up delay-200 tracking-tighter">
+                            INI<br>
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-300">RECAP</span><br>
+                            KAMU.
+                        </h1>
+                        <p class="text-base animate-slide-up delay-300 opacity-80 max-w-[200px]">3 bulan berlalu. Ayo lihat jejak digitalmu.</p>
+                        
+                        <div class="absolute bottom-12 right-8 animate-pop delay-500">
+                             <div class="flex items-center gap-2 opacity-60">
+                                <span class="text-xs uppercase tracking-widest">Tap to start</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                             </div>
+                        </div>
+                    </div>
+                `
+            },
+            
+            {
+                render: (data) => `
+                    <div class="flex flex-col justify-end h-full p-8 pb-20 relative z-20">
+                        <div class="absolute top-20 left-8 text-8xl opacity-20 font-black animate-float">14</div>
+                        
+                        <h2 class="text-4xl font-bold mb-4 animate-slide-up delay-100 leading-tight">
+                            Kamu hadir<br>selama <span class="text-teal-300">${data.stats.total_days} hari</span>.
+                        </h2>
+                        <div class="h-1 w-20 bg-teal-500 mb-6 animate-slide-up delay-200"></div>
+                        <p class="text-lg opacity-80 animate-slide-up delay-300">Terima kasih sudah meluangkan waktu.</p>
+                        
+                        <!-- Grid Visual -->
+                        <div class="grid grid-cols-7 gap-2 mt-8 animate-slide-up delay-500 opacity-60">
+                            ${Array(14).fill(0).map(() => `<div class="h-8 bg-white/20 rounded-sm"></div>`).join('')}
+                            ${Array(14).fill(0).map(() => `<div class="h-8 border border-white/10 rounded-sm"></div>`).join('')}
+                        </div>
+                    </div>
+                `
+            },
+            
+            {
+                render: (data) => `
+                    <div class="flex flex-col items-center justify-center h-full p-8 text-center relative z-20">
+                        <div class="mb-8 relative">
+                             <i class="fa-solid fa-fire text-[160px] text-orange-600 blur-2xl absolute inset-0 animate-pulse"></i>
+                             <i class="fa-solid fa-fire text-[160px] text-gradient-to-b from-yellow-300 to-red-600 relative z-10 animate-pop"></i>
+                        </div>
+                        
+                        <div class="glass-card px-8 py-4 rounded-full mb-4 animate-slide-up delay-200 border-orange-500/30">
+                            <span class="text-orange-200 font-bold tracking-widest uppercase text-sm">Streak Terbaik</span>
+                        </div>
+
+                        <div class="text-[8rem] font-black leading-none animate-slide-up delay-300 text-white drop-shadow-[0_0_15px_rgba(255,165,0,0.5)]">
+                            ${data.stats.streak}
+                        </div>
+                        <p class="text-xl font-bold tracking-[0.5em] text-white/50 animate-slide-up delay-500">HARI</p>
+                    </div>
+                `
+            },
+            
+            {
+                render: (data) => `
+                    <div class="flex flex-col justify-center h-full p-8 relative z-20">
+                        <div class="border-l-2 border-white/20 pl-6 mb-10 animate-slide-up">
+                            <h2 class="text-sm uppercase tracking-widest mb-2 opacity-60">Total Waktu</h2>
+                            <div class="text-5xl font-black text-indigo-300">Nongkrong.</div>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="glass-card p-6 rounded-2xl flex justify-between items-center animate-slide-up delay-200">
+                                <span class="text-5xl font-bold">${data.stats.total_hours}</span>
+                                <span class="text-sm uppercase tracking-wider opacity-60 text-right">Jam<br>Belajar</span>
+                            </div>
+                            <div class="glass-card p-6 rounded-2xl flex justify-between items-center animate-slide-up delay-300">
+                                <span class="text-5xl font-bold">${data.stats.total_minutes}</span>
+                                <span class="text-sm uppercase tracking-wider opacity-60 text-right">Menit<br>Extra</span>
+                            </div>
+                        </div>
+                        
+                        <p class="mt-8 text-sm opacity-50 text-center animate-fade-in delay-700">Lebih lama dari nonton film durasi panjang.</p>
+                    </div>
+                `
+            },
+            
+            {
+                render: (data) => `
+                    <div class="flex flex-col justify-end h-full p-8 pb-24 relative z-20">
+                        <h2 class="text-3xl font-bold mb-6 animate-slide-up">Zona Nyamanmu:</h2>
+                        
+                        <div class="relative w-full aspect-square glass-card rounded-3xl p-8 flex flex-col justify-between animate-pop delay-200 overflow-hidden group">
+                            <div class="absolute -right-10 -top-10 w-40 h-40 bg-fuchsia-500/30 rounded-full blur-2xl group-hover:bg-fuchsia-500/50 transition-colors"></div>
+                            
+                            <i class="fa-solid fa-book-open text-5xl text-white mb-4"></i>
+                            <div>
+                                <h1 class="text-3xl font-extrabold leading-tight mb-2">${data.stats.top_feature}</h1>
+                                <p class="text-fuchsia-200 font-mono text-sm">${data.stats.feature_percentage}% Total Aktivitas</p>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            
+            {
+                render: (data) => `
+                    <div class="flex flex-col items-center justify-center h-full p-6 text-center relative z-20">
+                        <div class="glass-card w-full max-w-sm aspect-[3/4] rounded-[2rem] p-1 flex flex-col animate-pop delay-200 relative overflow-hidden">
+                            <!-- Inner Border -->
+                            <div class="w-full h-full border border-white/10 rounded-[1.8rem] flex flex-col items-center justify-between p-8 relative z-10">
+                                
+                                <div class="mt-4 text-xs font-mono border border-white/20 px-3 py-1 rounded-full uppercase">Persona 2026</div>
+                                
+                                <div class="text-center">
+                                    <div class="w-24 h-24 mx-auto bg-gradient-to-tr from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(255,200,0,0.4)]">
+                                        <i class="fa-solid ${data.persona.icon} text-4xl text-black"></i>
+                                    </div>
+                                    <h2 class="text-3xl font-black uppercase italic tracking-tight mb-4">${data.persona.type}</h2>
+                                    <p class="text-sm opacity-80 leading-relaxed font-medium">"${data.persona.desc}"</p>
+                                </div>
+
+                                <div class="w-full flex justify-between opacity-40">
+                                    <i class="fa-solid fa-barcode text-3xl"></i>
+                                    <span class="font-mono text-xs">#GARA-ID</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Card BG -->
+                            <div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+                        </div>
+                    </div>
+                `
+            },
+            
+            {
+                render: (data) => `
+                    <div class="flex flex-col justify-center h-full p-8 relative z-20">
+                        <h2 class="text-5xl font-black mb-12 animate-slide-up leading-[0.9]">ACTION<br><span class="text-rose-500">TAKER.</span></h2>
+                        
+                        <div class="space-y-4">
+                             <div class="glass-card p-5 rounded-xl flex items-center gap-4 animate-slide-up delay-200">
+                                <div class="bg-rose-500/20 p-3 rounded-lg text-rose-300"><i class="fa-solid fa-pen-nib"></i></div>
+                                <div>
+                                    <div class="text-2xl font-bold">${data.stats.exams_count}</div>
+                                    <div class="text-xs uppercase opacity-60">Ujian Selesai</div>
+                                </div>
+                             </div>
+
+                             <div class="glass-card p-5 rounded-xl flex items-center gap-4 animate-slide-up delay-300">
+                                <div class="bg-pink-500/20 p-3 rounded-lg text-pink-300"><i class="fa-solid fa-file-arrow-up"></i></div>
+                                <div>
+                                    <div class="text-2xl font-bold">${data.stats.assignments_count}</div>
+                                    <div class="text-xs uppercase opacity-60">Tugas Submit</div>
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+                `
+            },
+            
+            {
+                render: (data) => `
+                    <div class="flex flex-col justify-center h-full p-8 relative z-20">
+                        <h3 class="font-mono text-xs text-emerald-400 mb-2 animate-slide-up">ANALITIK NILAI</h3>
+                        <h2 class="text-4xl font-bold mb-8 animate-slide-up delay-100">Grafikmu sedang <span class="text-emerald-400 italic">naik.</span> 🚀</h2>
+                        
+                        <div class="w-full h-64 border-l border-b border-white/20 relative animate-slide-up delay-200">
+                            <!-- Simple SVG Chart -->
+                            <svg class="absolute inset-0 w-full h-full overflow-visible">
+                                <path d="M0,200 Q100,150 200,100 T300,20" fill="none" stroke="#34d399" stroke-width="4" stroke-linecap="round" 
+                                class="drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]" />
+                                <circle cx="300" cy="20" r="6" fill="white" class="animate-pulse" />
+                            </svg>
+                            
+                            <!-- Grid BG inside chart -->
+                            <div class="absolute inset-0 grid-pattern-light opacity-10"></div>
+                        </div>
+                    </div>
+                `
+            },
+            
+            {
+                render: (data) => `
+                    <div class="flex flex-col items-center justify-center h-full p-8 text-center relative z-20">
+                         <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-[300px] h-[300px] border border-white/20 rounded-full animate-spin-slow opacity-30"></div>
+                            <div class="w-[200px] h-[200px] border border-white/10 rounded-full animate-spin-slow opacity-50" style="animation-direction: reverse;"></div>
+                        </div>
+
+                        <p class="text-sm font-mono mb-6 relative z-10 animate-slide-up opacity-60">HARI TERBAIK</p>
+                        
+                        <div class="relative z-10 animate-pop delay-200">
+                            <h1 class="text-6xl font-black mb-2 tracking-tighter">${data.stats.best_day_date}</h1>
+                            <div class="bg-white text-black font-bold px-4 py-1 inline-block transform -rotate-2 shadow-[0_0_20px_rgba(255,255,255,0.4)]">
+                                ${data.stats.best_day_count} AKTIVITAS
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            
+            {
+                render: (data) => `
+                    <div class="flex flex-col items-center justify-center h-full p-8 text-center relative z-20">
+                        <h2 class="text-3xl font-bold mb-8 animate-slide-up">Sampai jumpa di<br>Triwulan depan.</h2>
+                        
+                        <div class="glass-card w-full p-6 rounded-2xl mb-8 animate-slide-up delay-200 text-left relative overflow-hidden">
+                            <div class="absolute -right-4 -top-4 w-20 h-20 bg-gradient-to-br from-pink-500 to-purple-500 rounded-full blur-xl opacity-50"></div>
+                            
+                            <h3 class="font-black text-xl mb-4 tracking-widest">GARA RECAP</h3>
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <div class="opacity-50 text-xs">Tipe</div>
+                                    <div class="font-bold">${data.persona.type}</div>
+                                </div>
+                                <div>
+                                    <div class="opacity-50 text-xs">Streak</div>
+                                    <div class="font-bold">${data.stats.streak} Hari</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="w-full py-4 bg-white text-black font-bold text-lg rounded-full mb-4 shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:scale-105 transition-transform animate-slide-up delay-500">
+                            Share Image
+                        </button>
+                        
+                        <button onclick="closeRecap()" class="text-sm opacity-50 hover:opacity-100 font-mono animate-fade-in delay-700">
+                            [ CLOSE ]
+                        </button>
+                    </div>
+                `
+            }
+        ];
+
+        
+        
+        
+        let currentSlide = 0;
+        let isPaused = false;
+        let slideDuration = 6000;
+        let progressInterval;
+        let startTime;
+
+        const appContainer = document.getElementById('app-container');
+        const loadingScreen = document.getElementById('loading-screen');
+        const storyViewport = document.getElementById('story-viewport');
+        const slideContent = document.getElementById('slide-content');
+        const slideDecor = document.getElementById('slide-decor');
+        const progressWrapper = document.getElementById('progress-wrapper');
+
+        window.addEventListener('load', () => {
+            
+            setTimeout(() => {
+                loadingScreen.classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => {
+                   loadingScreen.style.display = 'none';
+                   appContainer.classList.remove('hidden');
+                   startStory();
+                }, 1000);
+            }, 3000); 
+        });
+
+        function startStory() {
+            initProgressBars();
+            showSlide(0);
+        }
+
+        function initProgressBars() {
+            progressWrapper.innerHTML = '';
+            slides.forEach((_, idx) => {
+                const barContainer = document.createElement('div');
+                barContainer.className = 'progress-bg';
+                const fill = document.createElement('div');
+                fill.className = 'progress-fill';
+                fill.id = `progress-${idx}`;
+                barContainer.appendChild(fill);
+                progressWrapper.appendChild(barContainer);
+            });
+        }
+
+        function showSlide(index) {
+            if (index < 0 || index >= slides.length) {
+                if(index >= slides.length) closeRecap();
+                return;
+            }
+            currentSlide = index;
+            slideContent.innerHTML = slides[index].render(userData);
+            slideDecor.innerHTML = getDecor(index);
+            resetProgressBars(index);
+            startProgressBar(index);
+        }
+
+        function resetProgressBars(currentIndex) {
+            slides.forEach((_, idx) => {
+                const bar = document.getElementById(`progress-${idx}`);
+                if (idx < currentIndex) {
+                    bar.style.width = '100%';
+                    bar.style.transition = 'none';
+                } else {
+                    bar.style.width = '0%';
+                    bar.style.transition = 'none';
+                }
+            });
+        }
+
+        function startProgressBar(index) {
+            clearInterval(progressInterval);
+            startTime = Date.now();
+            isPaused = false;
+            const bar = document.getElementById(`progress-${index}`);
+            
+            progressInterval = setInterval(() => {
+                if (!isPaused) {
+                    const elapsed = Date.now() - startTime;
+                    const percent = Math.min((elapsed / slideDuration) * 100, 100);
+                    bar.style.width = `${percent}%`;
+
+                    if (elapsed >= slideDuration) {
+                        clearInterval(progressInterval);
+                        nextSlide();
+                    }
+                } else {
+                    startTime = Date.now() - ((parseFloat(bar.style.width) / 100) * slideDuration);
+                }
+            }, 16);
+        }
+
+        function nextSlide() { showSlide(currentSlide + 1); }
+        function prevSlide() { if(currentSlide > 0) showSlide(currentSlide - 1); else showSlide(0); }
+
+        function closeRecap() {
+            clearInterval(progressInterval);
+            appContainer.classList.add('opacity-0');
+            setTimeout(() => {
+                appContainer.classList.add('hidden');
+                appContainer.classList.remove('opacity-0');
+                alert("Recap Closed");
+            }, 500);
+        }
+
+        const touchLeft = document.getElementById('touch-left');
+        const touchRight = document.getElementById('touch-right');
+        const touchHold = document.getElementById('touch-hold');
+
+        touchRight.addEventListener('click', nextSlide);
+        touchLeft.addEventListener('click', prevSlide);
+
+        [touchLeft, touchRight, touchHold].forEach(area => {
+            ['mousedown', 'touchstart'].forEach(evt => {
+                area.addEventListener(evt, () => { 
+                    isPaused = true; 
+                    slideContent.classList.add('scale-[0.98]', 'transition-transform'); 
+                });
+            });
+            ['mouseup', 'touchend', 'mouseleave'].forEach(evt => {
+                area.addEventListener(evt, () => { 
+                    isPaused = false; 
+                    slideContent.classList.remove('scale-[0.98]'); 
+                });
+            });
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (appContainer.classList.contains('hidden')) return;
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+            if (e.key === ' ') isPaused = true;
+        });
+        document.addEventListener('keyup', (e) => { if (e.key === ' ') isPaused = false; });
+
+    </script>
+</body>
+</html>

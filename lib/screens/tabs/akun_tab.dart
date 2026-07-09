@@ -1,15 +1,15 @@
-// ============================================================
-//  GARA Flutter — Akun Tab (Redesign: Setara Web Tentang Saya)
-//  Masalah 3: Tambah Ganti Password + Info Sekolah
-//
-//  Fitur:
-//   1. Profil siswa (nama, NIS, kelas, status akun)
-//   2. Tombol Ganti Password → WebView /student/ganti-password
-//   3. Badge peringatan jika masih menggunakan password bawaan
-//   4. Informasi Sekolah (nama sekolah, tahun ajaran, semester)
-//   5. Tombol Ganti Mapel
-//   6. Tombol Logout
-// ============================================================
+
+
+
+
+
+
+
+
+
+
+
+
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -53,7 +53,7 @@ class _AkunTabState extends State<AkunTab> {
   }
 
   Future<void> _loadProfileData() async {
-    // Load dari SharedPreferences dulu (cepat, sudah ada)
+    
     final prefs = await SharedPreferences.getInstance();
     if (mounted) {
       setState(() {
@@ -66,7 +66,7 @@ class _AkunTabState extends State<AkunTab> {
       });
     }
 
-    // Fetch data terbaru dari API di background
+    
     final detail = await AuthService.getStudentAccountDetail();
     if (detail != null && mounted) {
       setState(() {
@@ -77,7 +77,7 @@ class _AkunTabState extends State<AkunTab> {
         _namaSekolah = detail['nama_sekolah'] ?? _namaSekolah;
       });
 
-      // Cache ke SharedPreferences
+      
       await prefs.setString('nis_siswa', _nisSiswa);
       await prefs.setBool('is_default_password', _isDefaultPassword);
       await prefs.setString('tahun_ajaran', _tahunAjaran);
@@ -86,8 +86,8 @@ class _AkunTabState extends State<AkunTab> {
     }
   }
 
-  // Buka halaman ganti password via HybridWrapper (WebView + Sanctum handoff)
-  // Sama seperti cara kerja Ruang Belajar, Ruang Tugas, dll.
+  
+  
   Future<void> _openGantiPassword() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString(GaraPrefKeys.authToken) ?? '';
@@ -107,7 +107,7 @@ class _AkunTabState extends State<AkunTab> {
         ),
       ),
     ).then((_) {
-      // Refresh data profil setelah kembali (password mungkin sudah diubah)
+      
       _loadProfileData();
     });
   }
@@ -128,11 +128,11 @@ class _AkunTabState extends State<AkunTab> {
         children: [
           const SizedBox(height: 8),
 
-          // ── Header Profil ──────────────────────────────
+          
           _buildProfileHeader(),
           const SizedBox(height: 20),
 
-          // ── Informasi Siswa ───────────────────────────
+          
           _sectionLabel('INFORMASI SISWA'),
           const SizedBox(height: 8),
           _buildInfoCard([
@@ -146,11 +146,11 @@ class _AkunTabState extends State<AkunTab> {
           ]),
           const SizedBox(height: 20),
 
-          // ── Keamanan Akun ─────────────────────────────
+          
           _sectionLabel('KEAMANAN AKUN'),
           const SizedBox(height: 8),
 
-          // Badge peringatan password bawaan
+          
           if (_isDefaultPassword) ...[
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -178,7 +178,7 @@ class _AkunTabState extends State<AkunTab> {
             ),
           ],
 
-          // Tombol ganti password
+          
           GestureDetector(
             onTap: _openGantiPassword,
             child: Container(
@@ -235,7 +235,7 @@ class _AkunTabState extends State<AkunTab> {
           ),
           const SizedBox(height: 20),
 
-          // ── Info Sekolah ──────────────────────────────
+          
           _sectionLabel('INFORMASI SEKOLAH'),
           const SizedBox(height: 8),
           Container(
@@ -251,7 +251,7 @@ class _AkunTabState extends State<AkunTab> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ── Nama Sekolah + Centang Biru ──────────────
+                      
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -307,7 +307,7 @@ class _AkunTabState extends State<AkunTab> {
           ),
           const SizedBox(height: 24),
 
-          // ── Tombol Aksi ────────────────────────────────
+          
           _buildGantiMapelButton(context),
           const SizedBox(height: 12),
           _buildLogoutButton(context),

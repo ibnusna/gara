@@ -14,7 +14,8 @@ import '../widgets/hybrid_wrapper.dart';
 import '../widgets/dashboard/ds_glass_card.dart';
 import 'dashboard_page.dart';
 import 'smart_connect_page.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/flutter_svg.dart'; // masih diperlukan jika ada SVG lain
+
 
 class PilihMapelPage extends StatefulWidget {
   const PilihMapelPage({super.key});
@@ -31,6 +32,7 @@ class _PilihMapelPageState extends State<PilihMapelPage> with TickerProviderStat
   bool _gateUjianOpen = false;
   List<MapelModel> _mapelList = [];
   String? _errorMessage;
+  bool _isFromCache = false; // true jika data dari cache (offline)
 
   late List<AnimationController> _cardControllers = [];
   late List<Animation<double>> _cardFadeAnims = [];
@@ -60,11 +62,26 @@ class _PilihMapelPageState extends State<PilihMapelPage> with TickerProviderStat
     if (!result.success) {
       final msg = result.errorMessage?.toLowerCase() ?? '';
       if (msg.contains('sesi') || msg.contains('login') || msg.contains('unauth') || msg.contains('expired')) {
+        // Sebelum logout karena sesi, cek apakah ada cache untuk mode offline
+        final cached = await AuthService.getCachedMapelList();
+        if (cached != null && mounted) {
+          setState(() {
+            _isLoading = false;
+            _namaSiswa = cached.namaSiswa;
+            _kelasSiswa = cached.kelasSiswa;
+            _sekolahNama = cached.sekolahNama;
+            _gateUjianOpen = cached.gateUjianOpen;
+            _mapelList = cached.mapelList;
+            _isFromCache = true;
+          });
+          _initAnimations();
+          return;
+        }
         await AuthService.clearSession();
         if (mounted) Navigator.pushNamedAndRemoveUntil(context, GaraRoutes.login, (route) => false);
         return;
       }
-      setState(() { _isLoading = false; _errorMessage = result.errorMessage; });
+      setState(() { _isLoading = false; _errorMessage = result.errorMessage; _isFromCache = false; });
       return;
     }
     setState(() {
@@ -74,6 +91,7 @@ class _PilihMapelPageState extends State<PilihMapelPage> with TickerProviderStat
       _sekolahNama = result.sekolahNama;
       _gateUjianOpen = result.gateUjianOpen;
       _mapelList = result.mapelList;
+      _isFromCache = result.fromCache;
     });
     _initAnimations();
   }
@@ -162,7 +180,7 @@ class _PilihMapelPageState extends State<PilihMapelPage> with TickerProviderStat
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline_rounded, size: 60, color: GaraColors.dsRose500),
+              const Icon(Icons.wifi_off_rounded, size: 60, color: GaraColors.dsSlate400),
               const SizedBox(height: 16),
               Text(_errorMessage!, textAlign: TextAlign.center, style: GoogleFonts.plusJakartaSans(fontSize: 16, color: GaraColors.dsSlate500)),
               const SizedBox(height: 24),
@@ -178,6 +196,29 @@ class _PilihMapelPageState extends State<PilihMapelPage> with TickerProviderStat
     }
     return Column(
       children: [
+        // Banner offline jika data dari cache
+        if (_isFromCache)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            color: const Color(0xFFFEF3C7),
+            child: Row(
+              children: [
+                const Icon(Icons.wifi_off_rounded, size: 16, color: Color(0xFFD97706)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Mode offline — menampilkan data terakhir yang tersimpan',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFFD97706), fontWeight: FontWeight.w600),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: _fetchMapelList,
+                  child: Text('Perbarui', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFFD97706), fontWeight: FontWeight.w700, decoration: TextDecoration.underline)),
+                ),
+              ],
+            ),
+          ),
         Expanded(
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(),
@@ -328,8 +369,8 @@ class _PilihMapelPageState extends State<PilihMapelPage> with TickerProviderStat
             ),
           ],
         ),
-        child: SvgPicture.asset(
-          'assets/images/3dlogo.svg',
+        child: Image.asset(
+          'assets/images/3dlogo.png',
           width: 40,
           height: 40,
         ),
@@ -348,6 +389,21 @@ class _MapelCardTile extends StatefulWidget {
 
 class _MapelCardTileState extends State<_MapelCardTile> {
   bool _isPressed = false;
+
+  String _getHariIniString() {
+    final int weekday = DateTime.now().weekday;
+    switch (weekday) {
+      case 1: return 'Senin';
+      case 2: return 'Selasa';
+      case 3: return 'Rabu';
+      case 4: return 'Kamis';
+      case 5: return 'Jumat';
+      case 6: return 'Sabtu';
+      case 7: return 'Minggu';
+      default: return '';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -365,7 +421,49 @@ class _MapelCardTileState extends State<_MapelCardTile> {
             children: [
               Container(width: 48, height: 48, decoration: BoxDecoration(color: GaraColors.dsPrimaryBright.withOpacity(0.15), borderRadius: BorderRadius.circular(14)), child: const Icon(Icons.menu_book_rounded, color: GaraColors.dsPrimaryDeep, size: 24)),
               const SizedBox(width: 16),
-              Expanded(child: Text(widget.mapel.namaMapel, style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 16, color: GaraColors.dsSlate800))),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(widget.mapel.namaMapel, style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 16, color: GaraColors.dsSlate800)),
+                    if (widget.mapel.jadwal.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: widget.mapel.jadwal.map((jadwal) {
+                          final bool isHariIni = jadwal.hari == _getHariIniString();
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              gradient: isHariIni 
+                                ? const LinearGradient(colors: [GaraColors.dsPrimaryDeep, GaraColors.dsPrimaryBright])
+                                : null,
+                              color: isHariIni ? null : GaraColors.dsSlate200.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.schedule_rounded, size: 12, color: isHariIni ? Colors.white : GaraColors.dsSlate500),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${jadwal.hari}, ${jadwal.jamMulai.substring(0, 5)} - ${jadwal.jamSelesai.substring(0, 5)}',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    fontWeight: isHariIni ? FontWeight.w700 : FontWeight.w600,
+                                    color: isHariIni ? Colors.white : GaraColors.dsSlate600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
               const Icon(Icons.chevron_right_rounded, color: GaraColors.dsSlate400, size: 24),
             ],
           ),

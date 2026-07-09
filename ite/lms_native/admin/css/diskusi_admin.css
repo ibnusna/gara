@@ -1,0 +1,469 @@
+/* GARA LMS - Admin Diskusi Stylesheets
+    Tujuan: Layout Dashboard Desktop-First, Grid View, & Manajemen Data
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    --primary: #4e73df;
+    --secondary: #858796;
+    --success: #1cc88a;
+    --danger: #e74a3b;
+    --warning: #f6c23e;
+    --light: #f8f9fc;
+    --dark: #5a5c69;
+    --card-border: #e3e6f0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+/* --- Container Admin --- */
+.diskusi-wrapper {
+    padding: 20px;
+}
+
+/* --- Header Section --- */
+.diskusi-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.diskusi-title h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin: 0;
+}
+
+.diskusi-title span {
+    color: var(--secondary);
+    font-size: 0.9rem;
+}
+
+/* --- Tab Navigation --- */
+.nav-tabs-custom {
+    border-bottom: 2px solid var(--card-border);
+    margin-bottom: 20px;
+    display: flex;
+    gap: 20px;
+}
+
+.nav-item-custom {
+    padding: 10px 20px;
+    font-weight: 600;
+    color: var(--secondary);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.nav-item-custom:hover {
+    color: var(--primary);
+}
+
+.nav-item-custom.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+/* --- Grid System for Cards --- */
+.diskusi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(600px, 1fr));
+    /* Lebar minimal 600px, selebihnya stretch */
+    gap: 20px;
+}
+
+/* --- Card Postingan --- */
+.post-card {
+    background: white;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 20px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.post-card:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.post-card.pinned {
+    border-left: 4px solid var(--danger);
+    background-color: #fffdfd;
+}
+
+.post-card.draft {
+    opacity: 0.7;
+    background-color: #f1f1f1;
+    border: 1px dashed var(--secondary);
+}
+
+/* Header Card */
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-text h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--dark);
+}
+
+.user-text span {
+    font-size: 0.8rem;
+    color: var(--secondary);
+}
+
+.post-badge {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.badge-guru {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.badge-siswa {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+/* Content Card */
+.post-content {
+    font-size: 0.95rem;
+    color: #333;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    white-space: pre-wrap;
+    flex: 1;
+    /* Push footer to bottom */
+}
+
+.post-image {
+    max-width: 100%;
+    max-height: 250px;
+    border-radius: 8px;
+    margin-top: 10px;
+    object-fit: cover;
+    border: 1px solid #eee;
+    cursor: zoom-in;
+}
+
+/* Footer Card & Actions */
+.post-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 15px;
+    border-top: 1px solid var(--card-border);
+    margin-top: auto;
+}
+
+.stat-group {
+    display: flex;
+    gap: 15px;
+    font-size: 0.85rem;
+    color: var(--secondary);
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-group-admin {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-action {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid var(--card-border);
+    background: white;
+    color: var(--secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-action:hover {
+    background: var(--light);
+    color: var(--primary);
+}
+
+.btn-action.btn-pin.active {
+    background: #fff8e1;
+    color: var(--warning);
+    border-color: var(--warning);
+}
+
+.btn-action.btn-delete:hover {
+    background: #ffebee;
+    color: var(--danger);
+    border-color: var(--danger);
+}
+
+.btn-action.btn-archive:hover {
+    background: #e3f2fd;
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+/* --- Comments Section (Inside Card or Modal) --- */
+.comments-section {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f8f9fc;
+    border-radius: 8px;
+    display: none;
+    /* Hidden by default, toggle by JS */
+}
+
+.comment-item {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.comment-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.comment-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+}
+
+.comment-box {
+    background: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    flex: 1;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+    color: var(--secondary);
+}
+
+/* --- Floating Action Button (New Post) --- */
+.fab-admin {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 15px rgba(78, 115, 223, 0.4);
+    cursor: pointer;
+    z-index: 1000;
+    transition: transform 0.2s;
+}
+
+.fab-admin:hover {
+    transform: scale(1.1);
+}
+
+/* --- RESPONSIVE MEDIA QUERIES --- */
+
+/* Mobile Devices (Portrait) */
+@media (max-width: 768px) {
+    .diskusi-wrapper {
+        padding: 15px 10px;
+    }
+
+    /* Header adjustments */
+    .diskusi-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 15px;
+    }
+
+    .diskusi-header .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Tab Navigation Scrollable */
+    .nav-tabs-custom {
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 5px;
+        -webkit-overflow-scrolling: touch;
+        gap: 10px;
+    }
+
+    .nav-item-custom {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+
+    /* Grid System - Single Column */
+    .diskusi-grid {
+        grid-template-columns: 1fr;
+        /* Force single column */
+        gap: 15px;
+    }
+
+    /* Card Adjustments */
+    .post-card {
+        padding: 15px;
+    }
+
+    .post-header {
+        flex-direction: row;
+        /* Keep row for avatar and name */
+        align-items: center;
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+    }
+
+    .user-text h4 {
+        font-size: 0.95rem;
+    }
+
+    .post-content {
+        font-size: 0.9rem;
+    }
+
+    /* Footer & Actions */
+    .post-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .stat-group {
+        width: 100%;
+        justify-content: space-between;
+        border-bottom: 1px solid #f0f0f0;
+        padding-bottom: 10px;
+    }
+
+    .btn-group-admin {
+        width: 100%;
+        justify-content: space-between;
+        /* Spread buttons */
+    }
+
+    .btn-action {
+        flex: 1;
+        /* Buttons take equal width */
+    }
+
+    /* Comment Section Mobile */
+    .comment-item {
+        gap: 8px;
+    }
+
+    .comment-avatar {
+        width: 28px;
+        height: 28px;
+    }
+
+    .comment-box {
+        font-size: 0.85rem;
+    }
+}
+
+/* Modal Responsive Fixes */
+@media (max-width: 576px) {
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+
+    .modal-content {
+        border-radius: 12px;
+    }
+
+    /* Make the input form inside modal stack vertically if needed, 
+       but keeping side-by-side avatar might be tight */
+    #modalPostAdmin .d-flex.gap-3 {
+        gap: 10px !important;
+    }
+
+    #modalPostAdmin .mr-3 {
+        margin-right: 10px !important;
+    }
+
+    /* Input area adjustments */
+    #modalPostAdmin textarea {
+        font-size: 1rem !important;
+    }
+
+    /* Footer buttons stacking */
+    #modalPostAdmin .modal-body .border-top .d-flex {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start !important;
+        /* Override align-items center */
+        width: 100%;
+    }
+
+    #modalPostAdmin .modal-body .border-top .d-flex>div:first-child {
+        width: 100%;
+        justify-content: space-between;
+        display: flex;
+    }
+
+    #modalPostAdmin .modal-body .border-top button[type="submit"] {
+        width: 100%;
+    }
+}

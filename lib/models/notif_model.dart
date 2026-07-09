@@ -1,4 +1,4 @@
-// Model data untuk satu item notifikasi
+
 import 'package:flutter/material.dart';
 
 class NotifModel {
@@ -21,7 +21,7 @@ class NotifModel {
   });
 }
 
-// Dummy data — FASE 2: ganti dengan response API
+
 List<NotifModel> dummyNotifList() => [
       NotifModel(
         icon: Icons.assignment_rounded,

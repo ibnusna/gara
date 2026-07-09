@@ -1,27 +1,27 @@
-// ============================================================
-//  GARA Flutter — Jadwal Sholat Widget
-//  Refactored: Design System Baru (dashborad.html)
-//
-//  DS Mapping: Section 4 — Produktivitas (horizontal glass card)
-//  Sebelum : Container putih solid + border + box-shadow
-//  Sesudah : GaraGlassCard rounded-[24px] sesuai DS
-//
-//  Perubahan Visual:
-//  - Container: glass-card rounded-24px (mengganti solid white)
-//  - Icon box header: gradient slate-700→slate-900, rounded-[16px]
-//    dengan aksen circle putih kecil di dalam (DS: absolute -top-2 -right-2)
-//  - Trailing arrow: circle border-slate-200, bg-white/50
-//  - Waktu aktif: tetap menggunakan studentPrimary untuk highlight
-//  - Font: Plus Jakarta Sans
-//  - Section label "Produktivitas" di atas widget
-//
-//  LOGIKA TIDAK DIUBAH: API Aladhan, SharedPreferences cache,
-//  fallback data statis, _activeIndex() — identik dengan versi lama
-// ============================================================
 
-// Jadwal Sholat Widget — Real-time dari Aladhan API
-// v9.0.0: Ganti data statis → API call berdasarkan kota tersimpan di SharedPreferences.
-//         Hapus teks "FASE 2: deteksi otomatis".
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -56,7 +56,7 @@ class _SholatWidgetState extends State<SholatWidget> {
   }
 
   Future<void> _fetchPrayerTimes() async {
-    // ── 1. Baca kota dari SharedPreferences sebagai fallback terakhir
+    
     final prefs  = await SharedPreferences.getInstance();
     String city  = prefs.getString('prayer_city')    ?? 'Jakarta';
     String country = prefs.getString('prayer_country') ?? 'Indonesia';
@@ -66,7 +66,7 @@ class _SholatWidgetState extends State<SholatWidget> {
     Uri? apiUrl;
     String locationName = city;
 
-    // ── 2. Minta izin Lokasi (GPS) dari Siswa untuk akurasi tinggi
+    
     try {
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
@@ -84,7 +84,7 @@ class _SholatWidgetState extends State<SholatWidget> {
       }
     } catch (_) {}
 
-    // ── 3. Fallback ke API IP (apabila lokasi ditolak) 
+    
     if (apiUrl == null) {
       try {
         final ipRes = await http.get(Uri.parse('http://ip-api.com/json/')).timeout(const Duration(seconds: 4));
@@ -140,10 +140,10 @@ class _SholatWidgetState extends State<SholatWidget> {
         return;
       }
     } catch (_) {
-      // Network error → coba cache
+      
     }
 
-    // ── 2. Fallback: baca dari cache SharedPreferences
+    
     final cached = prefs.getString('cached_prayer_times');
     if (cached != null) {
       try {
@@ -160,7 +160,7 @@ class _SholatWidgetState extends State<SholatWidget> {
       } catch (_) {}
     }
 
-    // ── 3. Absolute fallback: data statis Jakarta
+    
     if (mounted) {
       setState(() {
         _times = const [
@@ -198,7 +198,7 @@ class _SholatWidgetState extends State<SholatWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Section label (DS: h2 "Produktivitas") ──
+        
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 12),
           child: Text(
@@ -212,16 +212,16 @@ class _SholatWidgetState extends State<SholatWidget> {
           ),
         ),
 
-        // ── DS: Glass card horizontal (Zona Produktif) ──
+        
         GaraGlassCard(
           borderRadius: BorderRadius.circular(24),
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Header row ──
+              
               Row(children: [
-                // DS: icon box gradient slate-700→slate-900 + circle accent
+                
                 _SholatIconBox(),
                 const SizedBox(width: 12),
                 Expanded(
@@ -247,7 +247,7 @@ class _SholatWidgetState extends State<SholatWidget> {
                     ],
                   ),
                 ),
-                // DS: tanggal kanan
+                
                 Text(
                   _formatDate(),
                   style: GoogleFonts.plusJakartaSans(
@@ -262,7 +262,7 @@ class _SholatWidgetState extends State<SholatWidget> {
               const Divider(color: GaraColors.dsSlate200, height: 1),
               const SizedBox(height: 14),
 
-              // ── Grid 5 waktu atau skeleton ──
+              
               _isLoading ? _buildSkeleton() : _buildGrid(),
             ],
           ),
@@ -281,7 +281,7 @@ class _SholatWidgetState extends State<SholatWidget> {
             margin: EdgeInsets.only(right: i < 4 ? 6 : 0),
             padding: const EdgeInsets.symmetric(vertical: 10),
             decoration: BoxDecoration(
-              // DS: aktif = studentPrimary, tidak aktif = bg sangat transparan
+              
               color: isActive
                   ? GaraColors.studentPrimary
                   : Colors.white.withOpacity(0.50),
@@ -333,8 +333,8 @@ class _SholatWidgetState extends State<SholatWidget> {
   }
 }
 
-/// Icon box untuk Jadwal Sholat header
-/// DS: gradient slate-700→slate-900, rounded-[16px], circle accent di atas kanan
+
+
 class _SholatIconBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -342,14 +342,14 @@ class _SholatIconBox extends StatelessWidget {
       width: 48,
       height: 48,
       decoration: BoxDecoration(
-        // DS: bg-gradient-to-br from-slate-700 to-slate-900
+        
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [Color(0xFF334155), Color(0xFF0F172A)],
         ),
         borderRadius: BorderRadius.circular(16),
-        // DS: shadow-lg
+        
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.25),
@@ -361,7 +361,7 @@ class _SholatIconBox extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // DS: absolute -top-2 -right-2 w-6 h-6 bg-white/20 rounded-full (aksen)
+          
           Positioned(
             top: -4,
             right: -4,

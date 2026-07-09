@@ -1,19 +1,19 @@
-// ============================================================
-//  GARA Flutter — Dashboard Page
-//  Refactored: Design System Baru (dashborad.html)
-//
-//  FIX KRITIS v2: Arsitektur diubah total.
-//  Sebelumnya: GaraMeshBackground membungkus Scaffold dari luar
-//              → menyebabkan Scaffold(backgroundColor: transparent)
-//              → konten IndexedStack invisible di beberapa device Android
-//
-//  Sekarang: Mesh BERADA DI DALAM Scaffold.body sebagai Stack layer,
-//            Scaffold tetap memiliki backgroundColor solid (dsBgBody).
-//            Ini adalah pola Flutter yang benar untuk animated backgrounds.
-//
-//  LOGIKA TIDAK DIUBAH: polling, exam status, notification,
-//  SharedPreferences, auth flow — semuanya identik dengan versi lama.
-// ============================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 import 'dart:async';
 import 'dart:convert';
@@ -48,29 +48,29 @@ class _DashboardPageState extends State<DashboardPage>
     with TickerProviderStateMixin {
   int _navIndex = 0;
 
-  // Data user dari SharedPreferences (real data dari API login)
+  
   String _nama    = '';
   String _kelas   = '';
   String _sekolah = 'Garuda Akademi';
   int _poin       = 0;
 
-  // Exam Status — null = masih loading skeleton, true/false = sudah diketahui
+  
   bool? _isExamActive;
 
-  // Pengumuman State
+  
   List<PengumumanModel> _pengumumanList = [];
   bool _isFetchingPengumuman = true;
 
-  // Notification Polling
+  
   Timer? _pollTimer;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   int _prevUnreadCount = 0;
 
-  // Fade animation untuk HomeTab content
+  
   late final AnimationController _fadeCtrl;
   late final Animation<double> _fadeAnim;
 
-  // Mesh blob animation controllers (3 blob, drift animation)
+  
   late final AnimationController _blobCtrl1;
   late final AnimationController _blobCtrl2;
   late final AnimationController _blobCtrl3;
@@ -79,14 +79,14 @@ class _DashboardPageState extends State<DashboardPage>
   void initState() {
     super.initState();
 
-    // Fade animation
+    
     _fadeCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
     )..forward();
     _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
 
-    // Mesh blob animations — 25s infinite alternate (DS: drift keyframes)
+    
     _blobCtrl1 = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 25000),
@@ -99,19 +99,19 @@ class _DashboardPageState extends State<DashboardPage>
       vsync: this,
       duration: const Duration(milliseconds: 28000),
     )..repeat(reverse: true);
-    // Simulate animation-delay dari DS
+    
     _blobCtrl2.value = 0.2;
     _blobCtrl3.value = 0.4;
 
     _loadUserData();
-    _refreshProfile(); // Fase 3
-    _loadExamStatus(); // Fase 5
-    _fetchPengumuman(); // Fase 6
+    _refreshProfile(); 
+    _loadExamStatus(); 
+    _fetchPengumuman(); 
     _initNotifications();
     _startPolling();
   }
 
-  // Handle Pull-to-refresh
+  
   Future<void> _handleRefresh() async {
     HapticFeedback.lightImpact();
     await Future.wait([
@@ -122,7 +122,7 @@ class _DashboardPageState extends State<DashboardPage>
     ]);
   }
 
-  // DS: sapaan berdasarkan jam hari ini
+  
   String get _sapaan {
     final h = DateTime.now().hour;
     if (h < 12) return 'Selamat Pagi';
@@ -137,8 +137,8 @@ class _DashboardPageState extends State<DashboardPage>
     await _localNotifications.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (response) async {
-        // ── Deep-link dari payload JSON ──────────────────────────────────
-        // Payload format: {"type":"exam"|"web"|"notif", "target_path":"/student/..."}
+        
+        
         final rawPayload = response.payload;
         if (rawPayload != null && rawPayload.isNotEmpty) {
           try {
@@ -184,8 +184,16 @@ class _DashboardPageState extends State<DashboardPage>
 
   void _startPolling() {
     _checkUnreadCount(isInitial: true);
+    int _tickCount = 0;
     _pollTimer = Timer.periodic(const Duration(seconds: 60), (_) {
+      _tickCount++;
+      // Cek notifikasi baru setiap 60 detik
       _checkUnreadCount();
+      // Refresh pengumuman & status ujian setiap 3 menit (setiap 3 tick)
+      if (_tickCount % 3 == 0) {
+        _fetchPengumuman();
+        _loadExamStatus();
+      }
     });
   }
 
@@ -343,22 +351,22 @@ class _DashboardPageState extends State<DashboardPage>
   }
 }
 
-// ── Mesh Background Painter ────────────────────────────────────
-// DS: .mesh-blob dengan @keyframes drift 25s infinite alternate
-// 3 blob: biru #93c5fd, ungu #d8b4fe, cyan #67e8f9
+
+
+
 class _DashboardMeshPainter extends CustomPainter {
   final double t1, t2, t3;
   const _DashboardMeshPainter({required this.t1, required this.t2, required this.t3});
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Background base: DS dsMeshBase (#f1f5f9)
+    
     canvas.drawRect(
       Rect.fromLTWH(0, 0, size.width, size.height),
       Paint()..color = GaraColors.dsMeshBase,
     );
 
-    // Blob 1: Biru — kiri atas
+    
     _blob(canvas, size,
       color: GaraColors.dsBlob1.withOpacity(0.75),
       radius: size.width * 0.38,
@@ -367,7 +375,7 @@ class _DashboardMeshPainter extends CustomPainter {
       t: t1, dx: 25, dy: -40, blur: 55,
     );
 
-    // Blob 2: Ungu — kanan tengah
+    
     _blob(canvas, size,
       color: GaraColors.dsBlob2.withOpacity(0.70),
       radius: size.width * 0.42,
@@ -376,7 +384,7 @@ class _DashboardMeshPainter extends CustomPainter {
       t: t2, dx: -20, dy: 25, blur: 65,
     );
 
-    // Blob 3: Cyan — kiri bawah
+    
     _blob(canvas, size,
       color: GaraColors.dsBlob3.withOpacity(0.65),
       radius: size.width * 0.32,
@@ -417,11 +425,11 @@ class _DashboardMeshPainter extends CustomPainter {
 
 
 
-// ── App Header ─────────────────────────────────────────────────
-// DS: Header — Avatar dengan glow ring + greeting + nama siswa
-// HTML mapping:
-//   [Avatar initials + glow]  [Selamat Pagi,]    [⭐120] [🔔]
-//                             [M. Andres W.]
+
+
+
+
+
 class _AppHeader extends StatelessWidget {
   final String namaSiswa;
   final String sapaan;
@@ -438,7 +446,7 @@ class _AppHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isTablet = GaraResponsive.isTablet(context);
-    // Ambil initial huruf pertama nama
+    
     final initial = namaSiswa.isNotEmpty
         ? namaSiswa[0].toUpperCase()
         : 'S';
@@ -453,14 +461,14 @@ class _AppHeader extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // ── Avatar dengan glow ring ──
+          
           SizedBox(
             width: isTablet ? 58 : 52,
             height: isTablet ? 58 : 52,
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // Glow ring
+                
                 Container(
                   width: isTablet ? 58 : 52,
                   height: isTablet ? 58 : 52,
@@ -469,7 +477,7 @@ class _AppHeader extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                 ),
-                // Avatar circle dengan initial
+                
                 Container(
                   width: isTablet ? 50 : 44,
                   height: isTablet ? 50 : 44,
@@ -506,7 +514,7 @@ class _AppHeader extends StatelessWidget {
 
           const SizedBox(width: 12),
 
-          // ── Greeting + Nama Siswa ──
+          
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -538,14 +546,14 @@ class _AppHeader extends StatelessWidget {
 
           const SizedBox(width: 10),
 
-          // ── Quick Actions — Glass Pill ──
+          
           GaraGlassCardStrong(
             borderRadius: BorderRadius.circular(999),
             padding: const EdgeInsets.all(5),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Poin chip
+                
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
@@ -572,7 +580,7 @@ class _AppHeader extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Bell button
+                
                 GestureDetector(
                   onTap: onBellTap,
                   child: Stack(
@@ -607,7 +615,7 @@ class _AppHeader extends StatelessWidget {
 
 
 
-// Badge merah berdenyut (DS: .animate-pulse + bg-rose-500)
+
 class _PulsingDot extends StatefulWidget {
   @override
   State<_PulsingDot> createState() => _PulsingDotState();
@@ -643,8 +651,8 @@ class _PulsingDotState extends State<_PulsingDot>
 }
 
 
-// ── Bottom Navigation Bar — Floating Glass Pill (MD3) ─────────
-// DS: nav.fixed.bottom-6 glass-card-strong, pill shape, slide indicator
+
+
 class _BottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -675,7 +683,7 @@ class _BottomNav extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
                 child: Stack(
                   children: [
-                    // MD3 Slide Indicator
+                    
                     Positioned.fill(
                       child: AnimatedAlign(
                         duration: const Duration(milliseconds: 300),
@@ -697,7 +705,7 @@ class _BottomNav extends StatelessWidget {
                         ),
                       ),
                     ),
-                    // Nav items
+                    
                     Row(
                       children: List.generate(_items.length, (i) {
                         final active = currentIndex == i;

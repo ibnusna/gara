@@ -1,4 +1,4 @@
-// Widget: statistik card — identik dengan Stats Summary di blade
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/focus_model.dart';

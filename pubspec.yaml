@@ -102,6 +102,10 @@ flutter:
     - assets/images/FARA_BLACK.svg
     - assets/images/3dlogo.svg
     - assets/images/bglogin.jpg
+    # Logo PNG (digunakan sebagai pengganti SVG yang bermasalah di flutter_svg)
+    - assets/images/GARA_WHITE.png
+    - assets/images/FARA_BLACK.png
+    - assets/images/3dlogo.png
     # Halaman error offline — diakses via WebView saat internet putus
     - assets/helpers/eror.html
 

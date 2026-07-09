@@ -1,0 +1,352 @@
+
+
+
+
+
+
+
+:root {
+    --primary-color: #0056b3;
+    --primary-light: #4dabf7;
+    --primary-dark: #003d80;
+    --text-white: #ffffff;
+    --text-muted: #d1d5db; 
+    
+    
+    --bg-overlay: rgba(5, 15, 30, 0.85); 
+    
+    --glass-border: rgba(255, 255, 255, 0.15);
+    --input-bg: rgba(255, 255, 255, 0.08);
+    --font-main: 'Poppins', sans-serif;
+    
+    
+    --transition-speed: 0.5s;
+    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    font-family: var(--font-main);
+    background-color: #020b16; 
+    overflow: hidden;
+}
+
+
+
+.app-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    background-image: url('img/bglogin.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+
+.app-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-overlay);
+    backdrop-filter: blur(3px); 
+    -webkit-backdrop-filter: blur(3px);
+    z-index: 0;
+}
+
+
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; 
+    align-items: center;     
+    padding: 25px;
+    text-align: center;
+    color: var(--text-white);
+    
+    
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.95); 
+    transition: 
+        opacity var(--transition-speed) var(--ease-smooth),
+        transform var(--transition-speed) var(--ease-smooth),
+        visibility var(--transition-speed) var(--ease-smooth);
+    z-index: 1;
+}
+
+.screen.active {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1); 
+    z-index: 10;
+}
+
+
+.screen-content {
+    position: relative;
+    width: 100%;
+    max-width: 400px; 
+    z-index: 2;
+}
+
+
+.app-logo {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 80px; 
+    height: auto;
+    margin-bottom: 15px;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+}
+
+.mini-logo {
+    display: block;
+    margin: 0 auto 15px auto;
+    width: 60px;
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3));
+}
+
+.app-name {
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.app-tagline {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+    margin-bottom: 24px;
+}
+
+
+
+
+
+#welcome-screen {
+    background: transparent; 
+}
+
+.welcome-text h2 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 10px;
+}
+
+.welcome-text p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 40px;
+    padding: 0 10px;
+}
+
+
+.slide-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 25px;
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transition: all 0.3s;
+}
+
+.dot.active {
+    width: 20px;
+    background-color: var(--primary-light);
+    border-radius: 10px;
+}
+
+
+
+
+#login-screen {
+    background: transparent;
+}
+
+
+.bg-layer, .overlay-layer {
+    display: none; 
+}
+
+.login-header h3 {
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.login-header p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 30px;
+}
+
+
+
+
+.form-group {
+    position: relative;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.input-icon {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 1rem;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.form-control {
+    width: 100%;
+    height: 48px; 
+    padding: 0 45px 0 50px;
+    
+    
+    background: rgba(18, 32, 55, 0.6); 
+    border: 1px solid var(--glass-border);
+    border-radius: 25px; 
+    
+    color: var(--text-white);
+    font-size: 0.95rem;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #111e33 inset !important; 
+    -webkit-text-fill-color: var(--text-white) !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.9rem;
+}
+
+.form-control:focus {
+    background: rgba(18, 32, 55, 0.9);
+    border-color: var(--primary-light);
+    box-shadow: 0 0 10px rgba(77, 171, 247, 0.2);
+}
+
+.toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 8px;
+    font-size: 0.9rem;
+}
+
+
+
+
+.btn-primary {
+    width: 100%;
+    height: 48px; 
+    background: var(--primary-light);
+    color: #fff;
+    border: none;
+    border-radius: 25px;
+    
+    font-size: 0.95rem; 
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(77, 171, 247, 0.3);
+}
+
+
+@media (hover: hover) {
+    .btn-primary:hover {
+        background: #3b9eeb;
+        transform: translateY(-2px);
+    }
+}
+
+
+.btn-primary:active {
+    transform: scale(0.96);
+    background: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(77, 171, 247, 0.2);
+}
+
+.form-footer {
+    margin-top: 25px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.form-footer a {
+    color: var(--primary-light);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+    opacity: 0;
+    animation: fadeInUp 0.6s var(--ease-smooth) forwards;
+}
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }

@@ -1,11 +1,11 @@
-// Widget: Circular timer ring — identik dengan SVG r=130 di blade
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class TimerRing extends StatelessWidget {
   final int secondsRemaining;
   final int totalSeconds;
-  final String modeLabel; // 'Fokus' / 'Istirahat Pendek' / 'Istirahat Panjang'
+  final String modeLabel; 
 
   const TimerRing({
     super.key,
@@ -30,12 +30,12 @@ class TimerRing extends StatelessWidget {
       width: 240,
       height: 240,
       child: Stack(alignment: Alignment.center, children: [
-        // Circle progress
+        
         CustomPaint(
           size: const Size(240, 240),
           painter: _RingPainter(progress: progress.clamp(0.0, 1.0)),
         ),
-        // Text center
+        
         Column(mainAxisSize: MainAxisSize.min, children: [
           Text(_display,
               style: GoogleFonts.poppins(
@@ -52,7 +52,7 @@ class TimerRing extends StatelessWidget {
 }
 
 class _RingPainter extends CustomPainter {
-  final double progress; // 0.0 → 1.0
+  final double progress; 
 
   const _RingPainter({required this.progress});
 
@@ -62,7 +62,7 @@ class _RingPainter extends CustomPainter {
     final cy = size.height / 2;
     final radius = cx - 10;
 
-    // Track
+    
     canvas.drawCircle(
       Offset(cx, cy),
       radius,
@@ -74,10 +74,10 @@ class _RingPainter extends CustomPainter {
 
     if (progress <= 0) return;
 
-    // Progress arc (identik: stroke-dashoffset dari blade, mulai dari atas)
+    
     canvas.drawArc(
       Rect.fromCircle(center: Offset(cx, cy), radius: radius),
-      -3.14159 / 2, // -90deg = atas
+      -3.14159 / 2, 
       2 * 3.14159 * progress,
       false,
       Paint()

@@ -30,7 +30,7 @@ class _GaraPrimaryButtonState extends State<GaraPrimaryButton>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 100), // press feedback
+      duration: const Duration(milliseconds: 100), 
       lowerBound: 0.0,
       upperBound: 0.04,
     );
@@ -68,7 +68,7 @@ class _GaraPrimaryButtonState extends State<GaraPrimaryButton>
           decoration: BoxDecoration(
             color: widget.backgroundColor,
             borderRadius: BorderRadius.circular(25),
-            // Shadow premium — selalu aktif di semua device
+            
             boxShadow: [
               BoxShadow(
                 color: GaraColors.primaryLight.withOpacity(0.3),

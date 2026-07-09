@@ -33,18 +33,18 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> {
     super.initState();
     currentTitle = widget.title;
     
-    // Inisialisasi pengaturan InAppWebView (Harden Settings for GARA v4.1.0)
+    
     settings = InAppWebViewSettings(
       useShouldOverrideUrlLoading: true,
       mediaPlaybackRequiresUserGesture: false,
       javaScriptEnabled: true,
-      domStorageEnabled: true, // WAJIB untuk Laravel & Alpine.js
+      domStorageEnabled: true, 
       databaseEnabled: true,
-      useHybridComposition: true, // Stabilitas rendering Android
-      mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW, // Dukung localhost:8000 (HTTP)
+      useHybridComposition: true, 
+      mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW, 
       transparentBackground: true,
       supportZoom: true,
-      userAgent: "GARA_OFFICIAL_APP", // Identifikasi request dari App Mobile
+      userAgent: "GARA_OFFICIAL_APP", 
     );
 
     pullToRefreshController = PullToRefreshController(
@@ -89,7 +89,7 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> {
           ],
         ),
         actions: [
-          // Tombol Back web (jika bisa ke halaman web sebelumnya)
+          
           if (canGoBack)
             IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: GaraColors.studentTextMain),
@@ -98,13 +98,13 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> {
               },
               tooltip: 'Kembali',
             ),
-          // ── 3-Dot Menu ─────────────────────────────────────────────
+          
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert_rounded, color: GaraColors.studentTextMuted),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             onSelected: (value) async {
               if (value == 'open_browser') {
-                // Ambil URL saat ini dari WebView
+                
                 final currentUrl = (await webViewController?.getUrl())?.toString()
                     ?? widget.initialUrl;
                 final uri = Uri.tryParse(currentUrl);
@@ -133,7 +133,7 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> {
       ),
       body: Column(
         children: [
-          // Loading Bar sederhana agar pengguna tahu web sedang diproses
+          
           if (progress < 1.0)
             LinearProgressIndicator(
               value: progress,
@@ -142,7 +142,7 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> {
               minHeight: 3,
             ),
             
-          // Area Web View yang di-clamp di dalam view utama
+          
           Expanded(
             child: ClipRRect(
               borderRadius: const BorderRadius.only(
@@ -158,7 +158,7 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> {
                 },
                 onLoadStart: (controller, url) {
                   setState(() {
-                    progress = 0; // Reset bar setiap memuat hal baru
+                    progress = 0; 
                   });
                 },
                 onProgressChanged: (controller, progressPercentage) {
@@ -171,12 +171,12 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> {
                 },
                 onLoadStop: (controller, url) async {
                   pullToRefreshController?.endRefreshing();
-                  // Dinamis mengubah title berdasarkan judul web
+                  
                   String? title = await controller.getTitle();
                   bool checkCanGoBack = await controller.canGoBack();
                   
                   setState(() {
-                    // Update judul jika didapatkan
+                    
                     if (title != null && title.isNotEmpty) currentTitle = title;
                     canGoBack = checkCanGoBack;
                   });
@@ -186,7 +186,7 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> {
                   if (request.isForMainFrame ?? false) {
                     debugPrint("[GARA WebView] Error: ${error.description} (Code: ${error.type})");
                     
-                    // Show custom error if connection failed
+                    
                     controller.loadData(data: """
                       <html>
                         <head>
@@ -210,23 +210,23 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> {
                   }
                 },
                 
-                // BAGIAN PENTING: MENGUNCI AGAR SELALU DI DALAM APLIKASI
+                
                 shouldOverrideUrlLoading: (controller, navigationAction) async {
                   var uri = navigationAction.request.url;
 
                   if (uri != null) {
-                    // Cek jika scheme-nya http atau https
-                    // Segala jenis link http/https yang diklik/diload akan DIPAKSA 
-                    // berada di dalam WebView ini (In-App Browser).
+                    
+                    
+                    
                     if (["http", "https"].contains(uri.scheme)) {
-                      // ALLOW: Mencegah sistem atau web melempar user ke Chrome / Eksternal
+                      
                       return NavigationActionPolicy.ALLOW;
                     }
                   }
                   
-                  // Tolak skema selain protokol HTTP / HTTPS 
-                  // jika itu bukan bagian dari fitur web normal, 
-                  // Tapi kalau butuh mailto: dll, ubah cancel ke hal yang sesuai.
+                  
+                  
+                  
                   return NavigationActionPolicy.CANCEL;
                 },
               ),

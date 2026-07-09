@@ -1,5 +1,5 @@
-// Shared AppBar — dipakai seragam di semua halaman Ruang
-// Header: [Back] Logo FARA_BLACK | Judul | [ikon opsional]
+
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'gara_logo.dart';
@@ -42,7 +42,7 @@ class GaraAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12),
         child: Row(children: [
-          // ← Back
+          
           if (showBack)
             GestureDetector(
               onTap: () => Navigator.pop(context),
@@ -57,13 +57,13 @@ class GaraAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           const SizedBox(width: 10),
-          // Logo FARA_BLACK
+          
           const GaraLogoBlack(height: 26),
           const SizedBox(width: 10),
-          // Divider vertikal
+          
           Container(width: 1, height: 22, color: GaraColors.studentBorder),
           const SizedBox(width: 10),
-          // Icon + Judul
+          
           Container(
             padding: const EdgeInsets.all(5),
             decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(8)),
@@ -80,7 +80,7 @@ class GaraAppBar extends StatelessWidget implements PreferredSizeWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          // Aksi kanan (opsional)
+          
           if (actions != null) ...actions!,
         ]),
       ),

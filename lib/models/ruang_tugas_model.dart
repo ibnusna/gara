@@ -1,20 +1,20 @@
-// ============================================================
-//  GARA Flutter — RuangTugasModel
-//  Data models for the native Ruang Tugas screens.
-//
-//  Matches JSON response from RuangTugasApiController:
-//   GET  /api/mobile/ruang-tugas/list?mapel_id=X
-//   GET  /api/mobile/ruang-tugas/detail/{id}?mapel_id=X
-//   POST /api/mobile/ruang-tugas/submit
-//   POST /api/mobile/ruang-tugas/delete
-// ============================================================
 
-// ── Enums (verified from tugas.status, tugas_pengumpulan.metode) ─────────
 
-/// Computed submission status — categorized by TugasController::index() logic.
+
+
+
+
+
+
+
+
+
+
+
+
 enum TugasStatus { aktif, selesai, terlewat }
 
-/// Submission method — enum('link','file') in DB + manual for mark-as-read
+
 enum MetodePengumpulan { link, file, manual }
 
 extension MetodePengumpulanExt on MetodePengumpulan {
@@ -41,34 +41,34 @@ extension MetodePengumpulanExt on MetodePengumpulan {
   }
 }
 
-// ── TugasModel — Full assignment + submission row ────────────────────────
+
 class TugasModel {
-  // Core tugas fields (from `tugas` table)
+  
   final int id;
   final String judul;
   final String? deskripsi;
-  final String? deskripsiPreview;   // Str::limit(100) — from server
-  final String? linkLampiran;        // Attachment URL (may be null)
+  final String? deskripsiPreview;   
+  final String? linkLampiran;        
   final DateTime? batasWaktu;
-  final String batasWaktuLabel;      // Formatted: "dd MMM, HH:mm" or "Tanpa Batas"
-  final String? batasWaktuIso;       // ISO format for countdown timer
+  final String batasWaktuLabel;      
+  final String? batasWaktuIso;       
   final bool isAutoClose;
   final bool allowUpload;
-  final String status;               // 'aktif' | 'draft'
-  final String? kategoriAsesmen;     // Formatif | Sumatif | P5 | Remedial
+  final String status;               
+  final String? kategoriAsesmen;     
   final String? teknikPenilaian;
   final String? pokokBahasan;
-  final String? tipeTugas;           // Individual | Kelompok
+  final String? tipeTugas;           
 
-  // Computed flags (from server)
+  
   final TugasStatus tugasStatus;
-  final bool isUrgent;               // deadline < 24h from now AND aktif
+  final bool isUrgent;               
 
-  // Submission fields (from LEFT JOIN tugas_pengumpulan — may be null if not submitted)
+  
   final int? submissionId;
-  final String? linkPengumpulan;     // URL or filename
-  final String? submissionFileUrl;   // Resolved public URL (for file metode)
-  final double? nilai;               // Grade (null = not graded yet)
+  final String? linkPengumpulan;     
+  final String? submissionFileUrl;   
+  final double? nilai;               
   final String? catatanSiswa;
   final DateTime? dikumpulkanPada;
   final String? feedbackGuru;
@@ -162,7 +162,7 @@ class TugasModel {
     );
   }
 
-  /// Creates a copy with updated submission fields — used after submit/delete.
+  
   TugasModel copyWithSubmission({
     int? submissionId,
     String? linkPengumpulan,
@@ -204,7 +204,7 @@ class TugasModel {
   }
 }
 
-// ── Response Wrappers ────────────────────────────────────────────────────
+
 
 class TugasListResponse {
   final bool success;

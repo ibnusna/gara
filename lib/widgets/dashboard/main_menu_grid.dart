@@ -1,22 +1,22 @@
-// ============================================================
-//  GARA Flutter — Main Menu Grid (Teras Ilmu)
-//  Refactored: Design System Baru (dashborad.html)
-//
-//  DS Mapping: Section 3 — Eksplorasi (asimetris 2+4 grid)
-//  Sebelum : GridView 3x2 dengan container putih solid, icon circle
-//  Sesudah : Layout asimetris — 2 kartu besar (Row) + 4 kartu kecil (Row)
-//
-//  Perubahan Visual:
-//  - Container luar dihapus (tidak ada lagi white card wrapper)
-//  - 2 menu utama: glass-card rounded-[24px], height 128, icon rounded-[14px] solid
-//  - 4 menu kecil: glass-card rounded-[20px], kolom 4, icon circle dengan tint
-//  - Section label "Eksplorasi" di atas grid
-//  - Hover animation: hover:-translate-y-1 → diimplementasikan sebagai lift saat press
-//  - Font: Plus Jakarta Sans
-//
-//  LOGIKA TIDAK DIUBAH: navigasi ke setiap ruang, WebView handoff,
-//  offline behavior, isOffline parameter — identik dengan versi lama
-// ============================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -30,22 +30,22 @@ import '../../screens/ruang_fokus_page.dart';
 import '../hybrid_wrapper.dart';
 import 'ds_glass_card.dart';
 
-// Teras Ilmu — Main Menu Grid (3x2)
-// Fase 2: Navigasi WebView kini menggunakan Sanctum Handoff URL
-// sehingga siswa selalu terautentikasi saat masuk ke ruang Laravel.
-//
-// Offline Behavior (Masalah 4 revisi):
-// - Banner "Hubungkan ke internet" ditampilkan di atas (di HomeTab)
-// - Menu TETAP bisa diklik seperti biasa — tidak diblokir/di-grey-out
-// - Jika klik WebView menu saat offline → tampilkan OfflinePage
-//   (seperti behavior di aplikasi besar: YouTube, Tokopedia, dll)
+
+
+
+
+
+
+
+
+
 
 class _MenuItem {
   final String label;
   final IconData icon;
   final Color bg;
   final Color color;
-  final bool isLarge; // Masuk ke 2 kartu besar atau 4 kecil
+  final bool isLarge; 
   const _MenuItem({
     required this.label,
     required this.icon,
@@ -55,10 +55,10 @@ class _MenuItem {
   });
 }
 
-// Data menu identik 1:1 dari dashboard.blade.php
-// DS: 2 utama (Ruang Belajar, Ruang Tugas) + 4 kecil
+
+
 const _menus = [
-  // 2 kartu besar — DS: icon bg solid rounded-[14px]
+  
   _MenuItem(
     label: 'Ruang Belajar',
     icon: Icons.menu_book_rounded,
@@ -69,33 +69,33 @@ const _menus = [
   _MenuItem(
     label: 'Ruang Diskusi',
     icon: Icons.forum_rounded,
-    bg: Color(0xFFD1FAE5), // emerald-100
+    bg: Color(0xFFD1FAE5), 
     color: GaraColors.dsIconEmerald,
     isLarge: true,
   ),
-  // 4 kartu kecil — DS: icon bg tint circle
+  
   _MenuItem(
     label: 'Ruang Kompetensi',
-    icon: Icons.emoji_events_rounded, // Berubah dari laptop ke emoji_events
-    bg: Color(0xFFFFE4E6), // rose-100
+    icon: Icons.emoji_events_rounded, 
+    bg: Color(0xFFFFE4E6), 
     color: GaraColors.dsIconRose,
   ),
   _MenuItem(
     label: 'Ruang Fokus',
     icon: Icons.center_focus_strong_rounded,
-    bg: Color(0xFFF3E8FF), // purple-100
+    bg: Color(0xFFF3E8FF), 
     color: GaraColors.dsIconPurple,
   ),
   _MenuItem(
     label: 'Ruang Tugas',
     icon: Icons.assignment_rounded,
-    bg: Color(0xFFFFEDD5), // orange-100
+    bg: Color(0xFFFFEDD5), 
     color: GaraColors.dsIconOrange,
   ),
   _MenuItem(
     label: 'Ruang Catatan',
     icon: Icons.sticky_note_2_rounded,
-    bg: Color(0xFFFEF3C7), // amber-100
+    bg: Color(0xFFFEF3C7), 
     color: GaraColors.dsIconAmber,
   ),
 ];
@@ -112,7 +112,7 @@ class MainMenuGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Section label (DS: h2 "Eksplorasi") ──
+        
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 12),
           child: Text(
@@ -126,7 +126,7 @@ class MainMenuGrid extends StatelessWidget {
           ),
         ),
 
-        // ── 2 Kartu Besar (DS: grid grid-cols-2 gap-3) ──
+        
         Row(
           children: largeMenus.map((m) {
             final isLast = m == largeMenus.last;
@@ -141,7 +141,7 @@ class MainMenuGrid extends StatelessWidget {
 
         const SizedBox(height: 10),
 
-        // ── 4 Kartu Kecil (DS: col-span-2 grid-cols-4 gap-3) ──
+        
         Row(
           children: smallMenus.asMap().entries.map((e) {
             final i = e.key;
@@ -159,9 +159,9 @@ class MainMenuGrid extends StatelessWidget {
   }
 }
 
-// ── Kartu Besar (Ruang Belajar & Ruang Tugas) ─────────────────
-// DS: .glass-card.rounded-[24px].p-4.ripple.flex.flex-col.justify-between.h-32
-// DS: hover:-translate-y-1 → press animation = lift
+
+
+
 class _LargeMenuTile extends StatefulWidget {
   final _MenuItem item;
   final bool isOffline;
@@ -305,9 +305,9 @@ class _LargeMenuTileState extends State<_LargeMenuTile> {
   }
 }
 
-// ── Kartu Kecil (Kompetensi, Fokus, Diskusi, Catatan) ─────────
-// DS: .glass-card.rounded-[20px].p-3.flex.flex-col.items-center.gap-2
-// DS: icon container: circle dengan bg tint warna (misal rose-100, purple-100)
+
+
+
 class _SmallMenuTile extends StatefulWidget {
   final _MenuItem item;
   final bool isOffline;

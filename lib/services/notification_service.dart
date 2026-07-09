@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/app_constants.dart';
 
 class NotificationService {
-  // Pastikan baseUrl menunjuk ke localhost:8000 sesuai permintaan
+  
   static const String baseUrl = 'http://localhost:8000';
 
   static Future<String?> _getToken() async {
@@ -12,7 +12,7 @@ class NotificationService {
     return prefs.getString(GaraPrefKeys.authToken);
   }
 
-  /// Mengambil semua notifikasi untuk siswa dari backend.
+  
   static Future<List<dynamic>> fetchNotifications() async {
     try {
       final token = await _getToken();
@@ -39,7 +39,7 @@ class NotificationService {
     }
   }
 
-  /// Menandai notifikasi sebagai telah dibaca berdasarkan ID.
+  
   static Future<bool> markAsRead(int id) async {
     try {
       final token = await _getToken();
@@ -64,7 +64,7 @@ class NotificationService {
     }
   }
 
-  /// Mengambil jumlah notifikasi yang belum dibaca.
+  
   static Future<int> getUnreadCount() async {
     try {
       final token = await _getToken();

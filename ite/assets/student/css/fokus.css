@@ -1,0 +1,356 @@
+
+
+
+
+
+
+
+
+#app-fokus-wrapper {
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    position: relative;
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 50%, #93c5fd 100%);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+#app {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px 120px 16px;
+    box-sizing: border-box;
+}
+
+
+.fokus-back-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 50;
+    background: rgba(255, 255, 255, 0.85);
+    color: #1e3a8a;
+    padding: 8px 18px;
+    border-radius: 9999px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s, box-shadow 0.2s;
+    border: none;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.fokus-back-btn:hover {
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    color: #1e40af;
+    text-decoration: none;
+}
+
+
+.fokus-brand {
+    text-align: center;
+    margin-bottom: 16px;
+    margin-top: 48px;
+}
+
+.fokus-brand h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e3a8a;
+    margin: 0;
+}
+
+
+.fokus-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.fokus-header h1 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #1e3a8a;
+    margin-bottom: 8px;
+}
+
+.fokus-header p {
+    color: #1d4ed8;
+    margin: 0;
+    font-size: 1rem;
+}
+
+
+.fokus-stats-bar {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 32px;
+}
+
+.fokus-stat {
+    text-align: center;
+}
+
+.fokus-stat-value {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.fokus-stat-value i.fire-icon {
+    font-size: 1.5rem;
+    color: #f97316;
+}
+
+.fokus-stat-value i.plant-icon {
+    font-size: 1.5rem;
+    color: #22c55e;
+}
+
+.fokus-stat-number {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #1e3a8a;
+    margin: 0;
+    line-height: 1;
+}
+
+.fokus-stat-label {
+    font-size: 0.875rem;
+    color: #1e40af;
+    margin-top: 4px;
+    margin-bottom: 0;
+}
+
+
+.fokus-timer-container {
+    position: relative;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.timer-ring {
+    transform: rotate(-90deg);
+    filter: drop-shadow(0 4px 16px rgba(37, 99, 235, 0.25));
+}
+
+.timer-progress {
+    transition: stroke-dashoffset 1s linear;
+}
+
+.fokus-timer-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#timer-display {
+    font-size: 3.75rem;
+    font-weight: 700;
+    color: #1e3a8a;
+    margin-bottom: 8px;
+    line-height: 1;
+    letter-spacing: -1px;
+}
+
+#timer-mode {
+    font-size: 1.125rem;
+    color: #1d4ed8;
+}
+
+#session-count {
+    font-size: 0.875rem;
+    color: #2563eb;
+    margin-top: 8px;
+}
+
+
+.fokus-controls {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.btn-fokus {
+    padding: 12px 32px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    outline: none;
+}
+
+.btn-fokus:active {
+    transform: scale(0.97);
+}
+
+.btn-fokus-start {
+    background: #2563eb;
+    color: white;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+
+.btn-fokus-start:hover {
+    background: #1d4ed8;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+}
+
+.btn-fokus-pause {
+    background: #f59e0b;
+    color: white;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+}
+
+.btn-fokus-pause:hover {
+    background: #d97706;
+}
+
+.btn-fokus-resume {
+    background: #3b82f6;
+    color: white;
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+}
+
+.btn-fokus-resume:hover {
+    background: #2563eb;
+}
+
+.btn-fokus-reset {
+    background: #60a5fa;
+    color: white;
+}
+
+.btn-fokus-reset:hover {
+    background: #3b82f6;
+}
+
+.btn-fokus-settings {
+    background: #60a5fa;
+    color: white;
+    padding: 12px 20px;
+}
+
+.btn-fokus-settings:hover {
+    background: #3b82f6;
+}
+
+
+.fokus-hidden {
+    display: none !important;
+}
+
+
+.plant-container {
+    text-align: center;
+    transition: all 0.5s ease;
+}
+
+#plant-visual {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+#plant-status {
+    color: #1d4ed8;
+    font-weight: 500;
+    margin-bottom: 0;
+}
+
+
+.fokus-stats-card {
+    margin-top: 32px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(30, 58, 138, 0.12);
+    padding: 24px;
+    max-width: 440px;
+    width: 100%;
+}
+
+.fokus-stats-card h3 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #1e3a8a;
+    margin-bottom: 16px;
+}
+
+.fokus-stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+.fokus-stat-row:last-child {
+    margin-bottom: 0;
+}
+
+.fokus-stat-row span:first-child {
+    color: #1d4ed8;
+}
+
+.fokus-stat-row span:last-child {
+    font-weight: 600;
+    color: #1e3a8a;
+}
+
+
+@media (max-width: 480px) {
+    #app {
+        padding: 16px 12px 100px 12px;
+    }
+
+    .fokus-header h1 {
+        font-size: 1.75rem;
+    }
+
+    #timer-display {
+        font-size: 3rem;
+    }
+
+    .fokus-controls {
+        gap: 10px;
+    }
+
+    .btn-fokus {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+}
+
+
+@keyframes fokus-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
+.timer-active #timer-display {
+    animation: fokus-pulse 2s ease-in-out infinite;
+}

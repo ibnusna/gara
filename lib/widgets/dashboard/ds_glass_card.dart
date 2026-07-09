@@ -1,38 +1,38 @@
-// ============================================================
-//  GARA Flutter — Design System: Glass Card Widget
-//  Sumber: dashborad.html (.glass-card & .glass-card-strong)
-//
-//  PENTING: BackdropFilter DIHAPUS dari implementasi kartu scroll.
-//  BackdropFilter di dalam CustomScrollView/SliverList menyebabkan
-//  seluruh konten scroll menjadi invisible (Flutter rendering bug).
-//
-//  Solusi: Efek kaca disimulasikan menggunakan:
-//  - Background putih semi-transparan (opacity 0.55–0.80)
-//  - Border putih tegas (pantulan cahaya)
-//  - Box shadow lembut
-//  Hasil visual identik dengan DS di layar nyata karena mesh background
-//  sudah cukup memberikan konteks "kaca" di belakang kartu.
-//
-//  BackdropFilter HANYA dipakai di header & bottom nav
-//  (widget yang TIDAK berada di dalam scroll view).
-// ============================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
-/// Varian glass card dari Design System GARA.
+
 enum GaraGlassVariant {
-  /// Kartu transparan — untuk konten dalam scroll view (TANPA BackdropFilter)
+  
   glass,
 
-  /// Kartu kuat — untuk header & bottom nav (DENGAN BackdropFilter)
+  
   strong,
 }
 
-/// Widget reusable glassmorphism dari Design System GARA.
-///
-/// [GaraGlassVariant.glass]  → dipakai dalam scroll view (no BackdropFilter)
-/// [GaraGlassVariant.strong] → dipakai di header/bottom nav (with BackdropFilter)
+
+
+
+
 class GaraGlassCard extends StatelessWidget {
   final Widget child;
   final BorderRadius borderRadius;
@@ -55,17 +55,17 @@ class GaraGlassCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isStrong = variant == GaraGlassVariant.strong;
 
-    // ── Varian STRONG: pakai BackdropFilter (aman — tidak di scroll view) ──
+    
     if (isStrong) {
       return _buildStrong();
     }
 
-    // ── Varian GLASS: TANPA BackdropFilter (aman di scroll view) ──
-    // Efek kaca disimulasikan: bg putih 55% opasitas + border putih + shadow
+    
+    
     return _buildGlass();
   }
 
-  /// Card kuat untuk header & bottom nav — dengan BackdropFilter
+  
   Widget _buildStrong() {
     return ClipRRect(
       borderRadius: borderRadius,
@@ -76,10 +76,10 @@ class GaraGlassCard extends StatelessWidget {
           height: height,
           padding: padding,
           decoration: BoxDecoration(
-            // DS: rgba(255,255,255,0.70)
+            
             color: const Color(0xB3FFFFFF),
             borderRadius: borderRadius,
-            // DS: border rgba(255,255,255,0.90)
+            
             border: Border.all(color: const Color(0xE6FFFFFF), width: 1.0),
             boxShadow: [
               BoxShadow(
@@ -96,9 +96,9 @@ class GaraGlassCard extends StatelessWidget {
     );
   }
 
-  /// Card kaca untuk konten scroll — TANPA BackdropFilter
-  /// Warna putih dengan opasitas lebih tinggi (0.78) agar konten tetap terbaca
-  /// dan terlihat jelas di atas mesh background.
+  
+  
+  
   Widget _buildGlass() {
     return Container(
       width: width,
@@ -135,7 +135,7 @@ class GaraGlassCard extends StatelessWidget {
   }
 }
 
-/// Shortcut untuk varian strong (header, bottom nav).
+
 class GaraGlassCardStrong extends StatelessWidget {
   final Widget child;
   final BorderRadius borderRadius;

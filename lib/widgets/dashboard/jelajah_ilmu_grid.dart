@@ -1,26 +1,26 @@
-// ============================================================
-//  GARA Flutter — Jelajah Ilmu Grid
-//  Refactored: Design System Baru (dashborad.html)
-//
-//  // Data komponen JelajahIlmuGrid tidak tersedia di Design System.
-//  // Tidak ada padanan langsung di dashborad.html.
-//  // Visual kartu diupgrade ke glass-card rounded-[20px] sesuai
-//  // prinsip umum DS (small card pattern), namun URL, navigasi,
-//  // dan data link identik dengan versi lama.
-//
-//  Perubahan Visual:
-//  - Kartu: GaraGlassCard rounded-20px (mengganti solid white + border)
-//  - Press animation: scale(0.95) dipertahankan
-//  - Border saat ditekan: overlay tipis warna icon
-//  - Font: Plus Jakarta Sans
-//  - Section label "Jelajah Ilmu" di atas grid
-//
-//  LOGIKA TIDAK DIUBAH: URL, _open() via InAppBrowserPage,
-//  data _links — identik 1:1 dari blade
-// ============================================================
 
-// Jelajah Ilmu — External Links Grid
-// Link identik 1:1 dari siswa/dashboard/index.blade.php (MODUL 5)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -36,7 +36,7 @@ class _ExtLink {
   const _ExtLink({required this.title, required this.url, required this.icon, required this.color});
 }
 
-// Data identik dari blade — jangan ubah URL!
+
 const _links = [
   _ExtLink(title: 'Bank Soal Kemdikbud', url: 'https://rumah.pendidikan.go.id/ruang/murid', icon: Icons.account_balance_rounded, color: Color(0xFF2563EB)),
   _ExtLink(title: 'E-Book',              url: 'https://buku.kemendikdasmen.go.id/',          icon: Icons.import_contacts_rounded,   color: Color(0xFF16A34A)),
@@ -51,7 +51,7 @@ class JelajahIlmuGrid extends StatelessWidget {
 
   void _open(BuildContext context, String url, String title) {
     HapticFeedback.lightImpact();
-    // Gunakan push route ke InAppBrowserPage agar tidak keluar dari aplikasi
+    
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -68,8 +68,8 @@ class JelajahIlmuGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Section label "Jelajah Ilmu" ──
-        // Data komponen JelajahIlmuGrid tidak tersedia di Design System.
+        
+        
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 12),
           child: Text(
@@ -125,13 +125,13 @@ class _LinkCardState extends State<_LinkCard> {
         duration: const Duration(milliseconds: 120),
         transform: Matrix4.identity()..scale(_pressed ? 0.95 : 1.0),
         transformAlignment: Alignment.center,
-        // Data komponen JelajahIlmuGrid tidak tersedia di Design System.
-        // Menggunakan glass-card rounded-20px sebagai pendekatan umum DS.
+        
+        
         child: GaraGlassCard(
           borderRadius: BorderRadius.circular(20),
           child: Stack(
             children: [
-              // Overlay tipis warna icon saat ditekan
+              
               if (_pressed)
                 Container(
                   decoration: BoxDecoration(

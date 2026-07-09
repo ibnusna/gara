@@ -1,7 +1,5 @@
-// ============================================================
-//  Ruang Catatan — Note Editor Page (Full Screen, iOS-style)
-//  Auto-save real-time • Rich formatting • Smooth animations
-// ============================================================
+
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -34,7 +32,7 @@ class _NoteEditorPageState extends State<NoteEditorPage>
   bool _saving = false;
   bool _justSaved = false;
 
-  // Blok-blok dikelola sebagai list controller
+  // Block editor state
   final List<TextEditingController> _controllers = [];
   final List<FocusNode> _focusNodes = [];
   final ScrollController _scrollCtrl = ScrollController();
@@ -50,11 +48,11 @@ class _NoteEditorPageState extends State<NoteEditorPage>
       duration: const Duration(milliseconds: 400),
     );
 
-    // Inisialisasi controllers untuk setiap blok
+    // Inisialisasi controllers per block
     for (final block in _note.blocks) {
       _addController(block.content);
     }
-    // Pastikan minimal 1 blok kosong
+
     if (_note.blocks.isEmpty) {
       _addBlock(BlockType.text);
     }
@@ -75,13 +73,19 @@ class _NoteEditorPageState extends State<NoteEditorPage>
     _autoSaveTimer?.cancel();
     _titleCtrl.dispose();
     _saveIndicatorCtrl.dispose();
-    for (final c in _controllers) c.dispose();
-    for (final f in _focusNodes) f.dispose();
+    // Dispose semua controllers dan focusNodes dengan aman
+    for (final c in _controllers) {
+      c.removeListener(_scheduleAutoSave);
+      c.dispose();
+    }
+    for (final f in _focusNodes) {
+      f.dispose();
+    }
     _scrollCtrl.dispose();
     super.dispose();
   }
 
-  // ── Auto-save: debounce 800ms ──────────────────────────────
+  // ── Auto-save ──────────────────────────────────────────────────────────────
   void _scheduleAutoSave() {
     _autoSaveTimer?.cancel();
     _autoSaveTimer = Timer(const Duration(milliseconds: 800), _doSave);
@@ -91,7 +95,7 @@ class _NoteEditorPageState extends State<NoteEditorPage>
     if (!mounted) return;
     setState(() => _saving = true);
 
-    // Sync blocks dari controllers
+    // Sinkronisasi blok dari controllers sebelum simpan
     _syncBlocksFromControllers();
     _note.title = _titleCtrl.text.trim().isEmpty
         ? 'Catatan Tanpa Judul'
@@ -109,23 +113,33 @@ class _NoteEditorPageState extends State<NoteEditorPage>
   }
 
   void _syncBlocksFromControllers() {
-    for (int i = 0; i < _note.blocks.length && i < _controllers.length; i++) {
+    // Bounds check: pastikan jumlah blocks dan controllers sinkron
+    final syncLen =
+        _note.blocks.length < _controllers.length
+            ? _note.blocks.length
+            : _controllers.length;
+    for (int i = 0; i < syncLen; i++) {
       _note.blocks[i].content = _controllers[i].text;
     }
   }
 
-  // ── Tambah blok baru ──────────────────────────────────────
+  // ── Block management ───────────────────────────────────────────────────────
   void _addBlock(BlockType type, {String content = '', int? afterIndex}) {
     final block = NoteBlock(type: type, content: content);
     final idx = afterIndex != null ? afterIndex + 1 : _note.blocks.length;
+
+    final ctrl = TextEditingController(text: content);
+    final focus = FocusNode();
+    ctrl.addListener(_scheduleAutoSave);
+
     setState(() {
       _note.blocks.insert(idx, block);
-      _controllers.insert(idx, TextEditingController(text: content));
-      _focusNodes.insert(idx, FocusNode());
-      _controllers[idx].addListener(_scheduleAutoSave);
+      _controllers.insert(idx, ctrl);
+      _focusNodes.insert(idx, focus);
     });
-    // Beri fokus ke blok baru
-    Future.delayed(const Duration(milliseconds: 50), () {
+
+    // Gunakan addPostFrameCallback agar tidak race condition dengan rebuild
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && idx < _focusNodes.length) {
         _focusNodes[idx].requestFocus();
       }
@@ -133,33 +147,41 @@ class _NoteEditorPageState extends State<NoteEditorPage>
     _scheduleAutoSave();
   }
 
-  // ── Hapus blok ────────────────────────────────────────────
   void _removeBlock(int idx) {
-    if (_note.blocks.length <= 1) return; // minimal 1 blok
+    if (_note.blocks.length <= 1) return; // minimal 1 block
+
+    // Ambil referensi dulu sebelum setState
+    final ctrlToDispose = _controllers[idx];
+    final focusToDispose = _focusNodes[idx];
+    final prevFocusIdx = idx > 0 ? idx - 1 : null;
+
     setState(() {
       _note.blocks.removeAt(idx);
-      _controllers[idx].dispose();
       _controllers.removeAt(idx);
-      _focusNodes[idx].dispose();
       _focusNodes.removeAt(idx);
     });
-    // Fokus ke blok sebelumnya
-    if (idx > 0) {
-      Future.delayed(const Duration(milliseconds: 50), () {
-        if (mounted) _focusNodes[idx - 1].requestFocus();
-      });
-    }
+
+    // Dispose SETELAH setState selesai (via addPostFrameCallback)
+    // untuk menghindari crash karena Flutter masih menggunakan widget
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ctrlToDispose.removeListener(_scheduleAutoSave);
+      ctrlToDispose.dispose();
+      focusToDispose.dispose();
+
+      // Pindahkan focus ke block sebelumnya
+      if (prevFocusIdx != null && mounted && prevFocusIdx < _focusNodes.length) {
+        _focusNodes[prevFocusIdx].requestFocus();
+      }
+    });
     _scheduleAutoSave();
   }
 
-  // ── Toggle checklist ──────────────────────────────────────
   void _toggleCheck(int idx) {
     HapticFeedback.selectionClick();
     setState(() => _note.blocks[idx].checked = !_note.blocks[idx].checked);
     _scheduleAutoSave();
   }
 
-  // ── Insert tanggal ────────────────────────────────────────
   void _insertDate() {
     final now = DateTime.now();
     final formatted =
@@ -169,11 +191,13 @@ class _NoteEditorPageState extends State<NoteEditorPage>
     _addBlock(BlockType.dateEntry, content: '📅 $formatted', afterIndex: targetIdx);
   }
 
-  // ── Build UI ──────────────────────────────────────────────
+  // ── Build ──────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: GaraColors.studentSurface,
+      // FIX: resizeToAvoidBottomInset agar keyboard tidak overlap konten
+      resizeToAvoidBottomInset: true,
       appBar: _buildAppBar(),
       body: Column(
         children: [
@@ -300,14 +324,14 @@ class _NoteEditorPageState extends State<NoteEditorPage>
     );
   }
 
-  // ── Editor utama ──────────────────────────────────────────
+  // ── Editor ─────────────────────────────────────────────────────────────────
   Widget _buildEditor() {
     return ListView(
       controller: _scrollCtrl,
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
       physics: const BouncingScrollPhysics(),
       children: [
-        // Judul
+        // Title field
         TextField(
           controller: _titleCtrl,
           style: GoogleFonts.poppins(
@@ -326,7 +350,7 @@ class _NoteEditorPageState extends State<NoteEditorPage>
           textInputAction: TextInputAction.next,
           maxLines: null,
         ),
-        // Tanggal dibuat
+
         Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: Text(
@@ -337,9 +361,10 @@ class _NoteEditorPageState extends State<NoteEditorPage>
         ),
         const Divider(color: GaraColors.studentBorder, height: 1),
         const SizedBox(height: 12),
-        // Blok-blok konten
+
+        // Block fields
         ..._buildBlockWidgets(),
-        // Tombol tambah baris
+
         const SizedBox(height: 8),
         GestureDetector(
           onTap: () => _addBlock(BlockType.text),
@@ -365,6 +390,8 @@ class _NoteEditorPageState extends State<NoteEditorPage>
   List<Widget> _buildBlockWidgets() {
     final widgets = <Widget>[];
     for (int i = 0; i < _note.blocks.length; i++) {
+      // Guard: jangan render jika controllers belum sinkron
+      if (i >= _controllers.length || i >= _focusNodes.length) break;
       widgets.add(_buildBlockRow(i));
     }
     return widgets;
@@ -407,7 +434,8 @@ class _NoteEditorPageState extends State<NoteEditorPage>
             style: GoogleFonts.poppins(
                 fontSize: 14.5,
                 color: GaraColors.studentPrimary,
-                fontWeight: FontWeight.w600, height: 1.6));
+                fontWeight: FontWeight.w600,
+                height: 1.6));
         break;
       case BlockType.checklist:
         prefix = GestureDetector(
@@ -480,7 +508,7 @@ class _NoteEditorPageState extends State<NoteEditorPage>
     );
   }
 
-  // ── Toolbar format ─────────────────────────────────────────
+  // ── Toolbar ────────────────────────────────────────────────────────────────
   Widget _buildFormattingToolbar() {
     return Container(
       decoration: const BoxDecoration(
@@ -585,7 +613,7 @@ class _NoteEditorPageState extends State<NoteEditorPage>
         margin: const EdgeInsets.symmetric(horizontal: 6),
       );
 
-  // ── Category picker ────────────────────────────────────────
+  // ── Category picker ────────────────────────────────────────────────────────
   void _showCategoryPicker() {
     HapticFeedback.mediumImpact();
     showModalBottomSheet(
@@ -613,7 +641,7 @@ class _NoteEditorPageState extends State<NoteEditorPage>
   }
 }
 
-// ── Category Picker Sheet ──────────────────────────────────────
+
 class _CategoryPickerSheet extends StatelessWidget {
   final NoteCategory selected;
   final ValueChanged<NoteCategory> onSelect;
@@ -675,7 +703,8 @@ class _CategoryPickerSheet extends StatelessWidget {
       ),
       child: ListTile(
         onTap: () => onSelect(cat),
-        leading: Icon(cat.icon, color: isSelected ? GaraColors.studentPrimary : GaraColors.studentTextMuted),
+        leading: Icon(cat.icon,
+            color: isSelected ? GaraColors.studentPrimary : GaraColors.studentTextMuted),
         title: Text(cat.label,
             style: GoogleFonts.poppins(
                 fontSize: 14,

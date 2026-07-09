@@ -1,0 +1,117 @@
+
+:root {
+    --primary-color: #4e73df;
+    --primary-dark: #224abe;
+    --secondary-color: #858796;
+    --success-color: #1cc88a;
+    --danger-color: #e74a3b;
+    --dark-bg: #eef2f7;
+    
+    --card-bg: #ffffff;
+    --text-main: #2e384d;
+    --text-muted: #6e707e;
+    --premium-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+body {
+    background-color: var(--dark-bg) !important;
+    font-family: 'Nunito', sans-serif;
+    color: var(--text-main);
+}
+
+
+.navbar {
+    background: #ffffff !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.navbar-brand {
+    color: var(--primary-dark) !important;
+    font-weight: 800;
+    font-size: 1.25rem;
+}
+
+
+.exam-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 25px;
+    padding-bottom: 80px;
+    
+}
+
+.exam-grid .card {
+    border: 1px solid #e3e6f0;
+    border-radius: 12px;
+    background: white;
+    box-shadow: var(--premium-shadow);
+    opacity: 1 !important;
+    
+    visibility: visible !important;
+}
+
+.exam-grid .card-header {
+    background: linear-gradient(45deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    font-weight: bold;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    padding: 1rem 1.5rem;
+}
+
+.exam-grid .card-body {
+    padding: 1.5rem;
+    font-size: 1.1rem;
+    color: #444;
+}
+
+
+.fixed-bottom {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    padding: 1rem !important;
+}
+
+
+.option-card {
+    border: 2px solid #eaecf4;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.option-card:hover {
+    border-color: var(--primary-color);
+    background: #f8f9fc;
+}
+
+.option-card.selected-correct {
+    background-color: #d4edda;
+    border-color: #28a745;
+}
+
+.option-card.selected-wrong {
+    background-color: #f8d7da;
+    border-color: #dc3545;
+}
+
+
+.btn {
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-secondary {
+    background: #eaecf4;
+    color: #333;
+    border: 1px solid #d1d3e2;
+}

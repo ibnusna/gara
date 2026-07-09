@@ -43,14 +43,14 @@ class _NotifikasiTabState extends State<NotifikasiTab> {
   Future<void> _markAsRead(int index, int id) async {
     if (_notifs[index]['is_read'] == 1 || _notifs[index]['is_read'] == true) return;
 
-    // Optimistic UI update
+    
     setState(() {
       _notifs[index]['is_read'] = 1;
     });
 
     final success = await NotificationService.markAsRead(id);
     if (!success && mounted) {
-      // Revert if failed
+      
       setState(() {
         _notifs[index]['is_read'] = 0;
       });
@@ -159,7 +159,7 @@ class _NotifTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Tentukan icon dan warna berdasarkan tipe
+    
     IconData icon = Icons.notifications;
     Color iconColor = Colors.grey;
     Color iconBg = Colors.grey.shade100;
@@ -188,17 +188,17 @@ class _NotifTile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        color: isRead ? Colors.white : const Color(0xFFEFF6FF), // Blue shaded if unread
+        color: isRead ? Colors.white : const Color(0xFFEFF6FF), 
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          // Icon
+          
           Container(
             width: 44, height: 44,
             decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
             child: Icon(icon, color: iconColor, size: 20),
           ),
           const SizedBox(width: 12),
-          // Teks
+          
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               Expanded(

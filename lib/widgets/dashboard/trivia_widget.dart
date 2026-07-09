@@ -1,26 +1,26 @@
-// ============================================================
-//  GARA Flutter — Brain Warmup Trivia Widget
-//  Refactored: Design System Baru (dashborad.html)
-//
-//  // Data komponen TriviaWidget tidak tersedia di Design System.
-//  // Tidak ada padanan langsung di dashborad.html.
-//  // Visual container diupgrade ke glass-card style dengan border-radius 24px
-//  // sesuai prinsip umum DS (glassmorphism), namun layout dan konten
-//  // dipertahankan sepenuhnya dari versi lama.
-//
-//  Perubahan Visual:
-//  - Container: GaraGlassCard rounded-24px (mengganti solid white)
-//  - Header icon box: rounded-[12px], warna amber dipertahankan
-//  - Font: Plus Jakarta Sans
-//  - Pilihan jawaban: border-radius 12px (dari 10px) sesuai DS
-//  - Option label circle: border-radius konsisten
-//
-//  LOGIKA TIDAK DIUBAH: _answer(), _index, _selected, _answered,
-//  triviaBank, feedback benar/salah, auto-next — identik dengan versi lama
-// ============================================================
 
-// Brain Warmup Trivia Widget
-// Interaktif: pilih jawaban → feedback benar/salah → auto next
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -63,13 +63,13 @@ class _TriviaWidgetState extends State<TriviaWidget> {
   @override
   Widget build(BuildContext context) {
     final q = _current;
-    // Data komponen TriviaWidget tidak tersedia di Design System.
-    // Container diupgrade ke glass-card; layout konten tidak diubah.
+    
+    
     return GaraGlassCard(
       borderRadius: BorderRadius.circular(24),
       padding: const EdgeInsets.all(16),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        // Header
+        
         Row(children: [
           Container(
             padding: const EdgeInsets.all(8),
@@ -112,7 +112,7 @@ class _TriviaWidgetState extends State<TriviaWidget> {
         const Divider(color: GaraColors.dsSlate200, height: 1),
         const SizedBox(height: 14),
 
-        // Pertanyaan
+        
         Text(
           q.pertanyaan,
           style: GoogleFonts.plusJakartaSans(
@@ -124,7 +124,7 @@ class _TriviaWidgetState extends State<TriviaWidget> {
         ),
         const SizedBox(height: 14),
 
-        // Pilihan jawaban
+        
         Column(
           children: List.generate(q.pilihan.length, (i) {
             Color btnColor = Colors.white.withOpacity(0.50);

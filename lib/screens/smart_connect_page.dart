@@ -20,7 +20,7 @@ class _SmartConnectPageState extends State<SmartConnectPage> {
       HapticFeedback.mediumImpact();
       String url = _ipController.text.trim();
       if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        url = 'http://$url'; // Default to http if no protocol is given
+        url = 'http://$url'; 
       }
 
       Navigator.pushReplacement(

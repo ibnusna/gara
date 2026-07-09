@@ -1,11 +1,11 @@
-// Model untuk data Ruang Fokus — identik dengan localStorage Laravel
-// STORAGE_KEY: 'garuda_akademi_ruang_fokus'
+
+
 import 'dart:convert';
 
 class FocusSettings {
-  int focusDuration;   // menit
-  int shortBreak;      // menit
-  int longBreak;       // menit
+  int focusDuration;   
+  int shortBreak;      
+  int longBreak;       
 
   FocusSettings({
     this.focusDuration = 25,
@@ -46,7 +46,7 @@ class FocusStats {
 class FocusStreak {
   int current;
   int longest;
-  String? lastFocusDate; // 'YYYY-MM-DD'
+  String? lastFocusDate; 
 
   FocusStreak({this.current = 0, this.longest = 0, this.lastFocusDate});
 
@@ -68,8 +68,8 @@ class FocusData {
   FocusStats stats;
   FocusStreak streak;
   int plantWaterPoints;
-  int plantLevel;      // 1–5
-  Map<String, int> history; // 'YYYY-MM-DD' → sessions
+  int plantLevel;      
+  Map<String, int> history; 
 
   FocusData({
     FocusSettings? settings,
@@ -106,7 +106,7 @@ class FocusData {
   static FocusData decode(String raw) =>
       FocusData.fromJson(jsonDecode(raw) as Map<String, dynamic>);
 
-  // Hitung sesi harian hari ini
+  
   String get todayKey => DateTime.now().toIso8601String().substring(0, 10);
   int get todaySessions => history[todayKey] ?? 0;
 }

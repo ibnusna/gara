@@ -1,17 +1,17 @@
-// ============================================================
-//  GARA Flutter — Screen: Login Page (Efficient Premium v10)
-//  Background: bglogin.jpg | Logo: GARA_WHITE.svg
-//  Alur: Welcome Screen → Login Screen → PilihMapelPage
-//
-//  Optimasi implementasi (TANPA downgrade visual):
-//   ✅ RepaintBoundary di background & logo SVG
-//   ✅ TextTheme dari Theme.of(context) — tidak alokasi ulang
-//   ✅ ParticleOverlay tetap aktif (static painter, free)
-//   ✅ SlideTransition switcher tetap aktif (premium feel)
-//   ✅ BoxShadow tombol tetap aktif
-//   ✅ filterQuality.medium (default optimal)
-//   ✅ Durasi animasi premium dipertahankan
-// ============================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 import 'package:flutter/material.dart';
 import '../utils/app_constants.dart';
@@ -22,8 +22,15 @@ import '../widgets/gara_logo.dart';
 import '../widgets/gara_primary_button.dart';
 import '../widgets/hybrid_wrapper.dart';
 import '../utils/app_config.dart';
-import '../services/auth_service.dart';
+// ── InfinityFree Bypass: Ganti AuthService.login dengan InfinityAuthService ──
+// Standard 'http' package akan diblok oleh InfinityFree AES JS Challenge.
+// InfinityAuthService menggunakan HeadlessInAppWebView untuk bypass.
+import '../services/InfinityAuthService.dart';
 import 'pilih_mapel_page.dart';
+import '../widgets/infinity_bypass_dialog.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -33,7 +40,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   bool _showLoginScreen = false;
   bool _isPasswordVisible = false;
   bool _isLoading = false;
@@ -46,7 +53,7 @@ class _LoginPageState extends State<LoginPage>
 
   late final AnimationController _animCtrl = AnimationController(
     vsync: this,
-    duration: PerformanceConfig.loginFadeDuration, // 500ms premium
+    duration: PerformanceConfig.loginFadeDuration, 
   )..forward();
 
   late final Animation<double> _fadeAnim = CurvedAnimation(
@@ -54,7 +61,7 @@ class _LoginPageState extends State<LoginPage>
     curve: PerformanceConfig.loginFadeCurve,
   );
 
-  // Entrance animation
+  
   late final AnimationController _entranceCtrl = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 1000),
@@ -97,18 +104,51 @@ class _LoginPageState extends State<LoginPage>
     FocusScope.of(context).unfocus();
     setState(() => _isLoading = true);
 
-    final result = await AuthService.login(
-      identifier: _identifierCtrl.text.trim(),
-      password:   _passwordCtrl.text,
-    );
+    int retryCount = 0;
+    InfinityAuthResult? result;
+
+    while (retryCount < 2) {
+      // Cek apakah cookie __test bypass sudah ada
+      final prefs = await SharedPreferences.getInstance();
+      final cookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
+      final timestamp = prefs.getInt(GaraPrefKeys.bypassCookieTimestamp) ?? 0;
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final isExpired = (now - timestamp) > 21600000;
+
+      if (cookie.isEmpty || isExpired) {
+        // ── MUNCULKAN DIALOG BYPASS SEMENTARA ──
+        final resultCookie = await showInfinityBypass(context);
+        if (resultCookie == null) {
+          if (!mounted) return;
+          setState(() => _isLoading = false);
+          _showErrorDialog('Koneksi Gagal', 'Gagal mendapatkan sesi keamanan dari server. Periksa koneksi internet Anda.');
+          return;
+        }
+      }
+
+      // ── BYPASS InfinityFree via Cookie tersimpan ─────────────────────────
+      result = await InfinityAuthService.login(
+        identifier: _identifierCtrl.text.trim(),
+        password:   _passwordCtrl.text,
+      );
+
+      if (result.errorMessage == '__RETRY_BYPASS__') {
+        // Cookie ditolak oleh InfinityFree, jalankan retry loop dan panggil dialog bypass otomatis
+        retryCount++;
+        continue;
+      }
+
+      // Jika berhasil atau error lain, hentikan loop
+      break;
+    }
 
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    if (!result.success) {
+    if (result == null || !result.success) {
       _showErrorDialog(
-        result.isMaintenance ? '🔧 Sistem dalam Pemeliharaan' : 'Gagal Masuk',
-        result.errorMessage ?? 'Terjadi kesalahan. Coba lagi.',
+        result?.isMaintenance == true ? '🔧 Sistem dalam Pemeliharaan' : 'Gagal Masuk',
+        result?.errorMessage == '__RETRY_BYPASS__' ? 'Sistem sibuk. Silakan coba lagi.' : (result?.errorMessage ?? 'Terjadi kesalahan. Coba lagi.'),
       );
       return;
     }
@@ -163,7 +203,7 @@ class _LoginPageState extends State<LoginPage>
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Layer 1: Background — RepaintBoundary: cegah repaint gambar saat konten bergerak
+          
           RepaintBoundary(
             child: Image.asset(
               'assets/images/bglogin.jpg',
@@ -172,25 +212,27 @@ class _LoginPageState extends State<LoginPage>
             ),
           ),
 
-          // Layer 2: Dark overlay
+          
           const ColoredBox(color: GaraColors.bgOverlay),
 
-          // Layer 3: Particle decoration — tetap aktif, gratis (static CustomPainter)
+          
           const _ParticleOverlay(),
 
-          // Layer 4: Animated content with Entrance Animation
+          // (InAppWebView 1x1 telah dihapus untuk mencegah ANR dan double UI rendering)
+
+          
           FadeTransition(
             opacity: _entranceFade,
             child: SlideTransition(
               position: _entranceSlide,
               child: AnimatedSwitcher(
-            duration: PerformanceConfig.loginSwitcherDuration, // 400ms
+            duration: PerformanceConfig.loginSwitcherDuration, 
             switchInCurve: Curves.easeOut,
             switchOutCurve: Curves.easeIn,
             transitionBuilder: (child, anim) => FadeTransition(
               opacity: anim,
               child: SlideTransition(
-                // Slide mikro 3% horizontal — premium feel, murah di GPU
+                
                 position: Tween<Offset>(
                   begin: const Offset(0.03, 0),
                   end: Offset.zero,
@@ -228,7 +270,7 @@ class _LoginPageState extends State<LoginPage>
   }
 }
 
-// ── Welcome Screen ─────────────────────────────────────────────
+
 class _WelcomeScreen extends StatelessWidget {
   final Animation<double> fadeAnim;
   final VoidCallback onMulaiAkses;
@@ -241,7 +283,7 @@ class _WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TextTheme dari context — sudah di-cache di MaterialApp level
+    
     final tt = Theme.of(context).textTheme;
 
     return Center(
@@ -254,7 +296,7 @@ class _WelcomeScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // RepaintBoundary di logo — SVG tidak ikut repaint saat fade berjalan
+                
                 const RepaintBoundary(child: GaraLogoWhite(height: 80)),
                 const SizedBox(height: 14),
                 Text(
@@ -291,7 +333,7 @@ class _WelcomeScreen extends StatelessWidget {
   }
 }
 
-// ── Text Carousel ──────────────────────────────────────────────
+
 class _TextCarousel extends StatefulWidget {
   const _TextCarousel();
 
@@ -379,7 +421,7 @@ class _TextCarouselState extends State<_TextCarousel> {
   }
 }
 
-// ── Login Screen ───────────────────────────────────────────────
+
 class _LoginScreen extends StatelessWidget {
   final Animation<double> fadeAnim;
   final TextEditingController identifierCtrl;
@@ -492,7 +534,7 @@ class _LoginScreen extends StatelessWidget {
   }
 }
 
-// ── Input Field ────────────────────────────────────────────────
+
 class _InputField extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
@@ -587,8 +629,8 @@ class _InputField extends StatelessWidget {
   }
 }
 
-// ── Particle Overlay — static CustomPainter, shouldRepaint:false ──
-// Gratis di GPU karena tidak pernah repaint setelah first draw
+
+
 class _ParticleOverlay extends StatelessWidget {
   const _ParticleOverlay();
 
@@ -627,7 +669,7 @@ class _ParticlePainter extends CustomPainter {
     }
   }
 
-  // shouldRepaint: false = painter tidak pernah repaint = 0 GPU cost setelah render pertama
+  
   @override
   bool shouldRepaint(_ParticlePainter _) => false;
 }

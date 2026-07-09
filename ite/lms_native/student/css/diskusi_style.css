@@ -1,0 +1,661 @@
+/* GARA LMS - Diskusi Style (Twitter Clone)
+   Based on User Reference 'styles.css'
+*/
+
+/* Import Font Inter (Twitter-like font) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+
+:root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f7f9f9;
+    /* Abu-abu muda untuk separator/bg */
+    --border-color: #eff3f4;
+    --text-primary: #0f1419;
+    --text-secondary: #536471;
+    --color-primary: #1DA1F2;
+    /* Twitter Blue */
+    --color-repost: #00ba7c;
+    /* Green */
+    --color-like: #f91880;
+    /* Pink/Red */
+    --color-bookmark: #1DA1F2;
+    --backdrop: rgba(0, 0, 0, 0.4);
+}
+
+/* FIX: Ensure SweetAlert2 is always on top of Custom Modals (z-index 2000) */
+.swal2-container {
+    z-index: 99999 !important;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-primary);
+    /* Default white */
+    color: var(--text-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-y: scroll;
+    /* Always show scrollbar to prevent shift */
+}
+
+/* --- Layout Container (Focus Mode) --- */
+.app-container {
+    max-width: 600px;
+    /* Standar Twitter Web width */
+    margin: 0 auto;
+    background-color: var(--bg-primary);
+    min-height: 100vh;
+    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    position: relative;
+}
+
+/* --- Header Sticky --- */
+.header {
+    position: sticky;
+    top: 0;
+    background-color: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-color);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    height: 53px;
+    cursor: pointer;
+    /* Scroll to top logic later */
+}
+
+.header-btn {
+    background: transparent;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: background-color 0.2s ease;
+}
+
+.header-btn:hover {
+    background-color: rgba(15, 20, 25, 0.1);
+}
+
+.header-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-left: 20px;
+}
+
+/* --- Input Area (Top) --- */
+.input-area {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    gap: 12px;
+}
+
+.avatar {
+    width: 42px;
+    /* Diperkecil dari 48px agar lebih manis */
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: #f0f2f5;
+    /* Style UI/UX Baru: Border Putih & Shadow */
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease;
+}
+
+.avatar:hover {
+    transform: scale(1.05);
+    /* Efek pop sedikit saat di-hover */
+}
+
+
+/* Style Avatar Global (Input & Feed) */
+.avatar,
+.main-post-avatar,
+.reply-input-avatar,
+.reply-item-avatar {
+    /* Ukuran default (bisa di-override spesifik class lain jika perlu) */
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+
+    /* Background putih agar transparan avatar aman */
+    background-color: #ffffff;
+
+    /* ESTETIKA BARU: Border Putih Tebal & Shadow */
+    border: 3px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    /* Shadow lebih berasa */
+
+    transition: transform 0.2s ease;
+}
+
+.avatar:hover {
+    transform: scale(1.05);
+}
+
+.input-wrapper {
+    flex: 1;
+}
+
+/* Fake Input Box (Trigger Modal) */
+.fake-input {
+    width: 100%;
+    padding: 12px 0;
+    font-size: 20px;
+    color: var(--text-secondary);
+    border: none;
+    background: transparent;
+    cursor: text;
+    outline: none;
+}
+
+.input-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 12px;
+}
+
+.action-icons {
+    display: flex;
+    gap: 8px;
+}
+
+.icon-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.2s;
+}
+
+.icon-btn:hover {
+    background-color: rgba(29, 161, 242, 0.1);
+}
+
+.btn-post {
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: 9999px;
+    padding: 8px 16px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s;
+    opacity: 0.5;
+    /* Disabled state default */
+    pointer-events: none;
+}
+
+.btn-post.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.btn-post:hover {
+    background-color: #1a91da;
+}
+
+/* --- Feed Item (Post) --- */
+.feed-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    gap: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    position: relative;
+}
+
+.feed-item:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Garis vertikal untuk reply connection */
+/* .feed-item.is-reply::before {
+    Logic CSS line connector akan kompleks di PHP loop, 
+       kita simpan simple indentation saja sesuai request 'mirip thread' 
+} */
+
+.post-content {
+    flex: 1;
+    min-width: 0;
+    /* Prevent flex overflow */
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2px;
+}
+
+.user-meta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 15px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.name {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.verified-badge {
+    color: var(--color-primary);
+    font-size: 14px;
+}
+
+.username {
+    color: var(--text-secondary);
+}
+
+.time {
+    color: var(--text-secondary);
+}
+
+.time::before {
+    content: "·";
+    margin-right: 4px;
+}
+
+.post-menu-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.post-menu-btn:hover {
+    background-color: rgba(29, 161, 242, 0.1);
+    color: var(--color-primary);
+}
+
+.post-text {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+    /* Preserve line breaks */
+    margin-bottom: 10px;
+    word-wrap: break-word;
+}
+
+.post-media {
+    margin-top: 10px;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.post-media img {
+    width: 100%;
+    height: auto;
+    display: block;
+    max-height: 500px;
+    object-fit: cover;
+}
+
+/* --- Action Buttons (Like, Reply, etc) --- */
+.post-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+    max-width: 425px;
+    /* Biar ga terlalu lebar spreadnya */
+}
+
+.action-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 13px;
+
+    transition: color 0.2s;
+}
+
+.action-icon-wrapper {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.action-item i {
+    font-size: 18px;
+}
+
+/* Hover States */
+.action-item:hover.blue {
+    color: var(--color-primary);
+}
+
+.action-item:hover.blue .action-icon-wrapper {
+    background-color: rgba(29, 161, 242, 0.1);
+}
+
+.action-item:hover.green {
+    color: var(--color-repost);
+}
+
+.action-item:hover.green .action-icon-wrapper {
+    background-color: rgba(0, 186, 124, 0.1);
+}
+
+.action-item:hover.pink {
+    color: var(--color-like);
+}
+
+.action-item:hover.pink .action-icon-wrapper {
+    background-color: rgba(249, 24, 128, 0.1);
+}
+
+/* Active/Clicked States (Animation via JS) */
+.action-item.liked {
+    color: var(--color-like);
+}
+
+.action-item.liked i {
+    font-weight: 900;
+}
+
+/* Solid icon */
+
+.action-item.reposted {
+    color: var(--color-repost);
+}
+
+/* --- Load More Button --- */
+.load-more-container {
+    padding: 20px;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-load-more {
+    background: transparent;
+    border: none;
+    color: var(--color-primary);
+    font-size: 15px;
+    cursor: pointer;
+    padding: 10px 20px;
+}
+
+.btn-load-more:hover {
+    text-decoration: underline;
+}
+
+/* --- MODAL (Custom Native Look) --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    /* PERBAIKAN: Naikkan z-index menjadi 2000 agar di atas Navbar (1050) */
+    z-index: 2000;
+    display: none;
+    /* Hidden by default */
+    align-items: flex-start;
+    /* Align top somewhat */
+    justify-content: center;
+    padding-top: 50px;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-box {
+    background: white;
+    width: 100%;
+    max-width: 600px;
+    border-radius: 16px;
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    max-height: 90vh;
+    /* Scroll inside if too long */
+}
+
+.modal-header {
+    height: 53px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--border-color);
+    /* Optional */
+}
+
+.btn-close {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.btn-close:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.modal-body {
+    padding: 16px;
+    display: flex;
+    gap: 12px;
+    overflow-y: auto;
+}
+
+.modal-input-area {
+    flex: 1;
+}
+
+/* Native Auto-Expand Textarea */
+.auto-textarea {
+    width: 100%;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 18px;
+    resize: none;
+    min-height: 100px;
+    color: var(--text-primary);
+    padding-top: 10px;
+}
+
+.image-preview-container {
+    position: relative;
+    margin-top: 10px;
+    display: none;
+    /* Hidden unless file selected */
+}
+
+.image-preview-container img {
+    max-width: 100%;
+    border-radius: 16px;
+    max-height: 300px;
+    object-fit: cover;
+}
+
+.btn-remove-image {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* --- Mobile Responsive --- */
+@media (max-width: 600px) {
+    .app-container {
+        border: none;
+    }
+
+    .modal-overlay {
+        padding-top: 0;
+        align-items: flex-end;
+        /* Tetap rata bawah, tapi tingginya kita perbaiki */
+    }
+
+    .modal-box {
+        /* PERBAIKAN: Ganti 100vh ke 100dvh (Dynamic Viewport Height) */
+        height: 100dvh;
+        max-height: 100dvh;
+
+        /* Fallback untuk browser lama yang tidak support dvh */
+        height: -webkit-fill-available;
+
+        border-radius: 0;
+        /* Pastikan padding bawah aman (dari perbaikan sebelumnya) */
+        padding-bottom: env(safe-area-inset-bottom, 20px);
+
+        /* Pastikan layout flex agar header tetap di atas */
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modal-header {
+        /* Pastikan header tidak ikut tergusur */
+        flex-shrink: 0;
+    }
+
+    .modal-scroll-content,
+    .modal-body {
+        /* Konten bisa discroll, header tetap diam */
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    /* Padding footer (dari perbaikan sebelumnya) */
+    .modal-footer {
+        padding-bottom: calc(12px + env(safe-area-inset-bottom, 10px));
+        flex-shrink: 0;
+    }
+}
+
+/* ========================================
+   FIX & OPTIMASI AREA BALASAN (Langkah 2)
+   ======================================== */
+
+/* 1. Cegah Input Field menolak mengecil (Penting untuk Flexbox) */
+.reply-input-field {
+    min-width: 0;
+}
+
+/* 2. Mobile Specific Tweaks */
+@media (max-width: 600px) {
+
+    /* Kurangi padding container agar area isi lebih luas */
+    .detail-reply-input {
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    /* Pastikan wrapper tidak memaksa lebar */
+    .reply-input-wrapper {
+        width: auto;
+        flex: 1;
+    }
+
+    /* Input Field: Font dan padding sedikit lebih kecil */
+    .reply-input-field {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+
+    /* Tombol Balas: Buat lebih compact agar tidak makan tempat */
+    .reply-submit-btn {
+        padding: 6px 14px;
+        /* Padding lebih tipis */
+        font-size: 13px;
+        /* Font disesuaikan */
+        white-space: nowrap;
+        /* Teks dilarang turun baris */
+        height: 36px;
+        /* Tinggi fix agar sejajar */
+        display: flex;
+        align-items: center;
+    }
+
+    /* Icon Upload: Sesuaikan ukuran */
+    .reply-icon-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+    }
+
+    /* Pastikan icon di dalam input row tidak terlalu rapat */
+    .reply-input-row {
+        gap: 6px !important;
+        /* Paksa gap lebih kecil di mobile */
+    }
+}

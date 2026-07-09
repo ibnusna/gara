@@ -1,15 +1,15 @@
-// Model untuk satu catatan — versi 2 dengan dukungan rich-blocks & kategori
-// STORAGE: JSON di shared_preferences key 'garuda_akademi_ruang_catatan'
+
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
 
-// ── Jenis kategori catatan ─────────────────────────────────────
+
 enum NoteCategory {
-  umum,       // 📝 Umum
-  target,     // 🎯 Target Belajar
-  tugas,      // 📋 Daftar Tugas
-  draft,      // ✏️  Draft Tugas
-  pokokNote,  // 📌 Catatan Tugas Pokok
+  umum,       
+  target,     
+  tugas,      
+  draft,      
+  pokokNote,  
 }
 
 extension NoteCategoryExt on NoteCategory {
@@ -34,21 +34,21 @@ extension NoteCategoryExt on NoteCategory {
   }
 }
 
-// ── Jenis blok konten dalam catatan ──────────────────────────
+
 enum BlockType {
-  text,         // teks biasa
-  bold,         // **teks tebal**
-  strikethrough,// ~~coret~~
-  bullet,       // • poin
-  numbered,     // 1. 2. 3.
-  checklist,    // ☐ / ☑
-  dateEntry,    // 📅 tanggal
+  text,         
+  bold,         
+  strikethrough,
+  bullet,       
+  numbered,     
+  checklist,    
+  dateEntry,    
 }
 
 class NoteBlock {
   BlockType type;
   String content;
-  bool checked; // hanya untuk checklist
+  bool checked; 
 
   NoteBlock({
     required this.type,
@@ -72,7 +72,7 @@ class NoteBlock {
       };
 }
 
-// ── Model utama catatan ────────────────────────────────────────
+
 class NoteModel {
   final String id;
   String title;
@@ -90,7 +90,7 @@ class NoteModel {
     this.category = NoteCategory.umum,
   });
 
-  /// Preview teks plain untuk ditampilkan di card
+  
   String get plainPreview {
     final sb = StringBuffer();
     for (final b in blocks) {
@@ -101,7 +101,7 @@ class NoteModel {
     return s.length > 110 ? '${s.substring(0, 110)}…' : s;
   }
 
-  /// Konversi lama: content string → blocks (migrasi data lama)
+  
   static List<NoteBlock> contentToBlocks(String content) {
     if (content.isEmpty) return [];
     return content
@@ -127,7 +127,7 @@ class NoteModel {
   }
 
   factory NoteModel.fromJson(Map<String, dynamic> j) {
-    // Migrasi data lama yang tidak punya 'blocks'
+    
     List<NoteBlock> blocks;
     if (j['blocks'] != null) {
       blocks = (j['blocks'] as List)

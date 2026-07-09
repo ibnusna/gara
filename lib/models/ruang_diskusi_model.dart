@@ -5,14 +5,14 @@ class DiskusiThread {
   final int kelasId;
   final String judul;
   final String isiKonten;
-  final String rolePembuat; // 'guru' or 'siswa'
+  final String rolePembuat; 
   final int? siswaId;
   final String? mediaPath;
   final String createdAt;
   final bool isPinned;
   final String status;
   
-  // Parsed from API response
+  
   final String namaPenulis;
   final String nisSiswa;
   final String avatar;
@@ -78,7 +78,7 @@ class DiskusiReply {
   final int? siswaId;
   final String createdAt;
   
-  // Parsed from API response
+  
   final String namaPenulis;
   final String nisSiswa;
   final String avatar;

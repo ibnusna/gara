@@ -1,7 +1,7 @@
-// ============================================================
-//  Ruang Catatan — Main Page  (iOS-style, animated)
-//  v2: card-menu • kategori filter • animasi masuk ala iOS
-// ============================================================
+
+
+
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -24,7 +24,7 @@ class _RuangCatatanPageState extends State<RuangCatatanPage>
   List<NoteModel> _notes = [];
   String _search = '';
   bool _loading = true;
-  NoteCategory? _filterCat; // null = semua
+  NoteCategory? _filterCat; 
 
   late AnimationController _fadeCtrl;
   late Animation<double> _fadeAnim;
@@ -70,7 +70,7 @@ class _RuangCatatanPageState extends State<RuangCatatanPage>
     return list;
   }
 
-  // ── Buka editor catatan ───────────────────────────────────
+  
   Future<void> _openNote({NoteModel? existing}) async {
     HapticFeedback.lightImpact();
     final note = existing ?? NoteModel.create();
@@ -84,12 +84,12 @@ class _RuangCatatanPageState extends State<RuangCatatanPage>
       setState(() => _notes = result);
       _fadeCtrl.forward(from: 0);
     } else if (existing == null && mounted) {
-      // Catatan baru mungkin sudah tersimpan via auto-save; reload
+      
       _load();
     }
   }
 
-  // ── Hapus catatan ─────────────────────────────────────────
+  
   Future<void> _delete(NoteModel note) async {
     HapticFeedback.mediumImpact();
     final ok = await showDialog<bool>(
@@ -149,7 +149,7 @@ class _RuangCatatanPageState extends State<RuangCatatanPage>
     );
   }
 
-  // ── AppBar ────────────────────────────────────────────────
+  
   GaraAppBar _buildAppBar() => GaraAppBar(
         title: 'Ruang Catatan',
         titleIcon: Icons.sticky_note_2_rounded,
@@ -165,7 +165,7 @@ class _RuangCatatanPageState extends State<RuangCatatanPage>
         ],
       );
 
-  // ── Stats header ──────────────────────────────────────────
+  
   Widget _buildHeaderStats() {
     final total = _notes.length;
     final byCategory = <NoteCategory, int>{};
@@ -191,7 +191,7 @@ class _RuangCatatanPageState extends State<RuangCatatanPage>
         ],
       ),
       child: Row(children: [
-        // Jumlah catatan
+        
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('Total Catatan',
@@ -208,7 +208,7 @@ class _RuangCatatanPageState extends State<RuangCatatanPage>
                     fontSize: 12, color: Colors.white70)),
           ]),
         ),
-        // Mini-chart kategori
+        
         Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: NoteCategory.values
@@ -235,13 +235,13 @@ class _RuangCatatanPageState extends State<RuangCatatanPage>
     );
   }
 
-  // ── Search + Category filter ──────────────────────────────
+  
   Widget _buildSearchAndFilter() {
     final hPad = GaraResponsive.hPad(context);
     return Padding(
       padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 4),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        // Search bar
+        
         TextField(
           onChanged: (v) => setState(() => _search = v),
           style: GoogleFonts.poppins(fontSize: 13.5),
@@ -270,7 +270,7 @@ class _RuangCatatanPageState extends State<RuangCatatanPage>
           ),
         ),
         const SizedBox(height: 10),
-        // Category chips
+        
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           physics: const BouncingScrollPhysics(),
@@ -325,7 +325,7 @@ class _RuangCatatanPageState extends State<RuangCatatanPage>
     );
   }
 
-  // ── Daftar catatan ────────────────────────────────────────
+  
   Widget _buildNoteList() {
     final hPad = GaraResponsive.hPad(context);
     return ListView.builder(
@@ -344,7 +344,7 @@ class _RuangCatatanPageState extends State<RuangCatatanPage>
     );
   }
 
-  // ── Empty state ───────────────────────────────────────────
+  
   Widget _buildEmpty() => Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -383,7 +383,7 @@ class _RuangCatatanPageState extends State<RuangCatatanPage>
         ),
       );
 
-  // ── FAB ───────────────────────────────────────────────────
+  
   Widget _buildFab() => FloatingActionButton(
         onPressed: () => _openNote(),
         backgroundColor: GaraColors.studentPrimary,
@@ -395,7 +395,7 @@ class _RuangCatatanPageState extends State<RuangCatatanPage>
       );
 }
 
-// ── Note Card ──────────────────────────────────────────────────
+
 class _NoteCard extends StatefulWidget {
   final NoteModel note;
   final int index;
@@ -488,7 +488,7 @@ class _NoteCardState extends State<_NoteCard>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header: kategori + waktu
+                      
                       Row(children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -521,7 +521,7 @@ class _NoteCardState extends State<_NoteCard>
                         ),
                       ]),
                       const SizedBox(height: 10),
-                      // Judul
+                      
                       Text(
                         note.title,
                         maxLines: 1,
@@ -531,7 +531,7 @@ class _NoteCardState extends State<_NoteCard>
                             fontWeight: FontWeight.w700,
                             color: GaraColors.studentTextMain),
                       ),
-                      // Preview
+                      
                       if (note.plainPreview.isNotEmpty) ...[
                         const SizedBox(height: 5),
                         Text(
@@ -545,7 +545,7 @@ class _NoteCardState extends State<_NoteCard>
                         ),
                       ],
                       const SizedBox(height: 10),
-                      // Footer: jumlah blok + ikon
+                      
                       Row(children: [
                         _blockBadge(note),
                         const Spacer(),
@@ -647,7 +647,7 @@ class _NoteCardState extends State<_NoteCard>
   }
 }
 
-// ── Transisi halaman ala iOS ───────────────────────────────────
+
 PageRouteBuilder<T> _iosPageRoute<T>(Widget page) {
   return PageRouteBuilder<T>(
     pageBuilder: (ctx, animation, secondary) => page,

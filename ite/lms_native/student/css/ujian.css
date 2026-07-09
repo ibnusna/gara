@@ -1,0 +1,258 @@
+/* ========================================
+   GARA - RUANG UJIAN STYLESHEET
+   File: student/css/ujian.css
+   Dependencies: root.css (Variables)
+======================================== */
+
+
+
+.app-header a {
+    transition: transform var(--transition-fast);
+}
+
+.app-header a:hover {
+    transform: translateX(-4px); /* Efek geser kiri sedikit saat hover back */
+    color: var(--color-primary) !important;
+}
+
+/* --- 2. PORTAL CARD (Manual Login) --- */
+.portal-card {
+    background: var(--gradient-primary);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    color: var(--color-text-inverse);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: var(--space-8);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+/* Dekorasi Background Circle (Glassmorphism effect) */
+.portal-card::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+.portal-card::after {
+    content: '';
+    position: absolute;
+    bottom: -30px;
+    left: -30px;
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+}
+
+.portal-icon {
+    font-size: 2.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    margin-bottom: var(--space-3);
+    backdrop-filter: blur(4px);
+}
+
+.portal-title {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-2);
+}
+
+.portal-desc {
+    font-size: var(--text-sm);
+    opacity: 0.9;
+    max-width: 400px;
+    margin-bottom: var(--space-5);
+}
+
+.btn-portal {
+    background: var(--color-surface);
+    color: var(--color-primary);
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-full);
+    font-weight: var(--font-weight-bold);
+    text-decoration: none;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition-normal);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.btn-portal:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    background: #f8fafc; /* Sedikit lebih gelap dari putih */
+}
+
+/* --- 3. EXAM CARD (Ujian Tersedia) --- */
+.exam-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+    margin-bottom: var(--space-4);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-normal);
+    position: relative;
+    overflow: hidden;
+}
+
+.exam-card:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+/* Garis aksen di kiri kartu */
+.exam-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--color-primary);
+    border-top-left-radius: var(--radius-xl);
+    border-bottom-left-radius: var(--radius-xl);
+}
+
+.exam-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-4);
+}
+
+.exam-info h4 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-main);
+    margin-bottom: var(--space-2);
+}
+
+.exam-badges {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.badge-item {
+    font-size: var(--text-xs);
+    padding: 4px 10px;
+    border-radius: var(--radius-md);
+    font-weight: var(--font-weight-medium);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.badge-time {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+/* --- TOKEN BOX --- */
+.token-container {
+    background: var(--color-bg-body);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--space-4);
+}
+
+.token-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--color-text-muted);
+    margin-bottom: 2px;
+}
+
+.token-code {
+    font-family: 'Courier New', Courier, monospace; /* Monospace agar jelas */
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-main);
+    letter-spacing: 2px;
+}
+
+/* --- BUTTON START --- */
+.btn-start-exam {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: var(--space-3);
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    text-decoration: none;
+    border-radius: var(--radius-lg);
+    font-weight: var(--font-weight-medium);
+    transition: var(--transition-fast);
+}
+
+.btn-start-exam:hover {
+    background: var(--color-primary-dark);
+    box-shadow: 0 4px 12px rgba(11, 87, 208, 0.2);
+}
+
+/* --- 4. EMPTY STATE & UTILS --- */
+.empty-state {
+    text-align: center;
+    padding: var(--space-8) var(--space-4);
+    color: var(--color-text-muted);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: var(--space-3);
+    opacity: 0.5;
+}
+
+.section-label {
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-3);
+    margin-top: var(--space-2);
+}
+
+/* --- 5. ANIMASI --- */
+.animate-up {
+    animation: slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+/* Stagger animation delay (opsional, perlu JS atau nth-child manual) */
+.exam-card:nth-child(1) { animation-delay: 0.1s; }
+.exam-card:nth-child(2) { animation-delay: 0.2s; }
+.exam-card:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes slideUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -1,13 +1,13 @@
-// ============================================================
-//  GARA Flutter — AuthService
-//  Fase 2: Sanctum API Integration
-//
-//  Tanggung jawab:
-//   - login()   → POST /api/mobile/login → simpan token + user data
-//   - logout()  → POST /api/mobile/logout → hapus token di server
-//   - me()      → GET  /api/mobile/user   → refresh data user
-//   - clearSession() → hapus semua data lokal (SharedPreferences)
-// ============================================================
+
+
+
+
+
+
+
+
+
+
 
 import 'dart:convert';
 import 'dart:io';
@@ -18,7 +18,7 @@ import '../utils/app_config.dart';
 import '../utils/app_constants.dart';
 import '../models/mapel_model.dart';
 
-/// Hasil dari proses login.
+
 class AuthResult {
   final bool success;
   final String? token;
@@ -41,18 +41,18 @@ class AuthResult {
   });
 }
 
-/// Service terpusat untuk semua operasi autentikasi GARA.
-///
-/// Semua metode bersifat static — tidak perlu diinstansiasi.
+
+
+
 class AuthService {
   AuthService._();
 
-  // ── Login ─────────────────────────────────────────────────
+  
 
-  /// Login dengan username & password ke Laravel via Sanctum.
-  ///
-  /// Jika berhasil, menyimpan token + data user ke SharedPreferences
-  /// dan mengembalikan [AuthResult] dengan data lengkap.
+  
+  
+  
+  
   static Future<AuthResult> login({
     required String identifier,
     required String password,
@@ -71,7 +71,7 @@ class AuthService {
         }),
       ).timeout(const Duration(seconds: 15));
 
-      // Maintenance mode
+      
       if (response.statusCode == 503) {
         return const AuthResult(
           success:      false,
@@ -90,7 +90,7 @@ class AuthService {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
 
       if (response.statusCode == 200 && data['status'] == 'success') {
-        // Simpan ke SharedPreferences
+        
         await _saveSession(data);
 
         return AuthResult(
@@ -126,58 +126,81 @@ class AuthService {
     }
   }
 
-  // ── Logout ────────────────────────────────────────────────
+  
 
-  /// Revoke token di server, lalu hapus semua data lokal.
-  ///
-  /// Jika server tidak bisa dijangkau, tetap hapus data lokal
-  /// agar user tidak terjebak dalam kondisi "logged in tapi offline".
+  
+  
+  
+  
   static Future<void> logout() async {
     try {
       final token = await getToken();
       if (token != null && token.isNotEmpty) {
+        final prefs = await SharedPreferences.getInstance();
+        final testCookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
+        
         await http.post(
           Uri.parse('${AppConfig.apiMobileUrl}/logout'),
           headers: {
             'Authorization': 'Bearer $token',
             'Accept':        'application/json',
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 13; GARA_APP) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+            'Cookie': '__test=$testCookie',
           },
         ).timeout(const Duration(seconds: 8));
       }
     } catch (e) {
       debugPrint('[AuthService.logout] Server revoke gagal (OK — hapus lokal): $e');
     } finally {
-      // Selalu hapus data lokal, terlepas dari hasil server
+      
       await clearSession();
     }
   }
 
-  // ── Fetch Mapel List ──────────────────────────────────────
+  
 
-  /// Mengambil daftar mata pelajaran asli dari server untuk siswa.
+  
   static Future<MapelResponse> getMapelList() async {
     try {
       final token = await getToken();
       if (token == null) return MapelResponse.error('Sesi berakhir. Silakan login ulang.');
+
+      final prefs = await SharedPreferences.getInstance();
+      final testCookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
 
       final response = await http.get(
         Uri.parse('${AppConfig.apiMobileUrl}/mapel'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept':        'application/json',
+          'User-Agent': 'Mozilla/5.0 (Linux; Android 13; GARA_APP) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+          'Cookie': '__test=$testCookie',
         },
       ).timeout(const Duration(seconds: 15));
 
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final rawText = response.body.trim();
+      if (rawText.contains('javascript') && rawText.contains('document.cookie')) {
+        // Cookie bypass expired — coba load dari cache terlebih dahulu
+        final cached = await getCachedMapelList();
+        if (cached != null) return cached;
+        return MapelResponse.error('Sesi pengaman expired. Silakan login ulang.');
+      }
+
+      final data = jsonDecode(rawText) as Map<String, dynamic>;
 
       if (response.statusCode == 200 && data['status'] == 'success') {
         final List mapelJson = data['mapel_list'] as List;
         final mapelList = mapelJson.map((j) => MapelModel.fromJson(j)).toList();
 
-        // Update info siswa terbaru di SharedPreferences
-        final prefs = await SharedPreferences.getInstance();
+        // Simpan ke cache SharedPreferences
         await prefs.setString(GaraPrefKeys.namaSiswa,  data['nama_siswa']  as String? ?? '');
         await prefs.setString(GaraPrefKeys.kelasSiswa, data['kelas_siswa'] as String? ?? '');
+        await prefs.setString(GaraPrefKeys.cachedNamaSiswa,   data['nama_siswa']   as String? ?? '');
+        await prefs.setString(GaraPrefKeys.cachedKelasSiswa,  data['kelas_siswa']  as String? ?? '');
+        await prefs.setString(GaraPrefKeys.cachedSekolahNama, data['sekolah_nama'] as String? ?? 'Garuda Akademi');
+        await prefs.setBool(GaraPrefKeys.cachedGateUjian,     data['gate_ujian_open'] as bool? ?? false);
+        await prefs.setString(GaraPrefKeys.cachedMapelList,   jsonEncode(mapelJson));
+        await prefs.setInt(GaraPrefKeys.cachedMapelTimestamp, DateTime.now().millisecondsSinceEpoch);
 
         return MapelResponse(
           success:       true,
@@ -192,25 +215,60 @@ class AuthService {
       return MapelResponse.error(data['message'] as String? ?? 'Gagal mengambil data mapel.');
     } catch (e) {
       debugPrint('[AuthService.getMapelList] Error: $e');
+      // Fallback ke cache jika ada
+      final cached = await getCachedMapelList();
+      if (cached != null) {
+        debugPrint('[AuthService.getMapelList] Menggunakan data cache offline.');
+        return cached.copyWith(fromCache: true);
+      }
       return MapelResponse.error('Terjadi kesalahan koneksi.');
     }
   }
 
-  // ── Exam Status ───────────────────────────────────────
+  /// Membaca data mapel dari cache SharedPreferences.
+  /// Mengembalikan null jika tidak ada cache.
+  static Future<MapelResponse?> getCachedMapelList() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cachedJson = prefs.getString(GaraPrefKeys.cachedMapelList);
+      if (cachedJson == null || cachedJson.isEmpty) return null;
 
-  /// Cek apakah pintu ujian saat ini terbuka untuk siswa ini.
-  ///
-  /// Digunakan oleh dashboard untuk menampilkan/menyembunyikan tombol
-  /// "Ruang Asesmen" secara real-time tanpa memuat ulang seluruh mapel.
-  ///
-  /// Mengembalikan:
-  /// - `true`  — ujian aktif (tampilkan tombol)
-  /// - `false` — ujian tidak aktif (sembunyikan tombol)
-  /// - `null`  — terjadi kesalahan jaringan (UI menampilkan skeleton)
+      final List mapelJson = jsonDecode(cachedJson) as List;
+      final mapelList = mapelJson.map((j) => MapelModel.fromJson(j)).toList();
+
+      return MapelResponse(
+        success:       true,
+        namaSiswa:     prefs.getString(GaraPrefKeys.cachedNamaSiswa)  ?? '',
+        kelasSiswa:    prefs.getString(GaraPrefKeys.cachedKelasSiswa) ?? '',
+        sekolahNama:   prefs.getString(GaraPrefKeys.cachedSekolahNama) ?? 'Garuda Akademi',
+        gateUjianOpen: prefs.getBool(GaraPrefKeys.cachedGateUjian)    ?? false,
+        mapelList:     mapelList,
+        fromCache:     true,
+      );
+    } catch (e) {
+      debugPrint('[AuthService.getCachedMapelList] Error: $e');
+      return null;
+    }
+  }
+
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
   static Future<bool?> getExamStatus() async {
     try {
       final token = await getToken();
       if (token == null || token.isEmpty) return false;
+
+      final prefs = await SharedPreferences.getInstance();
+      final testCookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
 
       final response = await http.get(
         Uri.parse('${AppConfig.baseUrl}${AppConfig.examStatusPath}'),
@@ -218,11 +276,18 @@ class AuthService {
           'Authorization': 'Bearer $token',
           'Accept':        'application/json',
           'X-App':         'GARA_MOBILE',
+          'User-Agent': 'Mozilla/5.0 (Linux; Android 13; GARA_APP) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+          'Cookie': '__test=$testCookie',
         },
       ).timeout(const Duration(seconds: 8));
 
+      final rawText = response.body.trim();
+      if (rawText.contains('javascript') && rawText.contains('document.cookie')) {
+        return false;
+      }
+
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final data = jsonDecode(rawText) as Map<String, dynamic>;
         if (data['status'] == 'success') {
           return data['is_active'] as bool? ?? false;
         }
@@ -230,29 +295,37 @@ class AuthService {
       return false;
     } catch (e) {
       debugPrint('[AuthService.getExamStatus] Error: $e');
-      return null; // Sinyal error — UI tampilkan skeleton
+      return null; 
     }
   }
 
-  // ── Refresh User Data ─────────────────────────────────────
+  
 
-  /// Ambil data user terbaru dari server menggunakan token tersimpan.
-  /// Berguna untuk memperbarui nama/foto setelah update profil.
+  
+  
   static Future<bool> refreshUserData() async {
     try {
       final token = await getToken();
       if (token == null) return false;
+
+      final prefs = await SharedPreferences.getInstance();
+      final testCookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
 
       final response = await http.get(
         Uri.parse('${AppConfig.apiMobileUrl}/user'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept':        'application/json',
+          'User-Agent': 'Mozilla/5.0 (Linux; Android 13; GARA_APP) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+          'Cookie': '__test=$testCookie',
         },
       ).timeout(const Duration(seconds: 10));
 
+      final rawText = response.body.trim();
+      if (rawText.contains('javascript') && rawText.contains('document.cookie')) return false;
+
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final data = jsonDecode(rawText) as Map<String, dynamic>;
         if (data['status'] == 'success') {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString(GaraPrefKeys.namaLengkap,    data['nama']  as String? ?? '');
@@ -267,15 +340,15 @@ class AuthService {
     return false;
   }
 
-  // ── Token Helper ──────────────────────────────────────────
+  
 
-  /// Ambil token Sanctum dari SharedPreferences.
+  
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(GaraPrefKeys.authToken);
   }
 
-  /// Cek apakah sesi login masih tersimpan lokal.
+  
   static Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
     final loggedIn = prefs.getBool(GaraPrefKeys.isLoggedIn) ?? false;
@@ -283,9 +356,9 @@ class AuthService {
     return loggedIn && token.isNotEmpty;
   }
 
-  // ── Session Helpers ───────────────────────────────────────
+  
 
-  /// Simpan semua data sesi ke SharedPreferences setelah login berhasil.
+  
   static Future<void> _saveSession(Map<String, dynamic> data) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool  (GaraPrefKeys.isLoggedIn,      true);
@@ -296,22 +369,30 @@ class AuthService {
     await prefs.setString(GaraPrefKeys.profilePhotoUrl, data['profile_photo'] as String? ?? '');
   }
 
-  /// Mengambil data profil siswa mendalam (Fase 3)
+  
   static Future<bool> getProfile() async {
     try {
       final token = await getToken();
       if (token == null) return false;
+
+      final prefs = await SharedPreferences.getInstance();
+      final testCookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
 
       final response = await http.get(
         Uri.parse('${AppConfig.apiMobileUrl}/profile'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept':        'application/json',
+          'User-Agent': 'Mozilla/5.0 (Linux; Android 13; GARA_APP) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+          'Cookie': '__test=$testCookie',
         },
       ).timeout(const Duration(seconds: 10));
 
+      final rawText = response.body.trim();
+      if (rawText.contains('javascript') && rawText.contains('document.cookie')) return false;
+
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final data = jsonDecode(rawText) as Map<String, dynamic>;
         if (data['status'] == 'success') {
           final profile = data['data'] as Map<String, dynamic>;
           final prefs = await SharedPreferences.getInstance();
@@ -319,7 +400,7 @@ class AuthService {
           await prefs.setString(GaraPrefKeys.namaSiswa,   profile['nama']  as String? ?? '');
           await prefs.setString(GaraPrefKeys.kelasSiswa,  profile['kelas'] as String? ?? '');
           
-          // Simpan data tambahan Fase 3
+          
           await prefs.setInt('student_points',            profile['poin'] as int? ?? 0);
           await prefs.setInt('student_attendance',        profile['absensi_persen'] as int? ?? 0);
           await prefs.setInt('student_pending_tasks',     profile['tugas_pending'] as int? ?? 0);
@@ -333,19 +414,22 @@ class AuthService {
     return false;
   }
 
-  /// Mengambil data akun siswa lengkap:
-  /// - NIS siswa
-  /// - is_default_password (masih pakai password bawaan?)
-  /// - nama_sekolah, tahun_ajaran, semester
-  ///
-  /// Endpoint: GET /api/mobile/account-detail
-  /// Dipakai oleh AkunTab untuk menampilkan info yang setara web tentang-saya.
-  ///
-  /// Returns null jika terjadi error (UI tetap tampilkan data dari prefs).
+  
+  
+  
+  
+  
+  
+  
+  
+  
   static Future<Map<String, dynamic>?> getStudentAccountDetail() async {
     try {
       final token = await getToken();
       if (token == null) return null;
+
+      final prefs = await SharedPreferences.getInstance();
+      final testCookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
 
       final response = await http.get(
         Uri.parse('${AppConfig.apiMobileUrl}/account-detail'),
@@ -353,11 +437,16 @@ class AuthService {
           'Authorization': 'Bearer $token',
           'Accept':        'application/json',
           'X-App':         'GARA_MOBILE',
+          'User-Agent': 'Mozilla/5.0 (Linux; Android 13; GARA_APP) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+          'Cookie': '__test=$testCookie',
         },
       ).timeout(const Duration(seconds: 10));
 
+      final rawText = response.body.trim();
+      if (rawText.contains('javascript') && rawText.contains('document.cookie')) return null;
+
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final data = jsonDecode(rawText) as Map<String, dynamic>;
         if (data['status'] == 'success') {
           return data['data'] as Map<String, dynamic>?;
         }
@@ -368,8 +457,8 @@ class AuthService {
     return null;
   }
 
-  /// Hapus semua data sesi dari SharedPreferences.
-  /// Dipanggil saat logout atau token expired.
+  
+  
   static Future<void> clearSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();

@@ -1,5 +1,5 @@
-// Tab Beranda — konten utama dashboard (scroll)
-// Fase 5: Tambah dynamic "Ruang Asesmen" banner berdasarkan status API real-time.
+
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -30,10 +30,10 @@ class HomeTab extends StatelessWidget {
   final int poinSiswa;
   final Animation<double> fadeAnimation;
 
-  /// Status pintu ujian dari API.
-  /// - `null`  → masih fetch → tampilkan skeleton card
-  /// - `true`  → ujian aktif → tampilkan tombol "Ruang Asesmen"
-  /// - `false` → ujian tutup → tidak tampilkan apa-apa
+  
+  
+  
+  
   final bool? isExamActive;
   
   final List<PengumumanModel> pengumumanList;
@@ -90,8 +90,8 @@ class HomeTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                // ── Ruang Asesmen Banner (Data-Driven) ────────────────────
-                // Tampil selama 3 state: null=skeleton, true=aktif, false=tidak ada
+                
+                
                   if (isExamActive == null) ...[
                     _ExamBannerSkeleton(),
                     const SizedBox(height: 20),
@@ -100,19 +100,19 @@ class HomeTab extends StatelessWidget {
                     const SizedBox(height: 20),
                   ],
 
-                // Pengumuman Section
+                
                 _buildPengumumanSection(),
                 const SizedBox(height: 20),
 
-                // Teras Ilmu — label sudah diintegrasikan ke dalam MainMenuGrid
+                
                 const MainMenuGrid(),
                 const SizedBox(height: 24),
-                // Zona Produktif — label sudah diintegrasikan ke dalam SholatWidget
+                
                 const SholatWidget(),
                 const SizedBox(height: 12),
                 const TriviaWidget(),
                 const SizedBox(height: 24),
-                // Jelajah Ilmu — label sudah diintegrasikan ke dalam JelajahIlmuGrid
+                
                 const JelajahIlmuGrid(),
                 const SizedBox(height: 24),
               ]),
@@ -135,7 +135,7 @@ class HomeTab extends StatelessWidget {
     }
 
     if (pengumumanList.isEmpty) {
-      return const SizedBox.shrink(); // Hide if no announcements
+      return const SizedBox.shrink(); 
     }
 
     return Column(
@@ -225,7 +225,7 @@ class HomeTab extends StatelessWidget {
 
 
 
-// ── Skeleton Placeholder saat status exam masih di-fetch ─────────
+
 class _ExamBannerSkeleton extends StatefulWidget {
   @override
   State<_ExamBannerSkeleton> createState() => _ExamBannerSkeletonState();
@@ -308,7 +308,7 @@ class _ExamBannerSkeletonState extends State<_ExamBannerSkeleton>
   }
 }
 
-// ── Exam Active Banner (Tapped → Ruang Ujian via HybridWrapper) ──
+
 class _ExamActiveBanner extends StatefulWidget {
   @override
   State<_ExamActiveBanner> createState() => _ExamActiveBannerState();
@@ -345,10 +345,10 @@ class _ExamActiveBannerState extends State<_ExamActiveBanner>
     final mapelId = prefs.getString(GaraPrefKeys.selectedMapelId) ?? '';
     if (!ctx.mounted) return;
 
-    // Handoff ke port 8000 (session) lalu server redirect ke /ruang-ujian di port 8001
+    
     final handoffUrl = AppConfig.getHandoffUrl(
       token:      token,
-      targetPath: AppConfig.ruangUjianEntryPath, // /ruang-ujian
+      targetPath: AppConfig.ruangUjianEntryPath, 
       mapelId:    mapelId.isNotEmpty ? mapelId : null,
     );
 
@@ -358,7 +358,7 @@ class _ExamActiveBannerState extends State<_ExamActiveBanner>
         pageBuilder: (_, animation, __) => HybridWrapper(
           url:            handoffUrl,
           pageTitle:      'Ruang Ujian',
-          enableExamMode: false, // Arena akan aktifkan sendiri via path detection
+          enableExamMode: false, 
         ),
         transitionsBuilder: (_, animation, __, child) => FadeTransition(
           opacity: animation,
@@ -402,7 +402,7 @@ class _ExamActiveBannerState extends State<_ExamActiveBanner>
         ),
         child: Row(
           children: [
-            // Pulsing icon
+            
             AnimatedBuilder(
               animation: _pulseAnim,
               builder: (_, __) => Transform.scale(
@@ -438,7 +438,7 @@ class _ExamActiveBannerState extends State<_ExamActiveBanner>
                   const SizedBox(height: 2),
                   Row(
                     children: [
-                      // Live pulsing dot
+                      
                       AnimatedBuilder(
                         animation: _pulseAnim,
                         builder: (_, __) => Container(

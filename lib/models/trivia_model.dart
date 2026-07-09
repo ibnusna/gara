@@ -1,4 +1,4 @@
-// Model data untuk satu soal trivia Brain Warmup
+
 class TriviaQuestion {
   final String pertanyaan;
   final List<String> pilihan;
@@ -11,7 +11,7 @@ class TriviaQuestion {
   });
 }
 
-// Dummy bank soal — FASE 2: ganti dengan API publik trivia
+
 const List<TriviaQuestion> triviaBank = [
   TriviaQuestion(
     pertanyaan: 'Planet manakah yang dikenal sebagai "Planet Merah"?',
