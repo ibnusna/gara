@@ -452,7 +452,7 @@ class _MapelCardTileState extends State<_MapelCardTile> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11,
                                     fontWeight: isHariIni ? FontWeight.w700 : FontWeight.w600,
-                                    color: isHariIni ? Colors.white : GaraColors.dsSlate600,
+                                    color: isHariIni ? Colors.white : GaraColors.dsSlate500,
                                   ),
                                 ),
                               ],

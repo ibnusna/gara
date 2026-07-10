@@ -24,6 +24,9 @@ import 'screens/login_page.dart';
 import 'screens/pilih_mapel_page.dart';
 import 'screens/dashboard_page.dart';
 import 'widgets/hybrid_wrapper.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'screens/splash_logic_page.dart';
 
 Future<void> main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +37,9 @@ Future<void> main() async {
   
   
   await PerformanceConfig.initialize();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   
   
@@ -62,8 +68,6 @@ class GaraApp extends StatefulWidget {
 }
 
 class _GaraAppState extends State<GaraApp> {
-  
-  late final Future<Map<String, dynamic>> _sessionFuture = _loadSession();
   bool _assetsCached = false;
 
   @override
@@ -73,20 +77,6 @@ class _GaraAppState extends State<GaraApp> {
       _assetsCached = true;
       _warmUp();
     }
-  }
-
-  Future<Map<String, dynamic>> _loadSession() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isLoggedIn = prefs.getBool(GaraPrefKeys.isLoggedIn) ?? false;
-    final role       = prefs.getString(GaraPrefKeys.userRole) ?? GaraRoles.siswa;
-    final token      = prefs.getString(GaraPrefKeys.authToken) ?? '';
-    
-    final validSession = isLoggedIn && token.isNotEmpty;
-    if (isLoggedIn && token.isEmpty) {
-      await prefs.clear();
-    }
-    
-    return {'isLoggedIn': validSession, 'role': role, 'token': token};
   }
 
   
@@ -134,39 +124,7 @@ class _GaraAppState extends State<GaraApp> {
         
         dividerTheme: const DividerThemeData(space: 0),
       ),
-      home: FutureBuilder<Map<String, dynamic>>(
-        future: _sessionFuture,
-        builder: (context, snapshot) {
-          
-          
-          if (!snapshot.hasData) {
-            return const Scaffold(
-              backgroundColor: GaraColors.bgDark,
-              body: SizedBox.shrink(),
-            );
-          }
-
-          final data = snapshot.data!;
-          if (data['isLoggedIn'] == true) {
-            final role  = data['role'] as String;
-            if (role == GaraRoles.siswa) {
-              return const PilihMapelPage();
-            } else {
-              final token = data['token'] as String? ?? '';
-              final handoffUrl = AppConfig.getHandoffDashboardUrl(
-                token: token,
-                role:  role,
-              );
-              return HybridWrapper(
-                url:       handoffUrl,
-                pageTitle: 'Dashboard ${role.toUpperCase()}',
-              );
-            }
-          }
-
-          return const LoginPage();
-        },
-      ),
+      home: const SplashLogicPage(),
       routes: {
         GaraRoutes.login:      (_) => const LoginPage(),
         GaraRoutes.pilihMapel: (_) => const PilihMapelPage(),
