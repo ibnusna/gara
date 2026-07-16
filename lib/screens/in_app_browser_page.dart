@@ -187,26 +187,9 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> {
                     debugPrint("[GARA WebView] Error: ${error.description} (Code: ${error.type})");
                     
                     
-                    controller.loadData(data: """
-                      <html>
-                        <head>
-                          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                          <style>
-                            body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f8fafc; color: #1e293b; text-align: center; padding: 20px; }
-                            .icon { font-size: 48px; margin-bottom: 16px; color: #ef4444; }
-                            h2 { margin: 0 0 8px 0; font-size: 18px; }
-                            p { margin: 0 0 24px 0; font-size: 14px; color: #64748b; }
-                            button { background: #0284c7; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-                          </style>
-                        </head>
-                        <body>
-                          <div class="icon">⚠️</div>
-                          <h2>Gagal Memuat Halaman</h2>
-                          <p>${error.description}<br><small>Pastikan ADB Reverse Aktif jika di Lokal</small></p>
-                          <button onclick="window.location.reload()">COBA LAGI</button>
-                        </body>
-                      </html>
-                    """);
+                    controller.loadUrl(
+                      urlRequest: URLRequest(url: WebUri('file:///android_asset/flutter_assets/assets/helpers/eror.html')),
+                    );
                   }
                 },
                 

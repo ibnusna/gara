@@ -101,6 +101,18 @@ class _LoginPageState extends State<LoginPage>
 
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
+    
+    if (_identifierCtrl.text.toUpperCase() == 'HITAMPEKAT') {
+      AppConfig.isDebugMode = true;
+      _identifierCtrl.clear();
+      _passwordCtrl.clear();
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Mode Debug (ADB Lokal) Diaktifkan'),
+        backgroundColor: Colors.green,
+      ));
+      return;
+    }
+
     FocusScope.of(context).unfocus();
     setState(() => _isLoading = true);
 

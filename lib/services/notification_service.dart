@@ -2,10 +2,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/app_constants.dart';
+import '../utils/app_config.dart';
 
 class NotificationService {
   
-  static const String baseUrl = 'http://localhost:8000';
+  static String get baseUrl => AppConfig.baseUrl;
 
   static Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();

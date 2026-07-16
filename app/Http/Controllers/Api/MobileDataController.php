@@ -42,10 +42,59 @@ class MobileDataController extends Controller
             ->orderBy('m.nama_mapel', 'asc')
             ->get();
 
-        $formatted = $mapelList->map(fn($item) => [
-            'id'         => $item->id,
-            'nama_mapel' => $item->nama_mapel,
-        ]);
+        $kelas_id = $siswa->kelas_id ?? $siswa->class_id;
+
+        $jadwalList = \DB::connection('mysql_auth')->table('jadwal_pelajaran as jp')
+            ->join('master_jam_pelajaran as mjp', 'jp.jam_pelajaran_id', '=', 'mjp.id')
+            ->join(config('database.connections.mysql_apps.database').'.teaching_assignments as ta', 'jp.teaching_assignment_id', '=', 'ta.id')
+            ->where('ta.class_id', $kelas_id)
+            ->select('ta.subject_id as mapel_id', 'mjp.hari', 'mjp.jam_mulai', 'mjp.jam_selesai', 'mjp.urutan_jam')
+            ->get();
+            
+        $jadwalRawMap = [];
+        foreach ($jadwalList as $j) {
+            $jadwalRawMap[$j->mapel_id][$j->hari][] = $j;
+        }
+
+        $jadwalMap = [];
+        foreach ($jadwalRawMap as $mapelId => $haris) {
+            foreach ($haris as $hari => $slots) {
+                usort($slots, function($a, $b) { return strcmp($a->jam_mulai, $b->jam_mulai); });
+                $blocks = [];
+                $currentBlock = null;
+                foreach ($slots as $slot) {
+                    if (!$currentBlock) {
+                        $currentBlock = ['hari' => $hari, 'start' => $slot->jam_mulai, 'end' => $slot->jam_selesai];
+                    } else {
+                        $end = strtotime($currentBlock['end']);
+                        $nextStart = strtotime($slot->jam_mulai);
+                        if (($nextStart - $end) <= (45 * 60)) {
+                            $currentBlock['end'] = $slot->jam_selesai;
+                        } else {
+                            $blocks[] = $currentBlock;
+                            $currentBlock = ['hari' => $hari, 'start' => $slot->jam_mulai, 'end' => $slot->jam_selesai];
+                        }
+                    }
+                }
+                if ($currentBlock) $blocks[] = $currentBlock;
+
+                foreach ($blocks as $b) {
+                    $jadwalMap[$mapelId][] = [
+                        'hari' => $b['hari'],
+                        'jam_mulai' => $b['start'],
+                        'jam_selesai' => $b['end']
+                    ];
+                }
+            }
+        }
+
+        $formatted = $mapelList->map(function($item) use ($jadwalMap) {
+            return [
+                'id'         => $item->id,
+                'nama_mapel' => $item->nama_mapel,
+                'jadwal'     => $jadwalMap[$item->id] ?? []
+            ];
+        });
 
         
         $gateUjianOpen = DB::connection('asesmen_gara')->table('asesmen_config')

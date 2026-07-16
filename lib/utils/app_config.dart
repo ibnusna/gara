@@ -28,7 +28,9 @@ class AppConfig {
   
   
   
-  static String get baseUrl => _prodUrl;
+  static bool isDebugMode = false;
+
+  static String get baseUrl => isDebugMode ? _devUrl : _prodUrl;
 
   
   
@@ -38,7 +40,7 @@ class AppConfig {
   static const String _examProdUrl = 'https://garaedu.rf.gd'; // InfinityFree hosting
 
   
-  static String get examBaseUrl => _examProdUrl;
+  static String get examBaseUrl => isDebugMode ? _examDevUrl : _examProdUrl;
 
   // URL ujian eksternal (sistem lama Garuda Akademi)
   static const String garudakademiBaseUrl = 'https://garudakademi.netlify.app';
@@ -197,7 +199,7 @@ class AppConfig {
 
   
   static bool isExamArenaUrl(String url) {
-    return url.contains(ruangUjianPath) || url.contains('/ruang-ujian/arena');
+    return url.contains(ruangUjianPath) || url.contains('/ruang-ujian/arena') || url.contains(garudakademiBaseUrl) || url.contains('garudakademi.netlify.app');
   }
 
   
