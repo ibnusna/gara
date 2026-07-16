@@ -199,7 +199,7 @@ class AppConfig {
 
   
   static bool isExamArenaUrl(String url) {
-    return url.contains(ruangUjianPath) || url.contains('/ruang-ujian/arena') || url.contains(garudakademiBaseUrl) || url.contains('garudakademi.netlify.app');
+    return url.contains(ruangUjianPath) || url.contains('/ruang-ujian/arena') || url.contains(ruangKompetensiPath) || url.contains(garudakademiBaseUrl) || url.contains('garudakademi.netlify.app');
   }
 
   

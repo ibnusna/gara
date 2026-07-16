@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../widgets/gara_logo.dart';
 import '../utils/app_constants.dart';
+import '../utils/app_config.dart';
+
+const _kSecurityChannel = MethodChannel('com.lms.gara/security');
 
 class InAppBrowserPage extends StatefulWidget {
   final String title;
@@ -19,7 +24,7 @@ class InAppBrowserPage extends StatefulWidget {
   State<InAppBrowserPage> createState() => _InAppBrowserPageState();
 }
 
-class _InAppBrowserPageState extends State<InAppBrowserPage> {
+class _InAppBrowserPageState extends State<InAppBrowserPage> with WidgetsBindingObserver {
   InAppWebViewController? webViewController;
   double progress = 0;
   String currentTitle = '';
@@ -28,11 +33,14 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> {
   late InAppWebViewSettings settings;
   PullToRefreshController? pullToRefreshController;
 
+  bool _isExamModeActive = false;
+  bool _showBlackout = false;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     currentTitle = widget.title;
-    
     
     settings = InAppWebViewSettings(
       useShouldOverrideUrlLoading: true,
@@ -57,165 +65,278 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> {
         }
       },
     );
+
+    _applySecurityForUrl(widget.initialUrl);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    if (_isExamModeActive) {
+      _deactivateExamModeSync();
+    }
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!_isExamModeActive) return;
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      if (mounted) setState(() => _showBlackout = true);
+    } else if (state == AppLifecycleState.resumed) {
+      _enforceExamSecurity();
+      if (mounted) setState(() => _showBlackout = false);
+    }
+  }
+
+  void _applySecurityForUrl(String url) {
+    if (AppConfig.isExamArenaUrl(url)) {
+      _activateExamMode();
+    } else if (AppConfig.isExamResultUrl(url)) {
+      _deactivateExamMode();
+    } else if (_isExamModeActive) {
+      _deactivateExamMode();
+    }
+  }
+
+  Future<void> _activateExamMode() async {
+    if (_isExamModeActive) {
+      await _enforceExamSecurity();
+      return;
+    }
+    _isExamModeActive = true;
+    if (mounted) setState(() {});
+    await _enforceExamSecurity();
+    try { await _kSecurityChannel.invokeMethod('startVolumeWatch'); } catch (_) {}
+    debugPrint('[GARA Security] ExamMode ACTIVATED di Browser Eksternal');
+  }
+
+  Future<void> _enforceExamSecurity() async {
+    try {
+      await Future.wait([
+        _kSecurityChannel.invokeMethod('addFlagSecure'),
+        _kSecurityChannel.invokeMethod('keepScreenOn'),
+        _kSecurityChannel.invokeMethod('enforceMaxVolume'),
+        _kSecurityChannel.invokeMethod('hideSystemBars'),
+        _kSecurityChannel.invokeMethod('startLockTask'),
+      ]);
+    } catch (_) {}
+    try { await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE); } catch (_) {}
+  }
+
+  Future<void> _deactivateExamMode() async {
+    if (!_isExamModeActive) return;
+    _isExamModeActive = false;
+    if (mounted) setState(() => _showBlackout = false);
+    try {
+      await Future.wait([
+        _kSecurityChannel.invokeMethod('clearFlagSecure'),
+        _kSecurityChannel.invokeMethod('clearKeepScreenOn'),
+        _kSecurityChannel.invokeMethod('showSystemBars'),
+        _kSecurityChannel.invokeMethod('stopLockTask'),
+        _kSecurityChannel.invokeMethod('stopVolumeWatch'),
+      ]);
+    } catch (_) {}
+    try { await FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE); } catch (_) {}
+    debugPrint('[GARA Security] ExamMode DEACTIVATED di Browser Eksternal');
+  }
+
+  void _deactivateExamModeSync() {
+    try {
+      _kSecurityChannel.invokeMethod('clearFlagSecure');
+      _kSecurityChannel.invokeMethod('clearKeepScreenOn');
+      _kSecurityChannel.invokeMethod('showSystemBars');
+      _kSecurityChannel.invokeMethod('stopLockTask');
+      _kSecurityChannel.invokeMethod('stopVolumeWatch');
+    } catch (_) {}
+    try { FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE); } catch (_) {}
+  }
+
+  void _showExamBlockedSnackBar() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(
+        'Selesaikan ujian terlebih dahulu (Klik tombol Selesai/Kembali di dalam web).',
+        style: GoogleFonts.poppins(fontSize: 12.5),
+      ),
+      backgroundColor: GaraColors.studentPrimary,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      duration: const Duration(seconds: 2),
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: GaraColors.studentBgBody,
-      appBar: AppBar(
-        backgroundColor: GaraColors.studentSurface,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.close_rounded, color: GaraColors.studentTextMain),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const GaraLogoBlack(height: 24),
-            const SizedBox(width: 8),
-            Text(
-              'Garuda Akademi',
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-                color: GaraColors.studentTextMain,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-        actions: [
-          
-          if (canGoBack)
-            IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: GaraColors.studentTextMain),
-              onPressed: () {
-                webViewController?.goBack();
-              },
-              tooltip: 'Kembali',
-            ),
-          
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert_rounded, color: GaraColors.studentTextMuted),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            onSelected: (value) async {
-              if (value == 'open_browser') {
-                
-                final currentUrl = (await webViewController?.getUrl())?.toString()
-                    ?? widget.initialUrl;
-                final uri = Uri.tryParse(currentUrl);
-                if (uri != null) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                }
+    return PopScope(
+      canPop: !_isExamModeActive,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && _isExamModeActive) {
+          _showExamBlockedSnackBar();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: GaraColors.studentBgBody,
+        appBar: AppBar(
+          backgroundColor: GaraColors.studentSurface,
+          elevation: 0,
+          centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.close_rounded, color: GaraColors.studentTextMain),
+            onPressed: () {
+              if (_isExamModeActive) {
+                _showExamBlockedSnackBar();
+              } else {
+                Navigator.pop(context);
               }
             },
-            itemBuilder: (_) => [
-              PopupMenuItem<String>(
-                value: 'open_browser',
-                child: Row(
-                  children: [
-                    const Icon(Icons.open_in_browser_rounded,
-                        size: 18, color: GaraColors.studentTextMain),
-                    const SizedBox(width: 10),
-                    Text('Buka di Browser',
-                        style: GoogleFonts.poppins(fontSize: 13)),
-                  ],
+          ),
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const GaraLogoBlack(height: 24),
+              const SizedBox(width: 8),
+              Text(
+                'Garuda Akademi',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                  color: GaraColors.studentTextMain,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
-          const SizedBox(width: 4),
-        ],
-      ),
-      body: Column(
-        children: [
-          
-          if (progress < 1.0)
-            LinearProgressIndicator(
-              value: progress,
-              backgroundColor: GaraColors.studentBgBody,
-              valueColor: const AlwaysStoppedAnimation<Color>(GaraColors.studentPrimary),
-              minHeight: 3,
-            ),
-            
-          
-          Expanded(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
+          actions: [
+            if (canGoBack)
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: GaraColors.studentTextMain),
+                onPressed: () {
+                  webViewController?.goBack();
+                },
+                tooltip: 'Kembali',
               ),
-              child: InAppWebView(
-                initialUrlRequest: URLRequest(url: WebUri(widget.initialUrl)),
-                initialSettings: settings,
-                pullToRefreshController: pullToRefreshController,
-                onWebViewCreated: (controller) {
-                  webViewController = controller;
-                },
-                onLoadStart: (controller, url) {
-                  setState(() {
-                    progress = 0; 
-                  });
-                },
-                onProgressChanged: (controller, progressPercentage) {
-                  if (progressPercentage == 100) {
-                    pullToRefreshController?.endRefreshing();
-                  }
-                  setState(() {
-                    progress = progressPercentage / 100;
-                  });
-                },
-                onLoadStop: (controller, url) async {
-                  pullToRefreshController?.endRefreshing();
-                  
-                  String? title = await controller.getTitle();
-                  bool checkCanGoBack = await controller.canGoBack();
-                  
-                  setState(() {
-                    
-                    if (title != null && title.isNotEmpty) currentTitle = title;
-                    canGoBack = checkCanGoBack;
-                  });
-                },
-                onReceivedError: (controller, request, error) async {
-                  pullToRefreshController?.endRefreshing();
-                  if (request.isForMainFrame ?? false) {
-                    debugPrint("[GARA WebView] Error: ${error.description} (Code: ${error.type})");
-                    
-                    
-                    controller.loadUrl(
-                      urlRequest: URLRequest(url: WebUri('file:///android_asset/flutter_assets/assets/helpers/eror.html')),
-                    );
-                  }
-                },
-                
-                
-                shouldOverrideUrlLoading: (controller, navigationAction) async {
-                  var uri = navigationAction.request.url;
-
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert_rounded, color: GaraColors.studentTextMuted),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              onSelected: (value) async {
+                if (value == 'open_browser') {
+                  final currentUrl = (await webViewController?.getUrl())?.toString()
+                      ?? widget.initialUrl;
+                  final uri = Uri.tryParse(currentUrl);
                   if (uri != null) {
-                    
-                    
-                    
-                    if (["http", "https"].contains(uri.scheme)) {
-                      
-                      return NavigationActionPolicy.ALLOW;
-                    }
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
                   }
-                  
-                  
-                  
-                  
-                  return NavigationActionPolicy.CANCEL;
-                },
+                }
+              },
+              itemBuilder: (_) => [
+                PopupMenuItem<String>(
+                  value: 'open_browser',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.open_in_browser_rounded,
+                          size: 18, color: GaraColors.studentTextMain),
+                      const SizedBox(width: 10),
+                      Text('Buka di Browser',
+                          style: GoogleFonts.poppins(fontSize: 13)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 4),
+          ],
+        ),
+        body: Column(
+          children: [
+            if (progress < 1.0)
+              LinearProgressIndicator(
+                value: progress,
+                backgroundColor: GaraColors.studentBgBody,
+                valueColor: const AlwaysStoppedAnimation<Color>(GaraColors.studentPrimary),
+                minHeight: 3,
+              ),
+            Expanded(
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                    ),
+                    child: InAppWebView(
+                      initialUrlRequest: URLRequest(url: WebUri(widget.initialUrl)),
+                      initialSettings: settings,
+                      pullToRefreshController: pullToRefreshController,
+                      onWebViewCreated: (controller) {
+                        webViewController = controller;
+                      },
+                      onLoadStart: (controller, url) {
+                        if (url != null) {
+                          _applySecurityForUrl(url.toString());
+                        }
+                        setState(() {
+                          progress = 0; 
+                        });
+                      },
+                      onProgressChanged: (controller, progressPercentage) {
+                        if (progressPercentage == 100) {
+                          pullToRefreshController?.endRefreshing();
+                        }
+                        setState(() {
+                          progress = progressPercentage / 100;
+                        });
+                      },
+                      onLoadStop: (controller, url) async {
+                        pullToRefreshController?.endRefreshing();
+                        String? title = await controller.getTitle();
+                        bool checkCanGoBack = await controller.canGoBack();
+                        setState(() {
+                          if (title != null && title.isNotEmpty) currentTitle = title;
+                          canGoBack = checkCanGoBack;
+                        });
+                      },
+                      onReceivedError: (controller, request, error) async {
+                        pullToRefreshController?.endRefreshing();
+                        if (request.isForMainFrame ?? false) {
+                          debugPrint("[GARA WebView] Error: ${error.description} (Code: ${error.type})");
+                          controller.loadUrl(
+                            urlRequest: URLRequest(url: WebUri('file:///android_asset/flutter_assets/assets/helpers/eror.html')),
+                          );
+                        }
+                      },
+                      shouldOverrideUrlLoading: (controller, navigationAction) async {
+                        var uri = navigationAction.request.url;
+                        if (uri != null) {
+                          if (["http", "https"].contains(uri.scheme)) {
+                            return NavigationActionPolicy.ALLOW;
+                          }
+                        }
+                        return NavigationActionPolicy.CANCEL;
+                      },
+                    ),
+                  ),
+                  if (_showBlackout)
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.black,
+                        child: Center(
+                          child: Text(
+                            'Ujian Sedang Berlangsung\nMohon kembali ke aplikasi.',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(color: Colors.white, fontSize: 16),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
