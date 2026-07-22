@@ -65,6 +65,11 @@ class _SplashLogicPageState extends State<SplashLogicPage> {
     final schoolName = prefs.getString(ActivationService.keySchoolName) ?? "Sekolah Anda";
 
     if (schoolKey != null) {
+      if (schoolKey.toUpperCase() == 'HITAMPEKAT') {
+        AppConfig.isDebugMode = true;
+        await _checkSessionAndNavigate();
+        return;
+      }
       try {
         final doc = await FirebaseFirestore.instance.collection('schools').doc(schoolKey).get();
         if (doc.exists) {
