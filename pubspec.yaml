@@ -113,6 +113,7 @@ flutter:
     - assets/images/GARA_WHITE.png
     - assets/images/FARA_BLACK.png
     - assets/images/3dlogo.png
+    - launchericon-512x512.png
     # Halaman error offline — diakses via WebView saat internet putus
     - assets/helpers/eror.html
 
@@ -130,7 +131,7 @@ flutter_launcher_icons:
 
 flutter_native_splash:
   color: "#ffffff"
-  image: "splash_image.png"
+  image: "assets/images/3dlogo.png"
   android: true
   ios: false
   fullscreen: true

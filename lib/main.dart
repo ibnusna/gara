@@ -14,16 +14,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'utils/app_constants.dart';
-import 'utils/app_config.dart';
 import 'utils/performance_config.dart';
 import 'utils/route_builders.dart';
 import 'screens/login_page.dart';
 import 'screens/pilih_mapel_page.dart';
 import 'screens/dashboard_page.dart';
-import 'widgets/hybrid_wrapper.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/splash_logic_page.dart';
@@ -83,18 +80,15 @@ class _GaraAppState extends State<GaraApp> {
   
   Future<void> _warmUp() async {
     try {
-      
-      
       if (mounted) {
         await precacheImage(
-          const AssetImage('assets/images/bglogin.jpg'),
+          const AssetImage('launchericon-512x512.png'),
           context,
         );
       }
     } catch (e) {
-      debugPrint('[GARA Warmup] Error pre-cache: $e');
+      debugPrint('[GARA Warmup] Error pre-cache logo: $e');
     }
-    
     FlutterNativeSplash.remove();
   }
 

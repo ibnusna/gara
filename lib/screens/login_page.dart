@@ -1,36 +1,15 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import 'package:flutter/material.dart';
 import '../utils/app_constants.dart';
 import '../utils/performance_config.dart';
 import '../utils/route_builders.dart';
-import '../widgets/dot_indicator.dart';
 import '../widgets/gara_logo.dart';
 import '../widgets/gara_primary_button.dart';
 import '../widgets/hybrid_wrapper.dart';
 import '../utils/app_config.dart';
-// ── InfinityFree Bypass: Ganti AuthService.login dengan InfinityAuthService ──
-// Standard 'http' package akan diblok oleh InfinityFree AES JS Challenge.
-// InfinityAuthService menggunakan HeadlessInAppWebView untuk bypass.
 import '../services/InfinityAuthService.dart';
 import 'pilih_mapel_page.dart';
 import '../widgets/infinity_bypass_dialog.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -39,21 +18,19 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage>
-    with TickerProviderStateMixin {
-  bool _showLoginScreen = false;
+class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   bool _isPasswordVisible = false;
   bool _isLoading = false;
 
-  final _identifierCtrl  = TextEditingController();
-  final _passwordCtrl    = TextEditingController();
+  final _identifierCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
   final _identifierFocus = FocusNode();
-  final _passwordFocus   = FocusNode();
-  final _formKey         = GlobalKey<FormState>();
+  final _passwordFocus = FocusNode();
+  final _formKey = GlobalKey<FormState>();
 
   late final AnimationController _animCtrl = AnimationController(
     vsync: this,
-    duration: PerformanceConfig.loginFadeDuration, 
+    duration: PerformanceConfig.loginFadeDuration,
   )..forward();
 
   late final Animation<double> _fadeAnim = CurvedAnimation(
@@ -61,23 +38,22 @@ class _LoginPageState extends State<LoginPage>
     curve: PerformanceConfig.loginFadeCurve,
   );
 
-  
   late final AnimationController _entranceCtrl = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1000),
+    duration: const Duration(milliseconds: 600),
   )..forward();
 
   late final Animation<double> _entranceFade = CurvedAnimation(
     parent: _entranceCtrl,
-    curve: const Interval(0.0, 1.0, curve: Curves.easeOut),
+    curve: Curves.easeOut,
   );
 
   late final Animation<Offset> _entranceSlide = Tween<Offset>(
-    begin: const Offset(0, 0.05),
+    begin: const Offset(0, 0.04),
     end: Offset.zero,
   ).animate(CurvedAnimation(
     parent: _entranceCtrl,
-    curve: const Interval(0.0, 1.0, curve: Curves.easeOutCubic),
+    curve: Curves.easeOutCubic,
   ));
 
   @override
@@ -91,17 +67,9 @@ class _LoginPageState extends State<LoginPage>
     super.dispose();
   }
 
-  void _goToLoginScreen() {
-    setState(() => _showLoginScreen = true);
-    _animCtrl.reset();
-    _animCtrl.forward().then((_) {
-      if (mounted) FocusScope.of(context).requestFocus(_identifierFocus);
-    });
-  }
-
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     if (_identifierCtrl.text.toUpperCase() == 'HITAMPEKAT') {
       AppConfig.isDebugMode = true;
       _identifierCtrl.clear();
@@ -120,7 +88,6 @@ class _LoginPageState extends State<LoginPage>
     InfinityAuthResult? result;
 
     while (retryCount < 2) {
-      // Cek apakah cookie __test bypass sudah ada
       final prefs = await SharedPreferences.getInstance();
       final cookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
       final timestamp = prefs.getInt(GaraPrefKeys.bypassCookieTimestamp) ?? 0;
@@ -128,29 +95,25 @@ class _LoginPageState extends State<LoginPage>
       final isExpired = (now - timestamp) > 21600000;
 
       if (cookie.isEmpty || isExpired) {
-        // ── MUNCULKAN DIALOG BYPASS SEMENTARA ──
         final resultCookie = await showInfinityBypass(context);
         if (resultCookie == null) {
           if (!mounted) return;
           setState(() => _isLoading = false);
-          _showErrorDialog('Koneksi Gagal', 'Gagal mendapatkan sesi keamanan dari server. Periksa koneksi internet Anda.');
+          _showErrorDialog('Koneksi Gagal',
+              'Gagal mendapatkan sesi keamanan dari server. Periksa koneksi internet Anda.');
           return;
         }
       }
 
-      // ── BYPASS InfinityFree via Cookie tersimpan ─────────────────────────
       result = await InfinityAuthService.login(
         identifier: _identifierCtrl.text.trim(),
-        password:   _passwordCtrl.text,
+        password: _passwordCtrl.text,
       );
 
       if (result.errorMessage == '__RETRY_BYPASS__') {
-        // Cookie ditolak oleh InfinityFree, jalankan retry loop dan panggil dialog bypass otomatis
         retryCount++;
         continue;
       }
-
-      // Jika berhasil atau error lain, hentikan loop
       break;
     }
 
@@ -160,12 +123,14 @@ class _LoginPageState extends State<LoginPage>
     if (result == null || !result.success) {
       _showErrorDialog(
         result?.isMaintenance == true ? '🔧 Sistem dalam Pemeliharaan' : 'Gagal Masuk',
-        result?.errorMessage == '__RETRY_BYPASS__' ? 'Sistem sibuk. Silakan coba lagi.' : (result?.errorMessage ?? 'Terjadi kesalahan. Coba lagi.'),
+        result?.errorMessage == '__RETRY_BYPASS__'
+            ? 'Sistem sibuk. Silakan coba lagi.'
+            : (result?.errorMessage ?? 'Terjadi kesalahan. Coba lagi.'),
       );
       return;
     }
 
-    final role  = result.role  ?? GaraRoles.siswa;
+    final role = result.role ?? GaraRoles.siswa;
     final token = result.token ?? '';
 
     Widget nextScreen;
@@ -174,10 +139,10 @@ class _LoginPageState extends State<LoginPage>
     } else {
       final handoffUrl = AppConfig.getHandoffDashboardUrl(
         token: token,
-        role:  role,
+        role: role,
       );
       nextScreen = HybridWrapper(
-        url:       handoffUrl,
+        url: handoffUrl,
         pageTitle: 'Dashboard ${role.toUpperCase()}',
       );
     }
@@ -215,224 +180,46 @@ class _LoginPageState extends State<LoginPage>
       body: Stack(
         fit: StackFit.expand,
         children: [
-          
-          RepaintBoundary(
-            child: Image.asset(
-              'assets/images/bglogin.jpg',
-              fit: BoxFit.cover,
-              filterQuality: FilterQuality.medium,
+          // Latar belakang gradien elegan tanpa foto sampul bglogin.jpg
+          Container(
+            decoration: const BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment(0, -0.4),
+                radius: 1.2,
+                colors: [
+                  Color(0xFF0F2B48),
+                  GaraColors.bgDark,
+                ],
+              ),
             ),
           ),
 
-          
-          const ColoredBox(color: GaraColors.bgOverlay),
-
-          
           const _ParticleOverlay(),
 
-          // (InAppWebView 1x1 telah dihapus untuk mencegah ANR dan double UI rendering)
-
-          
           FadeTransition(
             opacity: _entranceFade,
             child: SlideTransition(
               position: _entranceSlide,
-              child: AnimatedSwitcher(
-            duration: PerformanceConfig.loginSwitcherDuration, 
-            switchInCurve: Curves.easeOut,
-            switchOutCurve: Curves.easeIn,
-            transitionBuilder: (child, anim) => FadeTransition(
-              opacity: anim,
-              child: SlideTransition(
-                
-                position: Tween<Offset>(
-                  begin: const Offset(0.03, 0),
-                  end: Offset.zero,
-                ).animate(anim),
-                child: child,
+              child: _LoginScreen(
+                fadeAnim: _fadeAnim,
+                identifierCtrl: _identifierCtrl,
+                passwordCtrl: _passwordCtrl,
+                identifierFocus: _identifierFocus,
+                passwordFocus: _passwordFocus,
+                formKey: _formKey,
+                isPasswordVisible: _isPasswordVisible,
+                isLoading: _isLoading,
+                onTogglePassword: () =>
+                    setState(() => _isPasswordVisible = !_isPasswordVisible),
+                onSubmit: _handleLogin,
               ),
             ),
-            child: _showLoginScreen
-                ? _LoginScreen(
-                    key: const ValueKey('login'),
-                    fadeAnim: _fadeAnim,
-                    identifierCtrl: _identifierCtrl,
-                    passwordCtrl: _passwordCtrl,
-                    identifierFocus: _identifierFocus,
-                    passwordFocus: _passwordFocus,
-                    formKey: _formKey,
-                    isPasswordVisible: _isPasswordVisible,
-                    isLoading: _isLoading,
-                    onTogglePassword: () =>
-                        setState(() => _isPasswordVisible = !_isPasswordVisible),
-                    onSubmit: _handleLogin,
-                    onBack: () => setState(() => _showLoginScreen = false),
-                  )
-                : _WelcomeScreen(
-                    key: const ValueKey('welcome'),
-                    fadeAnim: _fadeAnim,
-                    onMulaiAkses: _goToLoginScreen,
-                  ),
-          ),
-            ),
           ),
         ],
       ),
     );
   }
 }
-
-
-class _WelcomeScreen extends StatelessWidget {
-  final Animation<double> fadeAnim;
-  final VoidCallback onMulaiAkses;
-
-  const _WelcomeScreen({
-    super.key,
-    required this.fadeAnim,
-    required this.onMulaiAkses,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    
-    final tt = Theme.of(context).textTheme;
-
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 400),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28),
-          child: FadeTransition(
-            opacity: fadeAnim,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                
-                const RepaintBoundary(child: GaraLogoWhite(height: 80)),
-                const SizedBox(height: 14),
-                Text(
-                  'GARA',
-                  style: tt.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: 3,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Garuda Akademi',
-                  style: tt.bodySmall?.copyWith(
-                    color: GaraColors.textMuted,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 36),
-                const _TextCarousel(),
-                const SizedBox(height: 40),
-                const SlideIndicators(),
-                const SizedBox(height: 28),
-                GaraPrimaryButton(
-                  label: 'MULAI AKSES',
-                  onPressed: onMulaiAkses,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-
-class _TextCarousel extends StatefulWidget {
-  const _TextCarousel();
-
-  @override
-  State<_TextCarousel> createState() => _TextCarouselState();
-}
-
-class _TextCarouselState extends State<_TextCarousel> {
-  int _currentIndex = 0;
-  late final List<Map<String, String>> _carouselItems = [
-    {
-      'title': 'Selamat Datang di\nEra Belajar Digital',
-      'subtitle': 'Akses materi, tugas, dan ujian\ndalam satu genggaman. Cepat, Mudah, Efisien.',
-    },
-    {
-      'title': 'Belajar Kapan Saja,\nDi Mana Saja',
-      'subtitle': 'Jelajahi perpustakaan materi terpadu dan\ntingkatkan pemahamanmu dengan interaktif.',
-    },
-    {
-      'title': 'Pantau Perkembangan\nBelajarmu',
-      'subtitle': 'Lihat nilai, kerjakan kuis, dan raih\nprestasi akademik dengan cara yang lebih seru.',
-    }
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _startTimer();
-  }
-
-  void _startTimer() {
-    Future.delayed(const Duration(seconds: 4), () {
-      if (mounted) {
-        setState(() {
-          _currentIndex = (_currentIndex + 1) % _carouselItems.length;
-        });
-        _startTimer();
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
-
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 800),
-      transitionBuilder: (child, animation) {
-        return FadeTransition(
-          opacity: animation,
-          child: SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0.0, 0.1),
-              end: Offset.zero,
-            ).animate(animation),
-            child: child,
-          ),
-        );
-      },
-      child: Column(
-        key: ValueKey(_currentIndex),
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            _carouselItems[_currentIndex]['title']!,
-            textAlign: TextAlign.center,
-            style: tt.titleLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _carouselItems[_currentIndex]['subtitle']!,
-            textAlign: TextAlign.center,
-            style: tt.bodyMedium?.copyWith(
-              color: GaraColors.textMuted,
-              height: 1.55,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 
 class _LoginScreen extends StatelessWidget {
   final Animation<double> fadeAnim;
@@ -445,10 +232,8 @@ class _LoginScreen extends StatelessWidget {
   final bool isLoading;
   final VoidCallback onTogglePassword;
   final VoidCallback onSubmit;
-  final VoidCallback onBack;
 
   const _LoginScreen({
-    super.key,
     required this.fadeAnim,
     required this.identifierCtrl,
     required this.passwordCtrl,
@@ -459,7 +244,6 @@ class _LoginScreen extends StatelessWidget {
     required this.isLoading,
     required this.onTogglePassword,
     required this.onSubmit,
-    required this.onBack,
   });
 
   @override
@@ -480,21 +264,31 @@ class _LoginScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const RepaintBoundary(child: GaraLogoWhite(height: 56)),
-                    const SizedBox(height: 14),
-                    Text(
-                      'Masuk Akun',
-                      style: tt.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                    const SizedBox(height: 20),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Image.asset(
+                        'launchericon-512x512.png',
+                        height: 76,
+                        width: 76,
+                        fit: BoxFit.contain,
                       ),
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 16),
+                    Text(
+                      'GARA',
+                      style: tt.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: 3,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
                     Text(
                       'Masukkan kredensial untuk melanjutkan',
                       style: tt.bodySmall?.copyWith(color: GaraColors.textMuted),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 36),
                     _InputField(
                       controller: identifierCtrl,
                       focusNode: identifierFocus,
@@ -522,18 +316,6 @@ class _LoginScreen extends StatelessWidget {
                       onPressed: onSubmit,
                       isLoading: isLoading,
                     ),
-                    const SizedBox(height: 18),
-                    GestureDetector(
-                      onTap: onBack,
-                      child: Text(
-                        '← Kembali',
-                        style: tt.bodySmall?.copyWith(
-                          color: GaraColors.textMuted,
-                          decoration: TextDecoration.underline,
-                          decorationColor: GaraColors.textMuted,
-                        ),
-                      ),
-                    ),
                     const SizedBox(height: 40),
                   ],
                 ),
@@ -545,7 +327,6 @@ class _LoginScreen extends StatelessWidget {
     );
   }
 }
-
 
 class _InputField extends StatelessWidget {
   final TextEditingController controller;
@@ -641,8 +422,6 @@ class _InputField extends StatelessWidget {
   }
 }
 
-
-
 class _ParticleOverlay extends StatelessWidget {
   const _ParticleOverlay();
 
@@ -681,7 +460,6 @@ class _ParticlePainter extends CustomPainter {
     }
   }
 
-  
   @override
   bool shouldRepaint(_ParticlePainter _) => false;
 }
