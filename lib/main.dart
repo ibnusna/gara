@@ -95,7 +95,13 @@ class _GaraAppState extends State<GaraApp> {
   
   
   
-  static final TextTheme _poppinsTextTheme = GoogleFonts.poppinsTextTheme();
+  static TextTheme get _appTextTheme {
+    try {
+      return GoogleFonts.poppinsTextTheme();
+    } catch (_) {
+      return const TextTheme();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,8 +114,7 @@ class _GaraAppState extends State<GaraApp> {
           seedColor: GaraColors.studentPrimary,
           brightness: Brightness.light,
         ),
-        
-        textTheme: _poppinsTextTheme,
+        textTheme: _appTextTheme,
         scaffoldBackgroundColor: GaraColors.studentBgBody,
         
         splashFactory: NoSplash.splashFactory,
