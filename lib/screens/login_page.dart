@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../utils/app_constants.dart';
 import '../utils/performance_config.dart';
 import '../utils/route_builders.dart';
-import '../widgets/gara_logo.dart';
 import '../widgets/gara_primary_button.dart';
 import '../widgets/hybrid_wrapper.dart';
 import '../utils/app_config.dart';
