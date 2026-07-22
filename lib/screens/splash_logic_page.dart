@@ -34,7 +34,7 @@ class _SplashLogicPageState extends State<SplashLogicPage>
     super.initState();
     _animCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1000),
     );
 
     _fadeAnim = CurvedAnimation(
@@ -42,14 +42,14 @@ class _SplashLogicPageState extends State<SplashLogicPage>
       curve: const Interval(0.0, 0.4, curve: Curves.easeIn),
     );
 
-    _scaleAnim = Tween<double>(begin: 0.7, end: 1.0).animate(
+    _scaleAnim = Tween<double>(begin: 0.75, end: 1.0).animate(
       CurvedAnimation(
         parent: _animCtrl,
         curve: const Interval(0.0, 0.6, curve: Curves.elasticOut),
       ),
     );
 
-    _pulseAnim = Tween<double>(begin: 1.0, end: 1.06).animate(
+    _pulseAnim = Tween<double>(begin: 1.0, end: 1.05).animate(
       CurvedAnimation(
         parent: _animCtrl,
         curve: const Interval(0.6, 1.0, curve: Curves.easeInOutSine),
@@ -70,17 +70,14 @@ class _SplashLogicPageState extends State<SplashLogicPage>
     final startTime = DateTime.now();
 
     try {
-      // 1. Bersihkan file APK lama (asinkron cepat)
       _updateService.cleanOldApk();
 
-      // 2. Cek status aktivasi sekolah
       final isActivated = await _activationService.isActivated();
       if (!isActivated) {
         _navigateTo(const ActivationPage());
         return;
       }
 
-      // 3. Cek Koneksi Internet (dengan timeout 500ms)
       final connectivityResult = await Connectivity()
           .checkConnectivity()
           .timeout(const Duration(milliseconds: 500),
@@ -91,7 +88,6 @@ class _SplashLogicPageState extends State<SplashLogicPage>
         return;
       }
 
-      // 4. Sinkronisasi Firestore (Status Sekolah, timeout 800ms)
       final prefs = await SharedPreferences.getInstance();
       final schoolKey = prefs.getString(ActivationService.keySchoolKey);
       final schoolName =
@@ -127,7 +123,6 @@ class _SplashLogicPageState extends State<SplashLogicPage>
         }
       }
 
-      // 5. Remote Config Update Check (timeout 600ms)
       try {
         await _updateService
             .initialize()
@@ -159,9 +154,8 @@ class _SplashLogicPageState extends State<SplashLogicPage>
   }
 
   Future<void> _ensureMinDurationAndNavigate(DateTime startTime) async {
-    // Dipastikan total durasi tayang logo icon berada di < 1.5 - 2 detik
     final elapsed = DateTime.now().difference(startTime).inMilliseconds;
-    const targetMinMs = 700;
+    const targetMinMs = 600;
     if (elapsed < targetMinMs) {
       await Future.delayed(Duration(milliseconds: targetMinMs - elapsed));
     }
@@ -204,7 +198,7 @@ class _SplashLogicPageState extends State<SplashLogicPage>
         pageBuilder: (_, __, ___) => page,
         transitionsBuilder: (_, anim, __, child) =>
             FadeTransition(opacity: anim, child: child),
-        transitionDuration: const Duration(milliseconds: 350),
+        transitionDuration: const Duration(milliseconds: 300),
       ),
     );
   }
@@ -212,7 +206,7 @@ class _SplashLogicPageState extends State<SplashLogicPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GaraColors.bgDark,
+      backgroundColor: Colors.white,
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnim,
@@ -228,15 +222,15 @@ class _SplashLogicPageState extends State<SplashLogicPage>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Icon Aplikasi Utama (launchericon-512x512.png) dengan efek shadow halus
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: GaraColors.primaryLight.withOpacity(0.35),
-                        blurRadius: 30,
-                        spreadRadius: 4,
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 24,
+                        spreadRadius: 2,
+                        offset: const Offset(0, 8),
                       ),
                     ],
                   ),
@@ -247,13 +241,6 @@ class _SplashLogicPageState extends State<SplashLogicPage>
                       width: 110,
                       height: 110,
                       fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Container(
-                        width: 110,
-                        height: 110,
-                        color: GaraColors.studentPrimary,
-                        child: const Icon(Icons.school_rounded,
-                            size: 56, color: Colors.white),
-                      ),
                     ),
                   ),
                 ),
@@ -263,27 +250,27 @@ class _SplashLogicPageState extends State<SplashLogicPage>
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w900,
-                    color: Colors.white,
+                    color: Color(0xFF1E293B),
                     letterSpacing: 4,
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(
+                const Text(
                   'Garuda Akademi Mobile',
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.white.withOpacity(0.55),
+                    color: Color(0xFF64748B),
                     letterSpacing: 1.2,
                   ),
                 ),
                 const SizedBox(height: 40),
-                SizedBox(
+                const SizedBox(
                   width: 28,
                   height: 28,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.5,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      GaraColors.primaryLight.withOpacity(0.85),
+                      GaraColors.studentPrimary,
                     ),
                   ),
                 ),

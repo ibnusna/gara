@@ -175,26 +175,10 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GaraColors.bgDark,
+      backgroundColor: GaraColors.studentBgBody,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Latar belakang gradien elegan tanpa foto sampul bglogin.jpg
-          Container(
-            decoration: const BoxDecoration(
-              gradient: RadialGradient(
-                center: Alignment(0, -0.4),
-                radius: 1.2,
-                colors: [
-                  Color(0xFF0F2B48),
-                  GaraColors.bgDark,
-                ],
-              ),
-            ),
-          ),
-
-          const _ParticleOverlay(),
-
           FadeTransition(
             opacity: _entranceFade,
             child: SlideTransition(
@@ -264,13 +248,26 @@ class _LoginScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const SizedBox(height: 20),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Image.asset(
-                        'launchericon-512x512.png',
-                        height: 76,
-                        width: 76,
-                        fit: BoxFit.contain,
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 20,
+                            spreadRadius: 1,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset(
+                          'launchericon-512x512.png',
+                          height: 76,
+                          width: 76,
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -278,14 +275,14 @@ class _LoginScreen extends StatelessWidget {
                       'GARA',
                       style: tt.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: Colors.white,
+                        color: const Color(0xFF1E293B),
                         letterSpacing: 3,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Masukkan kredensial untuk melanjutkan',
-                      style: tt.bodySmall?.copyWith(color: GaraColors.textMuted),
+                      style: tt.bodySmall?.copyWith(color: GaraColors.studentTextMuted),
                     ),
                     const SizedBox(height: 36),
                     _InputField(
@@ -363,7 +360,7 @@ class _InputField extends StatelessWidget {
           nextFocus != null ? TextInputAction.next : TextInputAction.done,
       autocorrect: false,
       enableSuggestions: !isPassword,
-      style: tt.bodyMedium?.copyWith(color: Colors.white, fontSize: 15),
+      style: tt.bodyMedium?.copyWith(color: const Color(0xFF1E293B), fontSize: 15),
       onFieldSubmitted: (_) {
         if (nextFocus != null) {
           FocusScope.of(context).requestFocus(nextFocus);
@@ -379,18 +376,18 @@ class _InputField extends StatelessWidget {
       },
       decoration: InputDecoration(
         filled: true,
-        fillColor: GaraColors.inputBg,
+        fillColor: Colors.white,
         hintText: placeholder,
         hintStyle: tt.bodyMedium?.copyWith(
-            color: Colors.white.withOpacity(0.4), fontSize: 14),
-        prefixIcon: Icon(icon, color: GaraColors.textMuted, size: 18),
+            color: GaraColors.studentTextMuted, fontSize: 14),
+        prefixIcon: Icon(icon, color: GaraColors.studentTextMuted, size: 18),
         suffixIcon: isPassword
             ? IconButton(
                 icon: Icon(
                   isPasswordVisible
                       ? Icons.visibility_outlined
                       : Icons.visibility_off_outlined,
-                  color: GaraColors.textMuted,
+                  color: GaraColors.studentTextMuted,
                   size: 18,
                 ),
                 onPressed: onTogglePassword,
@@ -399,14 +396,14 @@ class _InputField extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(vertical: 15),
         border: OutlineInputBorder(
             borderRadius: baseRadius,
-            borderSide: const BorderSide(color: GaraColors.glassBorder)),
+            borderSide: const BorderSide(color: GaraColors.studentBorder)),
         enabledBorder: OutlineInputBorder(
             borderRadius: baseRadius,
-            borderSide: const BorderSide(color: GaraColors.glassBorder)),
+            borderSide: const BorderSide(color: GaraColors.studentBorder)),
         focusedBorder: OutlineInputBorder(
             borderRadius: baseRadius,
             borderSide:
-                const BorderSide(color: GaraColors.primaryLight, width: 1.5)),
+                const BorderSide(color: GaraColors.studentPrimary, width: 1.5)),
         errorBorder: OutlineInputBorder(
             borderRadius: baseRadius,
             borderSide: const BorderSide(color: Colors.redAccent)),
@@ -415,50 +412,8 @@ class _InputField extends StatelessWidget {
             borderSide:
                 const BorderSide(color: Colors.redAccent, width: 1.5)),
         errorStyle: tt.bodySmall?.copyWith(
-            color: Colors.orangeAccent, fontSize: 11),
+            color: Colors.redAccent, fontSize: 11),
       ),
     );
   }
-}
-
-class _ParticleOverlay extends StatelessWidget {
-  const _ParticleOverlay();
-
-  @override
-  Widget build(BuildContext context) {
-    return RepaintBoundary(
-      child: CustomPaint(
-        size: MediaQuery.of(context).size,
-        painter: _ParticlePainter(),
-      ),
-    );
-  }
-}
-
-class _ParticlePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withOpacity(0.04)
-      ..style = PaintingStyle.fill;
-
-    canvas.drawCircle(Offset(size.width * 0.05, size.height * 0.8),
-        size.width * 0.55, paint);
-
-    paint.color = Colors.white.withOpacity(0.03);
-    canvas.drawCircle(Offset(size.width * 0.95, size.height * 0.12),
-        size.width * 0.38, paint);
-
-    final linePaint = Paint()
-      ..color = Colors.white.withOpacity(0.05)
-      ..strokeWidth = 1;
-    for (int i = 0; i < 5; i++) {
-      final y = size.height * 0.1 * (i + 1);
-      canvas.drawLine(
-          Offset(0, y), Offset(size.width * 0.4, y + size.width * 0.15), linePaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_ParticlePainter _) => false;
 }
