@@ -31,8 +31,8 @@ Future<void> main() async {
   
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  
-  
+  GoogleFonts.config.allowRuntimeFetching = true;
+
   await PerformanceConfig.initialize();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,

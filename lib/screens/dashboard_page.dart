@@ -132,7 +132,7 @@ class _DashboardPageState extends State<DashboardPage>
   }
 
   Future<void> _initNotifications() async {
-    const androidInit = AndroidInitializationSettings('ic_notification');
+    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const initSettings = InitializationSettings(android: androidInit);
     await _localNotifications.initialize(
       initSettings,
@@ -210,7 +210,7 @@ class _DashboardPageState extends State<DashboardPage>
       channelDescription: 'Notifikasi sistem GARA',
       importance: Importance.max, priority: Priority.high,
       sound: RawResourceAndroidNotificationSound('gara_sound'),
-      icon: 'ic_notification',
+      icon: '@mipmap/ic_launcher',
       color: Color(0xFF3B82F6),
     );
     const details = NotificationDetails(android: androidDetails);

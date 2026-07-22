@@ -11,6 +11,7 @@ ext {
         minSdkVersion: 21,
         targetSdkVersion: 35
     ]
+    kotlin_version = "2.1.0"
 }
 
 rootProject.buildDir = "../build"
@@ -19,6 +20,26 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+    
+    // Global Kotlin stdlib resolution to prevent metadata mismatches
+    project.configurations.all {
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'org.jetbrains.kotlin' && details.requested.name.startsWith('kotlin-stdlib')) {
+                details.useVersion "2.1.0"
+            }
+        }
+    }
+
+    // Target older androidx.core version ONLY for flutter_windowmanager to prevent lStar resource linking error
+    if (project.name == "flutter_windowmanager") {
+        project.configurations.all {
+            resolutionStrategy.eachDependency { details ->
+                if (details.requested.group == 'androidx.core' && details.requested.name.startsWith('core')) {
+                    details.useVersion "1.6.0"
+                }
+            }
+        }
+    }
 }
 
 subprojects {
@@ -50,6 +71,20 @@ subprojects {
     project.plugins.withId('com.android.library') {
         project.android {
             compileSdkVersion 35
+            if (namespace == null) {
+                try {
+                    def manifestFile = project.file("src/main/AndroidManifest.xml")
+                    if (manifestFile.exists()) {
+                        def parsedManifest = new XmlParser().parse(manifestFile)
+                        def packageName = parsedManifest.attribute("package")
+                        if (packageName != null) {
+                            namespace = packageName
+                        }
+                    }
+                } catch (Exception e) {
+                    // Ignore parsing exceptions
+                }
+            }
         }
     }
 }
