@@ -1,6 +1,9 @@
+import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/activation_service.dart';
 import '../services/update_service.dart';
@@ -21,40 +24,59 @@ class SplashLogicPage extends StatefulWidget {
 }
 
 class _SplashLogicPageState extends State<SplashLogicPage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   final ActivationService _activationService = ActivationService();
   final UpdateService _updateService = UpdateService();
+
+  // Entry animation
   late final AnimationController _animCtrl;
   late final Animation<double> _scaleAnim;
   late final Animation<double> _fadeAnim;
   late final Animation<double> _pulseAnim;
 
+  // Mesh background animators (same as PilihMapelPage)
+  late final AnimationController _blobCtrl1;
+  late final AnimationController _blobCtrl2;
+  late final AnimationController _blobCtrl3;
+
   @override
   void initState() {
     super.initState();
+
+    // --- Entry animations ---
     _animCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     );
-
     _fadeAnim = CurvedAnimation(
       parent: _animCtrl,
       curve: const Interval(0.0, 0.4, curve: Curves.easeIn),
     );
-
     _scaleAnim = Tween<double>(begin: 0.75, end: 1.0).animate(
       CurvedAnimation(
         parent: _animCtrl,
         curve: const Interval(0.0, 0.6, curve: Curves.elasticOut),
       ),
     );
-
     _pulseAnim = Tween<double>(begin: 1.0, end: 1.05).animate(
       CurvedAnimation(
         parent: _animCtrl,
         curve: const Interval(0.6, 1.0, curve: Curves.easeInOutSine),
       ),
     );
+
+    // --- Mesh blob animators ---
+    _blobCtrl1 = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 25000))
+      ..repeat(reverse: true);
+    _blobCtrl2 = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 22000))
+      ..repeat(reverse: true);
+    _blobCtrl3 = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 28000))
+      ..repeat(reverse: true);
+    _blobCtrl2.value = 0.2;
+    _blobCtrl3.value = 0.4;
 
     _animCtrl.forward();
     _initializeApp();
@@ -63,6 +85,9 @@ class _SplashLogicPageState extends State<SplashLogicPage>
   @override
   void dispose() {
     _animCtrl.dispose();
+    _blobCtrl1.dispose();
+    _blobCtrl2.dispose();
+    _blobCtrl3.dispose();
     super.dispose();
   }
 
@@ -70,7 +95,8 @@ class _SplashLogicPageState extends State<SplashLogicPage>
     final startTime = DateTime.now();
 
     try {
-      _updateService.cleanOldApk();
+      // Clean old APK without awaiting — fire & forget
+      unawaited(_updateService.cleanOldApk());
 
       final isActivated = await _activationService.isActivated();
       if (!isActivated) {
@@ -96,6 +122,8 @@ class _SplashLogicPageState extends State<SplashLogicPage>
       if (schoolKey != null) {
         if (schoolKey.toUpperCase() == 'HITAMPEKAT') {
           AppConfig.isDebugMode = true;
+          // Start background update check (non-blocking)
+          unawaited(_checkUpdateInBackground());
           await _ensureMinDurationAndNavigate(startTime);
           return;
         }
@@ -123,26 +151,28 @@ class _SplashLogicPageState extends State<SplashLogicPage>
         }
       }
 
+      // --- BACKGROUND UPDATE CHECK ---
+      // Initialize remote config quickly; only block for FORCE updates.
+      // Non-force updates are silently deferred.
       try {
         await _updateService
             .initialize()
             .timeout(const Duration(milliseconds: 600));
         final hasUpdate = await _updateService.isUpdateAvailable();
 
-        if (hasUpdate) {
-          final isForce = _updateService.isForceUpdate();
+        if (hasUpdate && _updateService.isForceUpdate()) {
+          // Only force-update blocks navigation
           final releaseNotes = _updateService.getReleaseNotes();
           final latestVersion = _updateService.getLatestVersion();
-
-          if (isForce) {
-            _navigateTo(UpdatePage(
-              isForceUpdate: true,
-              releaseNotes: releaseNotes,
-              latestVersion: latestVersion,
-            ));
-            return;
-          }
+          _navigateTo(UpdatePage(
+            isForceUpdate: true,
+            releaseNotes: releaseNotes,
+            latestVersion: latestVersion,
+          ));
+          return;
         }
+        // Non-force update: store flag, show later inside the app
+        // (banner can be shown on PilihMapelPage or DashboardPage)
       } catch (e) {
         debugPrint("Cek update timeout/gagal: $e");
       }
@@ -151,6 +181,15 @@ class _SplashLogicPageState extends State<SplashLogicPage>
     }
 
     await _ensureMinDurationAndNavigate(startTime);
+  }
+
+  /// Runs update check fully in background after navigation has already occurred.
+  Future<void> _checkUpdateInBackground() async {
+    try {
+      await _updateService
+          .initialize()
+          .timeout(const Duration(milliseconds: 600));
+    } catch (_) {}
   }
 
   Future<void> _ensureMinDurationAndNavigate(DateTime startTime) async {
@@ -206,79 +245,185 @@ class _SplashLogicPageState extends State<SplashLogicPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: FadeTransition(
-          opacity: _fadeAnim,
-          child: AnimatedBuilder(
-            animation: _animCtrl,
-            builder: (context, child) {
-              final scale = _scaleAnim.value * _pulseAnim.value;
-              return Transform.scale(
-                scale: scale,
-                child: child,
-              );
-            },
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
-                        blurRadius: 24,
-                        spreadRadius: 2,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: Image.asset(
-                      'launchericon-512x512.png',
-                      width: 110,
-                      height: 110,
-                      fit: BoxFit.contain,
-                    ),
-                  ),
+      backgroundColor: GaraColors.dsBgBody,
+      body: Stack(
+        children: [
+          // ── Animated Gradient Mesh Background (identical to PilihMapelPage) ──
+          Positioned.fill(
+            child: AnimatedBuilder(
+              animation:
+                  Listenable.merge([_blobCtrl1, _blobCtrl2, _blobCtrl3]),
+              builder: (context, _) => CustomPaint(
+                painter: _SplashMeshPainter(
+                  t1: _blobCtrl1.value,
+                  t2: _blobCtrl2.value,
+                  t3: _blobCtrl3.value,
                 ),
-                const SizedBox(height: 24),
-                const Text(
-                  'GARA',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF1E293B),
-                    letterSpacing: 4,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Garuda Akademi Mobile',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF64748B),
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 40),
-                const SizedBox(
-                  width: 28,
-                  height: 28,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      GaraColors.studentPrimary,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+
+          // ── Centered Content ──
+          Center(
+            child: FadeTransition(
+              opacity: _fadeAnim,
+              child: AnimatedBuilder(
+                animation: _animCtrl,
+                builder: (context, child) {
+                  final scale = _scaleAnim.value * _pulseAnim.value;
+                  return Transform.scale(scale: scale, child: child);
+                },
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // ── GARA Blue Logo ──
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                GaraColors.dsPrimaryDeep.withOpacity(0.18),
+                            blurRadius: 32,
+                            spreadRadius: 2,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(28),
+                        child: Container(
+                          width: 110,
+                          height: 110,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(28),
+                          ),
+                          padding: const EdgeInsets.all(16),
+                          child: ColorFiltered(
+                            colorFilter: const ColorFilter.mode(
+                              GaraColors.dsPrimaryDeep,
+                              BlendMode.srcIn,
+                            ),
+                            child: Image.asset(
+                              'assets/images/FARA_BLACK.png',
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 28),
+
+                    // ── App Name ──
+                    Text(
+                      'GARA',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w900,
+                        color: GaraColors.dsSlate800,
+                        letterSpacing: 5,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Garuda Akademi Mobile',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: GaraColors.dsSlate500,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+
+                    const SizedBox(height: 48),
+
+                    // ── Loading Indicator ──
+                    const SizedBox(
+                      width: 26,
+                      height: 26,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          GaraColors.dsPrimaryDeep,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mesh Painter — identical algorithm to _PilihMapelMeshPainter
+// ─────────────────────────────────────────────────────────────────────────────
+class _SplashMeshPainter extends CustomPainter {
+  final double t1, t2, t3;
+  const _SplashMeshPainter(
+      {required this.t1, required this.t2, required this.t3});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Paint()..color = GaraColors.dsMeshBase,
+    );
+    _blob(canvas, size,
+        color: GaraColors.dsBlob1.withOpacity(0.75),
+        radius: size.width * 0.38,
+        baseX: size.width * 0.0,
+        baseY: size.height * 0.0,
+        t: t1,
+        dx: 25,
+        dy: -40,
+        blur: 55);
+    _blob(canvas, size,
+        color: GaraColors.dsBlob2.withOpacity(0.70),
+        radius: size.width * 0.42,
+        baseX: size.width * 0.85,
+        baseY: size.height * 0.35,
+        t: t2,
+        dx: -20,
+        dy: 25,
+        blur: 65);
+    _blob(canvas, size,
+        color: GaraColors.dsBlob3.withOpacity(0.65),
+        radius: size.width * 0.32,
+        baseX: size.width * 0.15,
+        baseY: size.height * 0.88,
+        t: t3,
+        dx: 18,
+        dy: -25,
+        blur: 50);
+  }
+
+  void _blob(Canvas canvas, Size size,
+      {required Color color,
+      required double radius,
+      required double baseX,
+      required double baseY,
+      required double t,
+      required double dx,
+      required double dy,
+      required double blur}) {
+    final progress = math.sin(t * math.pi);
+    canvas.drawCircle(
+      Offset(baseX + dx * progress, baseY + dy * progress),
+      radius * (1.0 + 0.08 * progress),
+      Paint()
+        ..color = color
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, blur),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_SplashMeshPainter old) =>
+      old.t1 != t1 || old.t2 != t2 || old.t3 != t3;
 }
