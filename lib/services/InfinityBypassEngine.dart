@@ -23,7 +23,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../utils/app_config.dart';
 import '../utils/app_constants.dart';
 import 'infinity_bypass_exception.dart';
 
