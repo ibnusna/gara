@@ -461,6 +461,31 @@ class AuthService {
   
   static Future<void> clearSession() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    final keysToRemove = [
+      GaraPrefKeys.isLoggedIn,
+      GaraPrefKeys.userRole,
+      GaraPrefKeys.namaSiswa,
+      GaraPrefKeys.kelasSiswa,
+      GaraPrefKeys.selectedMapel,
+      GaraPrefKeys.selectedMapelId,
+      GaraPrefKeys.authToken,
+      GaraPrefKeys.namaLengkap,
+      GaraPrefKeys.profilePhotoUrl,
+      GaraPrefKeys.bypassTestCookie,
+      GaraPrefKeys.bypassSessionCookie,
+      GaraPrefKeys.bypassCookieTimestamp,
+      GaraPrefKeys.cachedMapelList,
+      GaraPrefKeys.cachedMapelTimestamp,
+      GaraPrefKeys.cachedGateUjian,
+      GaraPrefKeys.cachedNamaSiswa,
+      GaraPrefKeys.cachedKelasSiswa,
+      GaraPrefKeys.cachedSekolahNama,
+      'student_points',
+      'student_attendance',
+      'student_pending_tasks',
+    ];
+    for (final key in keysToRemove) {
+      await prefs.remove(key);
+    }
   }
 }

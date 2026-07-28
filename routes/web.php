@@ -29,8 +29,8 @@ Route::prefix('api/mobile')->name('api.mobile.')->group(function () {
         Route::get('/user', [MobileAuthController::class, 'me'])->name('user');
         Route::get('/mapel', [MobileDataController::class, 'getMapel'])->name('mapel');
         Route::get('/profile', [MobileDataController::class, 'getProfile'])->name('profile');
-        
         Route::get('/account-detail', [MobileDataController::class, 'getAccountDetail'])->name('account-detail');
+        Route::get('/pengumuman', [MobileDataController::class, 'getPengumuman'])->name('pengumuman');
     });
 });
 

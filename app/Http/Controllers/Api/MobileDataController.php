@@ -201,4 +201,39 @@ class MobileDataController extends Controller
             ],
         ]);
     }
+
+    public function getPengumuman(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $siswa = Siswa::where('user_id', $user->id)->first();
+
+        if (!$siswa) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Data siswa tidak ditemukan.',
+            ], 404);
+        }
+
+        $kelasId = $siswa->kelas_id ?? $siswa->class_id;
+
+        $pengumuman = DB::connection('mysql_apps')->table('pengumuman')
+            ->where(function ($query) use ($kelasId) {
+                $query->where('kelas_id', $kelasId)
+                    ->orWhere('kelas_id', 0);
+            })
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data'   => $pengumuman->map(function ($item) {
+                return [
+                    'id'         => $item->id,
+                    'judul'      => $item->judul,
+                    'isi'        => $item->isi,
+                    'updated_at' => $item->updated_at ?? null,
+                ];
+            }),
+        ]);
+    }
 }

@@ -448,7 +448,7 @@ class _MapelCardTileState extends State<_MapelCardTile> {
                                 Icon(Icons.schedule_rounded, size: 12, color: isHariIni ? Colors.white : GaraColors.dsSlate500),
                                 const SizedBox(width: 4),
                                 Text(
-                                  '${jadwal.hari}, ${jadwal.jamMulai.substring(0, 5)} - ${jadwal.jamSelesai.substring(0, 5)}',
+                                  '${jadwal.hari}, ${jadwal.jamMulai} - ${jadwal.jamSelesai}',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11,
                                     fontWeight: isHariIni ? FontWeight.w700 : FontWeight.w600,

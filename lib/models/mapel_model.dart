@@ -15,10 +15,14 @@ class JadwalModel {
   });
 
   factory JadwalModel.fromJson(Map<String, dynamic> json) {
+    String jamMulai = json['jam_mulai']?.toString() ?? '00:00';
+    String jamSelesai = json['jam_selesai']?.toString() ?? '00:00';
+    if (jamMulai.length > 5) jamMulai = jamMulai.substring(0, 5);
+    if (jamSelesai.length > 5) jamSelesai = jamSelesai.substring(0, 5);
     return JadwalModel(
-      hari: json['hari'] as String,
-      jamMulai: json['jam_mulai'] as String,
-      jamSelesai: json['jam_selesai'] as String,
+      hari: json['hari']?.toString() ?? '',
+      jamMulai: jamMulai,
+      jamSelesai: jamSelesai,
     );
   }
 }
@@ -39,12 +43,12 @@ class MapelModel {
   
   factory MapelModel.fromJson(Map<String, dynamic> json) {
     var jadwalList = json['jadwal'] as List? ?? [];
-    List<JadwalModel> parsedJadwal = jadwalList.map((j) => JadwalModel.fromJson(j as Map<String, dynamic>)).toList();
+    List<JadwalModel> parsedJadwal = jadwalList.map((j) => JadwalModel.fromJson(Map<String, dynamic>.from(j as Map))).toList();
     
     return MapelModel(
-      id:        json['id'] as int,
-      namaMapel: json['nama_mapel'] as String,
-      kodeMapel: json['kode_mapel'] as String?,
+      id:        json['id'] is int ? json['id'] as int : int.tryParse(json['id'].toString()) ?? 0,
+      namaMapel: json['nama_mapel']?.toString() ?? '',
+      kodeMapel: json['kode_mapel']?.toString(),
       jadwal:    parsedJadwal,
     );
   }
