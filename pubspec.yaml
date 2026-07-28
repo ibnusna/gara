@@ -116,6 +116,8 @@ flutter:
     - launchericon-512x512.png
     # Maskot kucing GARA
     - assets/images/kucing.png
+    - assets/images/kucing_baru.png
+    - assets/images/GARA_3D.png
     # Halaman error offline — diakses via WebView saat internet putus
     - assets/helpers/eror.html
 

@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../utils/app_constants.dart';
 import '../utils/performance_config.dart';
@@ -55,35 +54,11 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     curve: Curves.easeOutCubic,
   ));
 
-  // Mesh background blob controllers
-  late final AnimationController _blobCtrl1;
-  late final AnimationController _blobCtrl2;
-  late final AnimationController _blobCtrl3;
-
-  @override
-  void initState() {
-    super.initState();
-    // Mesh blob animators
-    _blobCtrl1 = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 25000))
-      ..repeat(reverse: true);
-    _blobCtrl2 = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 22000))
-      ..repeat(reverse: true);
-    _blobCtrl3 = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 28000))
-      ..repeat(reverse: true);
-    _blobCtrl2.value = 0.5;
-    _blobCtrl3.value = 0.75;
-  }
 
   @override
   void dispose() {
     _animCtrl.dispose();
     _entranceCtrl.dispose();
-    _blobCtrl1.dispose();
-    _blobCtrl2.dispose();
-    _blobCtrl3.dispose();
     _identifierCtrl.dispose();
     _passwordCtrl.dispose();
     _identifierFocus.dispose();
@@ -192,18 +167,22 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GaraColors.dsBgBody,
+      backgroundColor: Colors.white,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // ── Animated Mesh Background (SchoolKey style) ──
-          AnimatedBuilder(
-            animation: Listenable.merge([_blobCtrl1, _blobCtrl2, _blobCtrl3]),
-            builder: (context, _) => CustomPaint(
-              painter: _LoginMeshPainter(
-                t1: _blobCtrl1.value,
-                t2: _blobCtrl2.value,
-                t3: _blobCtrl3.value,
+          // ── Clean gradient background (matching WelcomePage) ──
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFFF0F6FF),
+                  Color(0xFFFFFFFF),
+                  Color(0xFFEFF4FF),
+                ],
+                stops: [0.0, 0.5, 1.0],
               ),
             ),
           ),
@@ -445,71 +424,4 @@ class _InputField extends StatelessWidget {
       ),
     );
   }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Mesh Painter — identik dengan _SplashMeshPainter / _WelcomeMeshPainter
-// ─────────────────────────────────────────────────────────────────────────────
-class _LoginMeshPainter extends CustomPainter {
-  final double t1, t2, t3;
-  const _LoginMeshPainter(
-      {required this.t1, required this.t2, required this.t3});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      Paint()..color = GaraColors.dsMeshBase,
-    );
-    _blob(canvas, size,
-        color: GaraColors.dsBlob1.withOpacity(0.75),
-        radius: size.width * 0.38,
-        baseX: size.width * 0.0,
-        baseY: size.height * 0.0,
-        t: t1,
-        dx: 25,
-        dy: -40,
-        blur: 55);
-    _blob(canvas, size,
-        color: GaraColors.dsBlob2.withOpacity(0.70),
-        radius: size.width * 0.42,
-        baseX: size.width * 0.85,
-        baseY: size.height * 0.35,
-        t: t2,
-        dx: -20,
-        dy: 25,
-        blur: 65);
-    _blob(canvas, size,
-        color: GaraColors.dsBlob3.withOpacity(0.65),
-        radius: size.width * 0.32,
-        baseX: size.width * 0.15,
-        baseY: size.height * 0.88,
-        t: t3,
-        dx: 18,
-        dy: -25,
-        blur: 50);
-  }
-
-  void _blob(Canvas canvas, Size size,
-      {required Color color,
-      required double radius,
-      required double baseX,
-      required double baseY,
-      required double t,
-      required double dx,
-      required double dy,
-      required double blur}) {
-    final progress = math.sin(t * math.pi);
-    canvas.drawCircle(
-      Offset(baseX + dx * progress, baseY + dy * progress),
-      radius * (1.0 + 0.08 * progress),
-      Paint()
-        ..color = color
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, blur),
-    );
-  }
-
-  @override
-  bool shouldRepaint(_LoginMeshPainter old) =>
-      old.t1 != t1 || old.t2 != t2 || old.t3 != t3;
 }
