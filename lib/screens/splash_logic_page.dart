@@ -121,7 +121,6 @@ class _SplashLogicPageState extends State<SplashLogicPage>
 
       if (schoolKey != null) {
         if (schoolKey.toUpperCase() == 'HITAMPEKAT') {
-          AppConfig.isDebugMode = true;
           // Start background update check (non-blocking)
           unawaited(_checkUpdateInBackground());
           await _ensureMinDurationAndNavigate(startTime);

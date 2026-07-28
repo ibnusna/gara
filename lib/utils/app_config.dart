@@ -28,7 +28,7 @@ class AppConfig {
   
   
   
-  static bool isDebugMode = false;
+  static bool get isDebugMode => kDebugMode;
 
   static String get baseUrl => isDebugMode ? _devUrl : _prodUrl;
 

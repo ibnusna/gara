@@ -19,7 +19,6 @@ class ActivationService {
       await prefs.setString(keySchoolKey, 'HITAMPEKAT');
       await prefs.setString(keySchoolName, data['school_name']!);
       await prefs.setString(keyBaseUrl, data['url']!);
-      AppConfig.isDebugMode = true;
       return data;
     }
 

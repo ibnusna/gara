@@ -215,14 +215,24 @@ class MobileDataController extends Controller
         }
 
         $kelasId = $siswa->kelas_id ?? $siswa->class_id;
+        $mapelId = $request->query('mapel_id');
 
-        $pengumuman = DB::connection('mysql_apps')->table('pengumuman')
-            ->where(function ($query) use ($kelasId) {
-                $query->where('kelas_id', $kelasId)
-                    ->orWhere('kelas_id', 0);
-            })
-            ->orderBy('updated_at', 'desc')
-            ->get();
+        $query = DB::connection('mysql_apps')->table('pengumuman')
+            ->where(function ($q) use ($kelasId) {
+                $q->where('kelas_id', $kelasId)
+                  ->orWhere('kelas_id', 0)
+                  ->orWhereNull('kelas_id');
+            });
+
+        if ($mapelId) {
+            $query->where(function ($q) use ($mapelId) {
+                $q->where('mapel_id', $mapelId)
+                  ->orWhere('mapel_id', 0)
+                  ->orWhereNull('mapel_id');
+            });
+        }
+
+        $pengumuman = $query->orderBy('updated_at', 'desc')->get();
 
         return response()->json([
             'status' => 'success',

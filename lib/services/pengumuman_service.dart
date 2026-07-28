@@ -5,17 +5,34 @@ import '../utils/app_config.dart';
 import '../models/pengumuman_model.dart';
 import 'auth_service.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/app_constants.dart';
+
 class PengumumanService {
   PengumumanService._();
 
   
-  static Future<PengumumanResponse> getPengumumanList() async {
+  static Future<PengumumanResponse> getPengumumanList({String? mapelId}) async {
     try {
       final token = await AuthService.getToken();
       if (token == null) return PengumumanResponse.error('Sesi berakhir.');
 
+      final prefs = await SharedPreferences.getInstance();
+      final savedBaseUrl = prefs.getString('base_url');
+      final baseUrlToUse = (savedBaseUrl != null && savedBaseUrl.isNotEmpty) 
+          ? savedBaseUrl 
+          : AppConfig.baseUrl;
+
+      final selectedMapelId = mapelId ?? prefs.getString(GaraPrefKeys.selectedMapelId);
+
+      final uri = Uri.parse('$baseUrlToUse/api/mobile/pengumuman').replace(
+        queryParameters: selectedMapelId != null && selectedMapelId.isNotEmpty
+            ? {'mapel_id': selectedMapelId}
+            : null,
+      );
+
       final response = await http.get(
-        Uri.parse('${AppConfig.apiMobileUrl}/pengumuman'),
+        uri,
         headers: {
           'Authorization': 'Bearer $token',
           'Accept':        'application/json',
