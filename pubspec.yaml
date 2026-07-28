@@ -114,6 +114,8 @@ flutter:
     - assets/images/FARA_BLACK.png
     - assets/images/3dlogo.png
     - launchericon-512x512.png
+    # Maskot kucing GARA
+    - assets/images/kucing.png
     # Halaman error offline — diakses via WebView saat internet putus
     - assets/helpers/eror.html
 

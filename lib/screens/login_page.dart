@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../utils/app_constants.dart';
 import '../utils/performance_config.dart';
@@ -7,8 +8,7 @@ import '../widgets/hybrid_wrapper.dart';
 import '../utils/app_config.dart';
 import '../services/InfinityAuthService.dart';
 import 'pilih_mapel_page.dart';
-import '../widgets/infinity_bypass_dialog.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../services/InfinityBypassEngine.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -55,10 +55,35 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     curve: Curves.easeOutCubic,
   ));
 
+  // Mesh background blob controllers
+  late final AnimationController _blobCtrl1;
+  late final AnimationController _blobCtrl2;
+  late final AnimationController _blobCtrl3;
+
+  @override
+  void initState() {
+    super.initState();
+    // Mesh blob animators
+    _blobCtrl1 = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 25000))
+      ..repeat(reverse: true);
+    _blobCtrl2 = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 22000))
+      ..repeat(reverse: true);
+    _blobCtrl3 = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 28000))
+      ..repeat(reverse: true);
+    _blobCtrl2.value = 0.5;
+    _blobCtrl3.value = 0.75;
+  }
+
   @override
   void dispose() {
     _animCtrl.dispose();
     _entranceCtrl.dispose();
+    _blobCtrl1.dispose();
+    _blobCtrl2.dispose();
+    _blobCtrl3.dispose();
     _identifierCtrl.dispose();
     _passwordCtrl.dispose();
     _identifierFocus.dispose();
@@ -87,20 +112,12 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     InfinityAuthResult? result;
 
     while (retryCount < 2) {
-      final prefs = await SharedPreferences.getInstance();
-      final cookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
-      final timestamp = prefs.getInt(GaraPrefKeys.bypassCookieTimestamp) ?? 0;
-      final now = DateTime.now().millisecondsSinceEpoch;
-      final isExpired = (now - timestamp) > 21600000;
-
-      if (cookie.isEmpty || isExpired) {
-        final resultCookie = await showInfinityBypass(context);
-        if (resultCookie == null) {
-          if (!mounted) return;
-          setState(() => _isLoading = false);
-          _showErrorDialog('Koneksi Gagal',
-              'Gagal mendapatkan sesi keamanan dari server. Periksa koneksi internet Anda.');
-          return;
+      if (!AppConfig.isDebugMode) {
+        try {
+          // Warm up HeadlessInAppWebView secara silent di background tanpa UI popup
+          await InfinityBypassEngine.getValidCookie(forceRefresh: retryCount > 0);
+        } catch (e) {
+          debugPrint('[LoginPage] Silent bypass error: $e');
         }
       }
 
@@ -175,10 +192,22 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GaraColors.studentBgBody,
+      backgroundColor: GaraColors.dsBgBody,
       body: Stack(
         fit: StackFit.expand,
         children: [
+          // ── Animated Mesh Background (SchoolKey style) ──
+          AnimatedBuilder(
+            animation: Listenable.merge([_blobCtrl1, _blobCtrl2, _blobCtrl3]),
+            builder: (context, _) => CustomPaint(
+              painter: _LoginMeshPainter(
+                t1: _blobCtrl1.value,
+                t2: _blobCtrl2.value,
+                t3: _blobCtrl3.value,
+              ),
+            ),
+          ),
+          // ── Login content ──
           FadeTransition(
             opacity: _entranceFade,
             child: SlideTransition(
@@ -416,4 +445,71 @@ class _InputField extends StatelessWidget {
       ),
     );
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mesh Painter — identik dengan _SplashMeshPainter / _WelcomeMeshPainter
+// ─────────────────────────────────────────────────────────────────────────────
+class _LoginMeshPainter extends CustomPainter {
+  final double t1, t2, t3;
+  const _LoginMeshPainter(
+      {required this.t1, required this.t2, required this.t3});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Paint()..color = GaraColors.dsMeshBase,
+    );
+    _blob(canvas, size,
+        color: GaraColors.dsBlob1.withOpacity(0.75),
+        radius: size.width * 0.38,
+        baseX: size.width * 0.0,
+        baseY: size.height * 0.0,
+        t: t1,
+        dx: 25,
+        dy: -40,
+        blur: 55);
+    _blob(canvas, size,
+        color: GaraColors.dsBlob2.withOpacity(0.70),
+        radius: size.width * 0.42,
+        baseX: size.width * 0.85,
+        baseY: size.height * 0.35,
+        t: t2,
+        dx: -20,
+        dy: 25,
+        blur: 65);
+    _blob(canvas, size,
+        color: GaraColors.dsBlob3.withOpacity(0.65),
+        radius: size.width * 0.32,
+        baseX: size.width * 0.15,
+        baseY: size.height * 0.88,
+        t: t3,
+        dx: 18,
+        dy: -25,
+        blur: 50);
+  }
+
+  void _blob(Canvas canvas, Size size,
+      {required Color color,
+      required double radius,
+      required double baseX,
+      required double baseY,
+      required double t,
+      required double dx,
+      required double dy,
+      required double blur}) {
+    final progress = math.sin(t * math.pi);
+    canvas.drawCircle(
+      Offset(baseX + dx * progress, baseY + dy * progress),
+      radius * (1.0 + 0.08 * progress),
+      Paint()
+        ..color = color
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, blur),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_LoginMeshPainter old) =>
+      old.t1 != t1 || old.t2 != t2 || old.t3 != t3;
 }

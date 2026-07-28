@@ -13,6 +13,7 @@ import 'activation_page.dart';
 import 'status_page.dart';
 import 'update_page.dart';
 import 'login_page.dart';
+import 'welcome_page.dart';
 import 'pilih_mapel_page.dart';
 import '../widgets/hybrid_wrapper.dart';
 
@@ -226,7 +227,7 @@ class _SplashLogicPageState extends State<SplashLogicPage>
       }
     }
 
-    _navigateTo(const LoginPage());
+    _navigateTo(const GaraWelcomePage());
   }
 
   void _navigateTo(Widget page) {
