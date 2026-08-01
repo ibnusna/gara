@@ -28,9 +28,19 @@ class AppConfig {
   
   
   
-  static bool get isDebugMode => kDebugMode;
+  static bool _debugOverride = false;
+  static bool get isDebugMode => kDebugMode || _debugOverride;
+  static set isDebugMode(bool value) => _debugOverride = value;
 
-  static String get baseUrl => isDebugMode ? _devUrl : _prodUrl;
+  /// Override base URL dynamically (e.g. set by SmartConnect or activation)
+  static String? overrideBaseUrl;
+
+  static String get baseUrl {
+    if (overrideBaseUrl != null && overrideBaseUrl!.isNotEmpty) {
+      return overrideBaseUrl!;
+    }
+    return isDebugMode ? _devUrl : _prodUrl;
+  }
 
   
   
@@ -49,6 +59,14 @@ class AppConfig {
 
   
   static String get apiMobileUrl => '$baseUrl/api/mobile';
+
+  /// True jika server target adalah lokal (debug/ADB), tidak perlu bypass InfinityFree
+  static bool get isLocalServer {
+    final url = baseUrl;
+    return url.contains('127.0.0.1') ||
+        url.contains('localhost') ||
+        url.contains('10.0.2.2');
+  }
 
   
   
