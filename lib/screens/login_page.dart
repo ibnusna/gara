@@ -10,6 +10,7 @@ import '../services/InfinityAuthService.dart';
 import 'pilih_mapel_page.dart';
 import '../services/InfinityBypassEngine.dart';
 
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -83,6 +84,14 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    // ── Jalankan Bypass secara silent di Background (DI AWAL) ──
+    if (!AppConfig.isDebugMode) {
+      InfinityBypassEngine.getValidCookie().catchError((e) {
+        debugPrint('[LoginPage] Background bypass error: $e');
+        return '';
+      });
+    }
+
     _blob1 = AnimationController(vsync: this, duration: const Duration(milliseconds: 18000))..repeat(reverse: true);
     _blob2 = AnimationController(vsync: this, duration: const Duration(milliseconds: 22000))..repeat(reverse: true);
     _blob3 = AnimationController(vsync: this, duration: const Duration(milliseconds: 15000))..repeat(reverse: true);
@@ -144,27 +153,38 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         }
       }
 
-      result = await InfinityAuthService.login(
-        identifier: _identifierCtrl.text.trim(),
-        password: _passwordCtrl.text,
-      );
+      try {
+        result = await InfinityAuthService.login(
+          identifier: _identifierCtrl.text.trim(),
+          password: _passwordCtrl.text,
+        );
 
-      if (result.errorMessage == '__RETRY_BYPASS__') {
-        retryCount++;
-        continue;
+        if (result.errorMessage == '__RETRY_BYPASS__') {
+          retryCount++;
+          continue;
+        }
+        break;
+      } catch (e) {
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        debugPrint('[LoginPage] Exception: $e');
+        _showErrorDialog('Gagal Masuk', 'Error: $e');
+        return;
       }
-      break;
     }
 
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    if (result == null || !result.success) {
+    if (result == null) {
+      _showErrorDialog('Gagal Masuk', 'Terjadi kesalahan internal. Coba lagi.');
+      return;
+    }
+
+    if (!result.success) {
       _showErrorDialog(
-        result?.isMaintenance == true ? '🔧 Sistem dalam Pemeliharaan' : 'Gagal Masuk',
-        result?.errorMessage == '__RETRY_BYPASS__'
-            ? 'Sistem sibuk. Silakan coba lagi.'
-            : (result?.errorMessage ?? 'Terjadi kesalahan. Coba lagi.'),
+        result.isMaintenance ? '🔧 Sistem dalam Pemeliharaan' : 'Gagal Masuk',
+        result.errorMessage ?? 'Terjadi kesalahan. Coba lagi.',
       );
       return;
     }

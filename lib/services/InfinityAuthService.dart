@@ -81,55 +81,52 @@ class InfinityAuthService {
     }
 
     try {
-      // ── Step 2: Dapatkan cookie __test yang valid dari SharedPreferences ──────
-      // (Cookie ini sudah didapatkan oleh InfinityBypassDialog di UI)
-      final prefs = await SharedPreferences.getInstance();
-      String testCookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
-      
-      if (testCookie.isEmpty) {
-        return InfinityAuthResult.error('Sesi keamanan belum siap. Silakan ulangi login.');
-      }
+      String rawText = '';
+      String testCookie = '';
 
-      debugPrint('[InfinityAuth] Menggunakan cookie __test: $testCookie');
+      if (AppConfig.isLocalServer || AppConfig.isDebugMode) {
+        debugPrint('[InfinityAuth] Mode Lokal / Debug: Mengirim HTTP POST langsung');
+        final response = await http.post(
+          Uri.parse(_loginUrl),
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-App': 'GARA_MOBILE',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: jsonEncode({
+            'identifier': trimmedId,
+            'password': password,
+          }),
+        ).timeout(_requestTimeout);
 
-      // ── Step 3: Kirim POST request menggunakan HTTP client biasa ──────────
-      final response = await http.post(
-        Uri.parse(_loginUrl),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'X-App': 'GARA_MOBILE',
-          'X-Requested-With': 'XMLHttpRequest',
-          // User-Agent HARUS SAMA PERSIS dengan WebView agar InfinityFree AES tidak memblokir cookie
-          'User-Agent': 'Mozilla/5.0 (Linux; Android 13; GARA_APP) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
-          // Suntik cookie bypass InfinityFree ke header HTTP request
-          'Cookie': '__test=$testCookie',
-        },
-        body: jsonEncode({
-          'identifier': trimmedId,
-          'password': password,
-        }),
-      ).timeout(_requestTimeout);
-
-      if (response.statusCode == 503) {
-        return InfinityAuthResult.error(
-          'Sistem sedang dalam pemeliharaan. Coba lagi nanti.',
-          maintenance: true,
+        if (response.statusCode == 503) {
+          return InfinityAuthResult.error(
+            'Sistem sedang dalam pemeliharaan. Coba lagi nanti.',
+            maintenance: true,
+          );
+        }
+        rawText = response.body.trim();
+      } else {
+        debugPrint('[InfinityAuth] Mode Produksi: Menggunakan Headless InAppWebView Login Bypass');
+        rawText = await InfinityBypassEngine.loginViaHeadlessWebView(
+          identifier: trimmedId,
+          password: password,
         );
-      }
 
-      final rawText = response.body.trim();
+        final prefs = await SharedPreferences.getInstance();
+        testCookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
+      }
 
       // Cek apakah response diblokir oleh InfinityFree (mengembalikan HTML challenge)
-      if (rawText.contains('javascript') && rawText.contains('document.cookie')) {
+      if (rawText.contains('javascript') && (rawText.contains('document.cookie') || rawText.contains('/aes.js'))) {
         debugPrint('[InfinityAuth] Cookie __test ditolak/expired oleh server InfinityFree.');
-        
+
         // Bersihkan cookie kadaluarsa
         final prefs = await SharedPreferences.getInstance();
         await prefs.remove(GaraPrefKeys.bypassTestCookie);
         await prefs.remove(GaraPrefKeys.bypassCookieTimestamp);
-        
-        // Kirim kode rahasia agar UI me-restart BypassDialog secara otomatis tanpa menyuruh user nge-klik
+
         return InfinityAuthResult.error('__RETRY_BYPASS__');
       }
 
