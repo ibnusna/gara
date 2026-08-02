@@ -184,7 +184,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     if (!result.success) {
       _showErrorDialog(
         result.isMaintenance ? '🔧 Sistem dalam Pemeliharaan' : 'Gagal Masuk',
-        result.errorMessage ?? 'Terjadi kesalahan. Coba lagi.',
+        result.errorMessage == '__RETRY_BYPASS__'
+            ? 'Gagal menghubungkan ke server keamanan. Silakan coba lagi.'
+            : (result.errorMessage ?? 'Terjadi kesalahan. Coba lagi.'),
       );
       return;
     }

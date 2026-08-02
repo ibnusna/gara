@@ -192,89 +192,92 @@ class InfinityBypassEngine {
               'Chrome/120.0.0.0 Mobile Safari/537.36',
         ),
         initialUrlRequest: URLRequest(url: targetUri),
+        onWebViewCreated: (controller) {
+          // Registrasikan handler hasil login ke Dart SAAT WEBVIEW DIBUAT (sebelum onLoadStop)
+          controller.addJavaScriptHandler(
+            handlerName: 'onLoginResult',
+            callback: (args) async {
+              final rawResponseText = (args.isNotEmpty ? args.first : '').toString();
+              debugPrint('[BypassEngine] Received JS login result length: ${rawResponseText.length}');
+
+              try {
+                // Simpan cookie __test terbaru ke SharedPreferences
+                final cookies = await CookieManager.instance().getCookies(url: targetUri);
+                for (final cookie in cookies) {
+                  if (cookie.name == '__test' || cookie.name.startsWith('_test')) {
+                    final testCookieValue = cookie.value.toString();
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setString(GaraPrefKeys.bypassTestCookie, testCookieValue);
+                    await prefs.setInt(
+                      GaraPrefKeys.bypassCookieTimestamp,
+                      DateTime.now().millisecondsSinceEpoch,
+                    );
+                    break;
+                  }
+                }
+              } catch (e) {
+                debugPrint('[BypassEngine] Error saving cookie in handler: $e');
+              }
+
+              timer.cancel();
+              headlessWebView?.dispose();
+
+              if (!completer.isCompleted) {
+                if (rawResponseText.isNotEmpty) {
+                  completer.complete(rawResponseText);
+                } else {
+                  completer.completeError(
+                    const InfinityFreeBypassException(
+                      message: 'Respon dari JS fetch login kosong.',
+                      rawHtmlSnippet: 'EMPTY_RESPONSE',
+                    ),
+                  );
+                }
+              }
+            },
+          );
+        },
         onLoadStop: (controller, url) async {
           if (completer.isCompleted || hasSubmitted) return;
 
           try {
-            // Cek cookies yang tersimpan di domain target
-            final cookies = await CookieManager.instance().getCookies(url: targetUri);
-            String testCookieValue = '';
+            debugPrint('[BypassEngine] onLoadStop dipanggil untuk URL: $url. Menjalankan JS login script...');
+            hasSubmitted = true;
 
-            for (final cookie in cookies) {
-              if (cookie.name == '__test' || cookie.name.startsWith('_test')) {
-                testCookieValue = cookie.value.toString();
-                break;
-              }
-            }
-
-            if (testCookieValue.isNotEmpty) {
-              hasSubmitted = true;
-              debugPrint('[BypassEngine] Cookie __test terverifikasi: $testCookieValue, mengeksekusi JS fetch login...');
-
-              // Simpan cookie ke SharedPreferences
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.setString(GaraPrefKeys.bypassTestCookie, testCookieValue);
-              await prefs.setInt(
-                GaraPrefKeys.bypassCookieTimestamp,
-                DateTime.now().millisecondsSinceEpoch,
-              );
-
-              // Registrasikan handler hasil login ke Dart
-              controller.addJavaScriptHandler(
-                handlerName: 'onLoginResult',
-                callback: (args) {
-                  final rawResponseText = (args.isNotEmpty ? args.first : '').toString();
-                  debugPrint('[BypassEngine] Received JS login result length: ${rawResponseText.length}');
-
-                  timer.cancel();
-                  headlessWebView?.dispose();
-
-                  if (!completer.isCompleted) {
-                    if (rawResponseText.isNotEmpty) {
-                      completer.complete(rawResponseText);
-                    } else {
-                      completer.completeError(
-                        const InfinityFreeBypassException(
-                          message: 'Respon dari JS fetch login kosong.',
-                          rawHtmlSnippet: 'EMPTY_RESPONSE',
-                        ),
-                      );
-                    }
+            // Jalankan JS fetch POST ke /api/mobile/login dari dalam WebView
+            final jsCode = '''
+              (async function() {
+                try {
+                  let attempts = 0;
+                  while (!document.cookie.includes('__test') && attempts < 10) {
+                    await new Promise(r => setTimeout(r, 300));
+                    attempts++;
                   }
-                },
-              );
+                  const res = await fetch('https://garaedu.rf.gd/api/mobile/login', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Accept': 'application/json',
+                      'X-App': 'GARA_MOBILE',
+                      'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                      identifier: ${jsonEncode(identifier)},
+                      password: ${jsonEncode(password)}
+                    })
+                  });
+                  const text = await res.text();
+                  window.flutter_inappwebview.callHandler('onLoginResult', text);
+                } catch (e) {
+                  window.flutter_inappwebview.callHandler('onLoginResult', JSON.stringify({ status: 'error', message: e.toString() }));
+                }
+              })();
+            ''';
 
-              // Jalankan JS fetch POST ke /api/mobile/login dari dalam WebView
-              final jsCode = '''
-                (async function() {
-                  try {
-                    const res = await fetch('/api/mobile/login', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-App': 'GARA_MOBILE',
-                        'X-Requested-With': 'XMLHttpRequest'
-                      },
-                      body: JSON.stringify({
-                        identifier: ${jsonEncode(identifier)},
-                        password: ${jsonEncode(password)}
-                      })
-                    });
-                    const text = await res.text();
-                    window.flutter_inappwebview.callHandler('onLoginResult', text);
-                  } catch (e) {
-                    window.flutter_inappwebview.callHandler('onLoginResult', JSON.stringify({ status: 'error', message: e.toString() }));
-                  }
-                })();
-              ''';
-
-              await controller.evaluateJavascript(source: jsCode);
-            } else {
-              debugPrint('[BypassEngine] Menunggu cookie __test terbentuk di onLoadStop...');
-            }
+            await controller.evaluateJavascript(source: jsCode);
           } catch (e) {
-            debugPrint('[BypassEngine] Error pada Headless login: $e');
+            debugPrint('[BypassEngine] Error pada Headless login onLoadStop: $e');
             timer.cancel();
             headlessWebView?.dispose();
             if (!completer.isCompleted) {
@@ -301,4 +304,5 @@ class InfinityBypassEngine {
     return completer.future;
   }
 }
+
 
