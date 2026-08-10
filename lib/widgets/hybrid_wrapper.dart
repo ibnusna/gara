@@ -311,22 +311,19 @@ class _HybridWrapperState extends State<HybridWrapper>
             history!.currentIndex != null &&
             history.currentIndex! > 0) {
           final backUrl = history.list![history.currentIndex! - 1].url.toString();
-          
-          
+
+          // Jika halaman sebelumnya adalah handoff atau login, pop Flutter langsung
           if (backUrl.contains('handoff') || backUrl.contains('/login')) {
             return true;
           }
-          
-          // FIX: Jangan pop Flutter hanya karena path adalah /student/
-          // goBack() browser adalah perilaku yang benar untuk semua halaman LMS.
-          // Pop Flutter hanya jika halaman sebelumnya adalah PERSIS dashboard
-          // (user sudah di titik paling awal navigasi LMS).
+
+          // Jika halaman sebelumnya adalah halaman siswa (/student/*),
+          // pop Flutter agar kembali ke native app — ini perilaku yang benar.
+          // User sudah di titik terdalam web LMS; back harusnya keluar ke Flutter.
           final prevUri = Uri.tryParse(backUrl);
           final prevPath = prevUri?.path ?? '';
-          if (prevPath == AppConfig.studentDashboardPath ||
-              prevPath == '/student/dashboard') {
-            // Navigasi kembali ke dashboard — biarkan goBack() menangani
-            // (jangan pop Flutter, user masih dalam sesi LMS)
+          if (prevPath.contains('/student/') || prevPath.endsWith('/student')) {
+            return true;
           }
         }
         await _webController!.goBack();
@@ -699,8 +696,7 @@ class _HybridWrapperState extends State<HybridWrapper>
                     // ──────────────────────────────────────────────────────────
 
                     
-                    
-                    if (path == '/logout' && !_isPerformingLogout) {
+                    if (path.endsWith('/logout') && !_isPerformingLogout) {
                       _isPerformingLogout = true;
                       await _performManualLogout();
                       return;
@@ -709,7 +705,7 @@ class _HybridWrapperState extends State<HybridWrapper>
                     
                     
                     
-                    if (path == '/login' && !urlStr.contains('handoff')) {
+                    if (path.endsWith('/login') && !urlStr.contains('handoff')) {
                       if (mounted) {
                         Navigator.pushNamedAndRemoveUntil(
                           context,
@@ -720,18 +716,12 @@ class _HybridWrapperState extends State<HybridWrapper>
                       return;
                     }
                     
-                    // Jika server redirect ke dashboard siswa:
-                    // - Pop Flutter hanya jika WebView tidak punya history web
-                    //   (artinya user memang baru mulai, bukan navigasi dari halaman lain)
-                    // - Jika ada history (misal: setelah pilih mapel), biarkan WebView lanjut
-                    if (path == AppConfig.studentDashboardPath || path == '/student/') {
-                      final canGoBackCheck = await _webController?.canGoBack() ?? false;
-                      if (!canGoBackCheck) {
-                        // Tidak ada history web sebelumnya — ini masuk awal, pop ke Flutter dashboard
-                        if (mounted) Navigator.pop(context);
-                        return;
-                      }
-                      // Ada history — biarkan WebView navigasi normal ke dashboard
+                    // Saat web navigasi ke /student/dashboard (misal: user tekan back
+                    // dari Ruang Belajar), pop WebView dan kembali ke native Flutter app.
+                    // Ini adalah behavior yang benar dan disengaja.
+                    if (path.endsWith(AppConfig.studentDashboardPath) || path.endsWith('/student/') || path.endsWith('/student')) {
+                      if (mounted) Navigator.pop(context);
+                      return;
                     }
 
                     if (mounted) {

@@ -281,12 +281,12 @@ class AppConfig {
     if (uri == null) return false;
     final path = uri.path;
 
-    return path == studentDashboardPath ||
-        path == guruDashboardPath ||
-        path == '/guru/dashboard' || 
-        path == operatorDashboardPath ||
-        path == kepsekDashboardPath ||
-        path == superAdminDashboardPath;
+    return path.endsWith(studentDashboardPath) ||
+        path.endsWith(guruDashboardPath) ||
+        path.endsWith('/guru/dashboard') || 
+        path.endsWith(operatorDashboardPath) ||
+        path.endsWith(kepsekDashboardPath) ||
+        path.endsWith(superAdminDashboardPath);
   }
 
   
@@ -295,6 +295,6 @@ class AppConfig {
     if (uri == null) return false;
     final path = uri.path;
 
-    return path == '/' || path == '/login' || path.isEmpty;
+    return path == '/' || path.endsWith('/login') || path.isEmpty;
   }
 }
