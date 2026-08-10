@@ -577,8 +577,7 @@ class _HybridWrapperState extends State<HybridWrapper>
           'a.header-logout-btn',
           '.btn-kembali-beranda',
           'a[href*="garudakademi.ct.ws"]',
-          'a[href*="index.html"]',
-          '#selesaiBtn',
+          'a[href*="index.html"]'
         ];
 
         selectors.forEach(function(sel) {
