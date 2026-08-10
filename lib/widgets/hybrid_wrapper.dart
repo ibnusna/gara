@@ -540,6 +540,68 @@ class _HybridWrapperState extends State<HybridWrapper>
   """;
 
 
+  // ──────────────────────────────────────────────────────────────────────────
+  // _netlifyLogoutInterceptJs — Netlify Return-to-App Bridge
+  // ──────────────────────────────────────────────────────────────────────────
+  // Script ini diinjeksikan ke halaman Netlify (summary.html, ujian.html,
+  // hasil.html) saat diakses dari dalam Flutter WebView.
+  //
+  // Fungsinya:
+  // 1. Menandai halaman dengan class 'is-gara-official-app' di <html>
+  // 2. Menangkap klik pada tombol logout / kembali-beranda
+  // 3. Memanggil Flutter handler 'netlifyLogout' agar app bisa kembali ke
+  //    dashboard Flutter secara mulus — bukan redirect ke garudakademi.ct.ws
+  // ──────────────────────────────────────────────────────────────────────────
+  static const String _netlifyLogoutInterceptJs = """
+    (function() {
+      if (window.__garaNetlifyPatched) return;
+      window.__garaNetlifyPatched = true;
+
+      // 1. Tandai halaman sebagai "mode app" agar CSS bisa menyesuaikan diri
+      document.documentElement.classList.add('is-gara-official-app');
+      document.documentElement.classList.add('is-ruang-ujian');
+
+      // 2. Fungsi helper: kirim sinyal kembali ke Flutter
+      function returnToFlutterDashboard(e) {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+        // Panggil Flutter handler
+        if (window.flutter_inappwebview) {
+          window.flutter_inappwebview.callHandler('netlifyLogout');
+        }
+        return false;
+      }
+
+      // 3. Intercept semua tombol / link logout & kembali-beranda
+      function patchLogoutButtons() {
+        // Selector: button logout header, anchor btn-kembali-beranda, selesai
+        var selectors = [
+          'a.header-logout-btn',
+          '.btn-kembali-beranda',
+          'a[href*="garudakademi.ct.ws"]',
+          'a[href*="index.html"]',
+          '#selesaiBtn',
+        ];
+
+        selectors.forEach(function(sel) {
+          document.querySelectorAll(sel).forEach(function(el) {
+            if (!el.dataset.garaPatched) {
+              el.dataset.garaPatched = 'true';
+              el.addEventListener('click', returnToFlutterDashboard, true);
+            }
+          });
+        });
+      }
+
+      // Patch segera + observe DOM untuk elemen yang muncul belakangan
+      patchLogoutButtons();
+      var observer = new MutationObserver(patchLogoutButtons);
+      observer.observe(document.body, { childList: true, subtree: true });
+
+      console.log('[GARA App] Netlify logout bridge: aktif');
+    })();
+  """;
+
+
 
 
   
@@ -595,7 +657,23 @@ class _HybridWrapperState extends State<HybridWrapper>
                   initialSettings: _webSettings,
                   pullToRefreshController: _pullToRefreshController,
 
-                  onWebViewCreated: (c) => _webController = c,
+                  onWebViewCreated: (c) {
+                    _webController = c;
+
+                    // ── GARA: Netlify Logout Bridge Handler ──────────────────
+                    // Saat JS di halaman Netlify memanggil:
+                    //   window.flutter_inappwebview.callHandler('netlifyLogout')
+                    // Flutter akan deactivate exam mode dan kembali ke dashboard.
+                    c.addJavaScriptHandler(
+                      handlerName: 'netlifyLogout',
+                      callback: (args) async {
+                        debugPrint('[GARA] netlifyLogout handler dipanggil dari Netlify');
+                        await _deactivateExamMode();
+                        if (mounted) Navigator.pop(context);
+                      },
+                    );
+                    // ─────────────────────────────────────────────────────────
+                  },
 
                   onLoadStart: (controller, url) async {
                     if (url == null) return;
@@ -603,6 +681,20 @@ class _HybridWrapperState extends State<HybridWrapper>
                     final urlStr = url.toString();
                     final uri    = Uri.tryParse(urlStr);
                     final path   = uri?.path ?? '';
+
+                    // ── GARA KHUSUS: Netlify /index.html trap ──────────────────
+                    // Jika Flutter mendeteksi navigasi ke halaman LOGIN Netlify,
+                    // hentikan segera & kembali ke dashboard Flutter.
+                    // Ini terjadi saat sesi Netlify habis atau user klik logout.
+                    if (AppConfig.isNetlifyIndexTrap(urlStr)) {
+                      debugPrint('[GARA] Netlify /index.html trap terdeteksi — kembali ke dashboard');
+                      await _deactivateExamMode();
+                      // Hentikan navigasi WebView ke trap URL
+                      await controller.stopLoading();
+                      if (mounted) Navigator.pop(context);
+                      return;
+                    }
+                    // ──────────────────────────────────────────────────────────
 
                     
                     
@@ -699,6 +791,16 @@ class _HybridWrapperState extends State<HybridWrapper>
                         
                         await controller.evaluateJavascript(source: _restoreRoleNavJs);
                       }
+
+                      // ── GARA: Inject Netlify Logout Interceptor ──────────────
+                      // Saat halaman Netlify dimuat (summary/ujian/hasil), inject JS
+                      // yang menangkap klik pada tombol logout/kembali-beranda dan
+                      // mengirimkan sinyal ke Flutter agar bisa kembali ke dashboard.
+                      if (urlStr.contains('garudakademi.netlify.app') &&
+                          !urlStr.contains('/index.html')) {
+                        await controller.evaluateJavascript(source: _netlifyLogoutInterceptJs);
+                      }
+                      // ────────────────────────────────────────────────────────
 
                       
                       

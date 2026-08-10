@@ -37,7 +37,17 @@ class AppConfig {
 
   static String get baseUrl {
     if (overrideBaseUrl != null && overrideBaseUrl!.isNotEmpty) {
-      return overrideBaseUrl!;
+      String url = overrideBaseUrl!;
+      // Fix for Firebase tokens pointing to physical subdirectories
+      if (url.contains('garaedu.rf.gd/ite/gara')) {
+        url = url.replaceAll('/ite/gara', '');
+      } else if (url.contains('garaedu.rf.gd/ite')) {
+        url = url.replaceAll('/ite', '');
+      }
+      if (url.endsWith('/')) {
+        url = url.substring(0, url.length - 1);
+      }
+      return url;
     }
     return isDebugMode ? _devUrl : _prodUrl;
   }
@@ -217,12 +227,46 @@ class AppConfig {
 
   
   static bool isExamArenaUrl(String url) {
-    return url.contains(ruangUjianPath) || url.contains('/ruang-ujian/arena') || url.contains(ruangKompetensiPath) || url.contains(garudakademiBaseUrl) || url.contains('garudakademi.netlify.app');
+    // PIN task aktif saat di halaman arena ujian (LMS atau Netlify)
+    //
+    // Netlify garudakademi.netlify.app:
+    //   ON  → summary.html (konfirmasi peserta, entry point ujian dari LMS)
+    //   ON  → ujian.html (halaman soal)
+    //   OFF → index.html  (halaman LOGIN — jangan disentuh, ini trap)
+    //   OFF → hasil.html  (halaman hasil ujian)
+    //
+    // LMS:
+    //   ON  → /ruang-ujian/arena
+    //   ON  → /student/ruang-kompetensi/ujian/{id}  ← hanya saat masuk ujian
+    //   OFF → /student/ruang-kompetensi             ← halaman daftar, JANGAN pin task
+    if (url.contains('garudakademi.netlify.app')) {
+      // Aktifkan PIN task hanya di summary.html dan ujian.html
+      // JANGAN aktifkan di index.html (login) dan hasil.html (selesai)
+      return (url.contains('/summary.html') || url.contains('/ujian.html')) &&
+          !url.contains('/index.html') &&
+          !url.contains('/hasil.html') &&
+          !url.contains('?exam_done=1');
+    }
+    return url.contains(ruangUjianPath) ||
+        url.contains('/ruang-ujian/arena') ||
+        url.contains('/student/ruang-kompetensi/ujian'); // hanya sub-path ujian, bukan root kompetensi
   }
 
-  
+
   static bool isExamResultUrl(String url) {
-    return url.contains(ruangUjianHasilPath) || url.contains('/ruang-ujian/hasil');
+    // PIN task dinonaktifkan saat di halaman hasil (LMS atau Netlify)
+    return url.contains(ruangUjianHasilPath) ||
+        url.contains('/ruang-ujian/hasil') ||
+        url.contains('/hasil.html') ||          // Netlify: halaman hasil
+        url.contains('?exam_done=1');           // Universal exit signal
+  }
+
+  /// True jika URL adalah halaman login (/index.html) Netlify.
+  /// Halaman ini adalah TRAP — jika pengguna sampai ke sini dari dalam ujian,
+  /// berarti sesi habis atau logout. Harus langsung kembali ke dashboard Flutter.
+  static bool isNetlifyIndexTrap(String url) {
+    return url.contains('garudakademi.netlify.app') &&
+        (url.contains('/index.html') || url.endsWith('garudakademi.netlify.app/'));
   }
 
   

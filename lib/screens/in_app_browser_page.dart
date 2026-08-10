@@ -273,10 +273,31 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> with WidgetsBinding
                       pullToRefreshController: pullToRefreshController,
                       onWebViewCreated: (controller) {
                         webViewController = controller;
+
+                        // GARA: Netlify Logout Bridge
+                        controller.addJavaScriptHandler(
+                          handlerName: 'netlifyLogout',
+                          callback: (args) async {
+                            debugPrint('[GARA InAppBrowser] netlifyLogout dipanggil');
+                            await _deactivateExamMode();
+                            if (mounted) Navigator.pop(context);
+                          },
+                        );
                       },
                       onLoadStart: (controller, url) {
                         if (url != null) {
-                          _applySecurityForUrl(url.toString());
+                          final urlStr = url.toString();
+
+                          // Intercept Netlify login page trap
+                          if (AppConfig.isNetlifyIndexTrap(urlStr)) {
+                            debugPrint('[GARA InAppBrowser] Netlify index trap — kembali ke dashboard');
+                            _deactivateExamMode();
+                            controller.stopLoading();
+                            if (mounted) Navigator.pop(context);
+                            return;
+                          }
+
+                          _applySecurityForUrl(urlStr);
                         }
                         setState(() {
                           progress = 0; 
@@ -298,6 +319,44 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> with WidgetsBinding
                           if (title != null && title.isNotEmpty) currentTitle = title;
                           canGoBack = checkCanGoBack;
                         });
+
+                        // Inject GARA Bridge JS saat halaman Netlify dimuat
+                        final urlStr = url?.toString() ?? '';
+                        if (urlStr.contains('garudakademi.netlify.app') &&
+                            !urlStr.contains('/index.html')) {
+                          try {
+                            // Tandai halaman dan intercept tombol logout
+                            await controller.evaluateJavascript(source: """
+                              (function() {
+                                if (window.__garaNetlifyPatched) return;
+                                window.__garaNetlifyPatched = true;
+                                document.documentElement.classList.add('is-gara-official-app');
+                                document.documentElement.classList.add('is-ruang-ujian');
+                                function returnToApp(e) {
+                                  if (e) { e.preventDefault(); e.stopPropagation(); }
+                                  if (window.flutter_inappwebview) {
+                                    window.flutter_inappwebview.callHandler('netlifyLogout');
+                                  }
+                                  return false;
+                                }
+                                function patch() {
+                                  ['a.header-logout-btn','.btn-kembali-beranda',
+                                   'a[href*="garudakademi.ct.ws"]','a[href*="index.html"]',
+                                   '#selesaiBtn'].forEach(function(s) {
+                                    document.querySelectorAll(s).forEach(function(el) {
+                                      if (!el.dataset.garaBridgePatched) {
+                                        el.dataset.garaBridgePatched = 'true';
+                                        el.addEventListener('click', returnToApp, true);
+                                      }
+                                    });
+                                  });
+                                }
+                                patch();
+                                new MutationObserver(patch).observe(document.body, {childList:true,subtree:true});
+                              })();
+                            """);
+                          } catch (_) {}
+                        }
                       },
                       onReceivedError: (controller, request, error) async {
                         pullToRefreshController?.endRefreshing();
@@ -309,11 +368,21 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> with WidgetsBinding
                         }
                       },
                       shouldOverrideUrlLoading: (controller, navigationAction) async {
-                        var uri = navigationAction.request.url;
-                        if (uri != null) {
-                          if (["http", "https"].contains(uri.scheme)) {
-                            return NavigationActionPolicy.ALLOW;
+                        final uri = navigationAction.request.url;
+                        if (uri == null) return NavigationActionPolicy.CANCEL;
+
+                        // Handle custom GARA scheme: gara://exam-done
+                        // Dikirim oleh exam JS saat user selesai/keluar ujian di dalam app
+                        if (uri.scheme == 'gara') {
+                          if (uri.host == 'exam-done') {
+                            await _deactivateExamMode();
+                            if (mounted) Navigator.pop(context);
                           }
+                          return NavigationActionPolicy.CANCEL;
+                        }
+
+                        if (["http", "https"].contains(uri.scheme)) {
+                          return NavigationActionPolicy.ALLOW;
                         }
                         return NavigationActionPolicy.CANCEL;
                       },
