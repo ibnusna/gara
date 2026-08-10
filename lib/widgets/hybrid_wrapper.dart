@@ -317,14 +317,16 @@ class _HybridWrapperState extends State<HybridWrapper>
             return true;
           }
           
-          
-          
-          
+          // FIX: Jangan pop Flutter hanya karena path adalah /student/
+          // goBack() browser adalah perilaku yang benar untuk semua halaman LMS.
+          // Pop Flutter hanya jika halaman sebelumnya adalah PERSIS dashboard
+          // (user sudah di titik paling awal navigasi LMS).
           final prevUri = Uri.tryParse(backUrl);
           final prevPath = prevUri?.path ?? '';
-          if (prevPath.startsWith('/student/')) {
-            
-            return true;
+          if (prevPath == AppConfig.studentDashboardPath ||
+              prevPath == '/student/dashboard') {
+            // Navigasi kembali ke dashboard — biarkan goBack() menangani
+            // (jangan pop Flutter, user masih dalam sesi LMS)
           }
         }
         await _webController!.goBack();
@@ -718,11 +720,18 @@ class _HybridWrapperState extends State<HybridWrapper>
                       return;
                     }
                     
-                    
+                    // Jika server redirect ke dashboard siswa:
+                    // - Pop Flutter hanya jika WebView tidak punya history web
+                    //   (artinya user memang baru mulai, bukan navigasi dari halaman lain)
+                    // - Jika ada history (misal: setelah pilih mapel), biarkan WebView lanjut
                     if (path == AppConfig.studentDashboardPath || path == '/student/') {
-                      
-                      if (mounted) Navigator.pop(context);
-                      return;
+                      final canGoBackCheck = await _webController?.canGoBack() ?? false;
+                      if (!canGoBackCheck) {
+                        // Tidak ada history web sebelumnya — ini masuk awal, pop ke Flutter dashboard
+                        if (mounted) Navigator.pop(context);
+                        return;
+                      }
+                      // Ada history — biarkan WebView navigasi normal ke dashboard
                     }
 
                     if (mounted) {
