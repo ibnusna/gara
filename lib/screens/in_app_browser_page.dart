@@ -341,7 +341,7 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> with WidgetsBinding
                                 }
                                 function patch() {
                                   ['a.header-logout-btn','.btn-kembali-beranda',
-                                   'a[href*="garudakademi.ct.ws"]','a[href*="index.html"]'
+                                   'a[href*="index.html"]'
                                    ].forEach(function(s) {
                                     document.querySelectorAll(s).forEach(function(el) {
                                       if (!el.dataset.garaBridgePatched) {

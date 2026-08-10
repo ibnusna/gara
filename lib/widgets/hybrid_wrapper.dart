@@ -148,18 +148,16 @@ class _HybridWrapperState extends State<HybridWrapper>
       if (testCookie.isEmpty && sessionCookie.isEmpty) {
         debugPrint('[HybridWrapper] Tidak ada bypass cookies tersimpan.');
       } else {
-        final targetUrl = WebUri('https://garaedu.rf.gd');
+        final baseUrl = AppConfig.baseUrl;
+        final targetUrl = WebUri(baseUrl);
         final cookieMgr = CookieManager.instance();
-        
-        await cookieMgr.deleteAllCookies();
-        debugPrint('[HybridWrapper] Membuang cookie usang dan menginjeksi yang baru...');
 
         if (testCookie.isNotEmpty) {
           await cookieMgr.setCookie(
             url: targetUrl,
             name: '__test',
             value: testCookie,
-            isSecure: true,
+            isSecure: baseUrl.startsWith('https'),
             isHttpOnly: false,
           );
           debugPrint('[HybridWrapper] Cookie __test ter-inject sukses.');
@@ -170,7 +168,7 @@ class _HybridWrapperState extends State<HybridWrapper>
             url: targetUrl,
             name: 'laravel_session',
             value: sessionCookie,
-            isSecure: true,
+            isSecure: baseUrl.startsWith('https'),
             isHttpOnly: true,
           );
         }
@@ -576,7 +574,6 @@ class _HybridWrapperState extends State<HybridWrapper>
         var selectors = [
           'a.header-logout-btn',
           '.btn-kembali-beranda',
-          'a[href*="garudakademi.ct.ws"]',
           'a[href*="index.html"]'
         ];
 

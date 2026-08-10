@@ -34,7 +34,7 @@ class ConnectivityService {
       if (results.contains(ConnectivityResult.none)) return false;
 
       
-      final result = await InternetAddress.lookup('garudakademi.ct.ws')
+      final result = await InternetAddress.lookup('google.com')
           .timeout(const Duration(seconds: 5));
       return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
     } on SocketException {
@@ -59,7 +59,7 @@ class ConnectivityService {
   static Future<bool> _isActuallyConnected(List<ConnectivityResult> results) async {
     if (results.contains(ConnectivityResult.none)) return false;
     try {
-      final result = await InternetAddress.lookup('garudakademi.ct.ws')
+      final result = await InternetAddress.lookup('google.com')
           .timeout(const Duration(seconds: 3));
       return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
     } catch (_) {
