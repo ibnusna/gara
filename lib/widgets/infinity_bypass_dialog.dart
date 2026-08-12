@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/app_config.dart';
 import '../utils/app_constants.dart';
 
 class InfinityBypassDialog extends StatefulWidget {
@@ -57,7 +58,7 @@ class _InfinityBypassDialogState extends State<InfinityBypassDialog> {
               Offstage(
                 offstage: true,
                 child: InAppWebView(
-                  initialUrlRequest: URLRequest(url: WebUri('https://garaedu.rf.gd')),
+                  initialUrlRequest: URLRequest(url: WebUri(AppConfig.baseUrl)),
                   initialSettings: InAppWebViewSettings(
                     javaScriptEnabled: true,
                     domStorageEnabled: true,
@@ -68,7 +69,7 @@ class _InfinityBypassDialogState extends State<InfinityBypassDialog> {
                   onLoadStop: (controller, url) async {
                     if (_hasCompleted) return;
                     try {
-                      final cookies = await CookieManager.instance().getCookies(url: WebUri('https://garaedu.rf.gd'));
+                      final cookies = await CookieManager.instance().getCookies(url: WebUri(AppConfig.baseUrl));
                       for (final cookie in cookies) {
                         if (cookie.name == '__test') {
                           final testCookieValue = cookie.value.toString();
