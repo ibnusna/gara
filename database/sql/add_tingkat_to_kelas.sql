@@ -1,1 +1,0 @@
-ALTER TABLE kelas ADD COLUMN tingkat VARCHAR(10) NULL AFTER nama_kelas;
