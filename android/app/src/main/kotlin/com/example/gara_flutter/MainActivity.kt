@@ -66,7 +66,16 @@ class MainActivity : FlutterActivity() {
                     // Jika tidak, Android tetap memasukkannya ke "pinning mode ringan".
                     "startLockTask" -> {
                         try {
-                            startLockTask()
+                            val am = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+                            val isAlreadyLocked = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                am.lockTaskModeState != ActivityManager.LOCK_TASK_MODE_NONE
+                            } else {
+                                @Suppress("DEPRECATION")
+                                am.isInLockTaskMode
+                            }
+                            if (!isAlreadyLocked) {
+                                startLockTask()
+                            }
                             result.success(null)
                         } catch (e: Exception) {
                             // Tidak crash — Flutter tetap bisa melanjutkan
@@ -75,7 +84,16 @@ class MainActivity : FlutterActivity() {
                     }
                     "stopLockTask" -> {
                         try {
-                            stopLockTask()
+                            val am = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+                            val isLocked = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                am.lockTaskModeState != ActivityManager.LOCK_TASK_MODE_NONE
+                            } else {
+                                @Suppress("DEPRECATION")
+                                am.isInLockTaskMode
+                            }
+                            if (isLocked) {
+                                stopLockTask()
+                            }
                             result.success(null)
                         } catch (e: Exception) {
                             result.success(null)

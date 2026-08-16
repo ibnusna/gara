@@ -9,9 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../utils/app_constants.dart';
 import '../utils/app_config.dart';
-import '../utils/route_builders.dart';
 import '../services/auth_service.dart';
-import '../screens/in_app_browser_page.dart';
 
 
 const _kSecurityChannel = MethodChannel('com.lms.gara/security');
@@ -75,6 +73,8 @@ class _HybridWrapperState extends State<HybridWrapper>
     allowsInlineMediaPlayback:        true,
     
     javaScriptCanOpenWindowsAutomatically: true,
+    supportMultipleWindows:           true,
+    useOnDownloadStart:               true,
     transparentBackground:            false,
     supportZoom:                      true,
     thirdPartyCookiesEnabled:         true,
@@ -667,6 +667,18 @@ class _HybridWrapperState extends State<HybridWrapper>
                         if (mounted) Navigator.pop(context);
                       },
                     );
+                    c.addJavaScriptHandler(
+                      handlerName: 'triggerPrint',
+                      callback: (args) async {
+                        final currentUrl = (await c.getUrl())?.toString();
+                        if (currentUrl != null && currentUrl.isNotEmpty) {
+                          final uri = Uri.tryParse(currentUrl);
+                          if (uri != null) {
+                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                          }
+                        }
+                      },
+                    );
                     // ─────────────────────────────────────────────────────────
                   },
 
@@ -833,18 +845,51 @@ class _HybridWrapperState extends State<HybridWrapper>
                   
                   onDownloadStartRequest: (controller, downloadStartRequest) async {
                     final dlUrl = downloadStartRequest.url.toString();
-                    debugPrint('[GARA Download] PDF download: $dlUrl');
+                    debugPrint('[GARA Download] Download request: $dlUrl');
                     
-                    await controller.evaluateJavascript(source: """
-                      (function() {
-                        var a = document.createElement('a');
-                        a.href = '${dlUrl.replaceAll("'", "\\'")}';
-                        a.download = 'Bukti_Ujian_GARA.pdf';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                      })();
-                    """);
+                    final uri = Uri.tryParse(dlUrl);
+                    if (uri != null && ['http', 'https'].contains(uri.scheme.toLowerCase())) {
+                      try {
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        return;
+                      } catch (e) {
+                        debugPrint('[GARA Download] launchUrl error: $e');
+                      }
+                    }
+                    
+                    if (dlUrl.startsWith('data:') || dlUrl.startsWith('blob:')) {
+                      try {
+                        final filename = downloadStartRequest.suggestedFilename ?? 'Dokumen_GARA';
+                        await controller.evaluateJavascript(source: """
+                          (function() {
+                            var a = document.createElement('a');
+                            a.href = '${dlUrl.replaceAll("'", "\\'")}';
+                            a.download = '${filename.replaceAll("'", "\\'")}';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                          })();
+                        """);
+                      } catch (e) {
+                        debugPrint('[GARA Download] JS blob download error: $e');
+                      }
+                    }
+                  },
+
+                  onCreateWindow: (controller, createWindowAction) async {
+                    final reqUrl = createWindowAction.request.url;
+                    if (reqUrl != null) {
+                      debugPrint('[GARA Window] Popup requested: $reqUrl');
+                      if (['http', 'https'].contains(reqUrl.scheme.toLowerCase())) {
+                        try {
+                          await launchUrl(reqUrl, mode: LaunchMode.externalApplication);
+                          return true;
+                        } catch (e) {
+                          debugPrint('[GARA Window] launchUrl popup error: $e');
+                        }
+                      }
+                    }
+                    return false;
                   },
 
                   onReceivedError: (controller, request, error) {

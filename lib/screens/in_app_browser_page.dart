@@ -52,6 +52,9 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> with WidgetsBinding
       mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW, 
       transparentBackground: true,
       supportZoom: true,
+      javaScriptCanOpenWindowsAutomatically: true,
+      supportMultipleWindows: true,
+      useOnDownloadStart: true,
       userAgent: "GARA_OFFICIAL_APP", 
     );
 
@@ -283,6 +286,18 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> with WidgetsBinding
                             if (mounted) Navigator.pop(context);
                           },
                         );
+                        controller.addJavaScriptHandler(
+                          handlerName: 'triggerPrint',
+                          callback: (args) async {
+                            final currentUrl = (await controller.getUrl())?.toString();
+                            if (currentUrl != null && currentUrl.isNotEmpty) {
+                              final uri = Uri.tryParse(currentUrl);
+                              if (uri != null) {
+                                await launchUrl(uri, mode: LaunchMode.externalApplication);
+                              }
+                            }
+                          },
+                        );
                       },
                       onLoadStart: (controller, url) {
                         if (url != null) {
@@ -366,6 +381,53 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> with WidgetsBinding
                             urlRequest: URLRequest(url: WebUri('file:///android_asset/flutter_assets/assets/helpers/eror.html')),
                           );
                         }
+                      },
+                      onDownloadStartRequest: (controller, downloadStartRequest) async {
+                        final dlUrl = downloadStartRequest.url.toString();
+                        debugPrint('[GARA InAppBrowser Download] Download request: $dlUrl');
+                        
+                        final uri = Uri.tryParse(dlUrl);
+                        if (uri != null && ['http', 'https'].contains(uri.scheme.toLowerCase())) {
+                          try {
+                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            return;
+                          } catch (e) {
+                            debugPrint('[GARA InAppBrowser Download] launchUrl error: $e');
+                          }
+                        }
+                        
+                        if (dlUrl.startsWith('data:') || dlUrl.startsWith('blob:')) {
+                          try {
+                            final filename = downloadStartRequest.suggestedFilename ?? 'Dokumen_GARA';
+                            await controller.evaluateJavascript(source: """
+                              (function() {
+                                var a = document.createElement('a');
+                                a.href = '${dlUrl.replaceAll("'", "\\'")}';
+                                a.download = '${filename.replaceAll("'", "\\'")}';
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                              })();
+                            """);
+                          } catch (e) {
+                            debugPrint('[GARA InAppBrowser Download] JS blob download error: $e');
+                          }
+                        }
+                      },
+                      onCreateWindow: (controller, createWindowAction) async {
+                        final reqUrl = createWindowAction.request.url;
+                        if (reqUrl != null) {
+                          debugPrint('[GARA InAppBrowser Window] Popup requested: $reqUrl');
+                          if (['http', 'https'].contains(reqUrl.scheme.toLowerCase())) {
+                            try {
+                              await launchUrl(reqUrl, mode: LaunchMode.externalApplication);
+                              return true;
+                            } catch (e) {
+                              debugPrint('[GARA InAppBrowser Window] launchUrl popup error: $e');
+                            }
+                          }
+                        }
+                        return false;
                       },
                       shouldOverrideUrlLoading: (controller, navigationAction) async {
                         final uri = navigationAction.request.url;
