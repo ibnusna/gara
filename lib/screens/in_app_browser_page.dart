@@ -1,9 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_filex/open_filex.dart';
 import '../widgets/gara_logo.dart';
 import '../utils/app_constants.dart';
 import '../utils/app_config.dart';
@@ -171,6 +175,30 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> with WidgetsBinding
     ));
   }
 
+  Future<void> _saveAndOpenDataUri(String dataUri, String suggestedFilename) async {
+    try {
+      final parts = dataUri.split(',');
+      if (parts.length < 2) return;
+      final String base64Str = parts[1];
+      final List<int> bytes = base64.decode(base64Str);
+      
+      final Directory? tempDir = Platform.isAndroid 
+          ? await getExternalStorageDirectory() 
+          : await getTemporaryDirectory();
+      
+      if (tempDir == null) return;
+      
+      final String filePath = '${tempDir.path}/$suggestedFilename';
+      final File file = File(filePath);
+      await file.writeAsBytes(bytes);
+      
+      debugPrint('[GARA Download] File saved to: $filePath');
+      await OpenFilex.open(filePath);
+    } catch (e) {
+      debugPrint('[GARA Download] Error saving/opening base64 file: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -298,6 +326,16 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> with WidgetsBinding
                             }
                           },
                         );
+                        controller.addJavaScriptHandler(
+                          handlerName: 'blobDownloaded',
+                          callback: (args) async {
+                            if (args.length >= 2) {
+                              final String dataUri = args[0].toString();
+                              final String filename = args[1].toString();
+                              await _saveAndOpenDataUri(dataUri, filename);
+                            }
+                          },
+                        );
                       },
                       onLoadStart: (controller, url) {
                         if (url != null) {
@@ -396,22 +434,32 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> with WidgetsBinding
                           }
                         }
                         
-                        if (dlUrl.startsWith('data:') || dlUrl.startsWith('blob:')) {
+                        final filename = downloadStartRequest.suggestedFilename ?? 'Dokumen_GARA';
+                        if (dlUrl.startsWith('blob:')) {
                           try {
-                            final filename = downloadStartRequest.suggestedFilename ?? 'Dokumen_GARA';
                             await controller.evaluateJavascript(source: """
-                              (function() {
-                                var a = document.createElement('a');
-                                a.href = '${dlUrl.replaceAll("'", "\\'")}';
-                                a.download = '${filename.replaceAll("'", "\\'")}';
-                                document.body.appendChild(a);
-                                a.click();
-                                document.body.removeChild(a);
+                              (async function() {
+                                try {
+                                  var response = await fetch('${dlUrl.replaceAll("'", "\\'")}');
+                                  var blob = await response.blob();
+                                  var reader = new FileReader();
+                                  reader.onloadend = function() {
+                                    var base64data = reader.result;
+                                    if (window.flutter_inappwebview) {
+                                      window.flutter_inappwebview.callHandler('blobDownloaded', base64data, '${filename.replaceAll("'", "\\'")}');
+                                    }
+                                  };
+                                  reader.readAsDataURL(blob);
+                                } catch (e) {
+                                  console.error('Blob fetch failed: ' + e);
+                                }
                               })();
                             """);
                           } catch (e) {
                             debugPrint('[GARA InAppBrowser Download] JS blob download error: $e');
                           }
+                        } else if (dlUrl.startsWith('data:')) {
+                          _saveAndOpenDataUri(dlUrl, filename);
                         }
                       },
                       onCreateWindow: (controller, createWindowAction) async {
