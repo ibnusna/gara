@@ -47,7 +47,7 @@ class SholatWidget extends StatefulWidget {
 class _SholatWidgetState extends State<SholatWidget> {
   List<_SholatTime> _times = [];
   bool _isLoading = true;
-  String _cityName = '';
+  String _cityName = ''; // Default kosong — tidak tampilkan teks lokasi jika gagal detect
 
   @override
   void initState() {
@@ -160,7 +160,7 @@ class _SholatWidgetState extends State<SholatWidget> {
       } catch (_) {}
     }
 
-    
+    // Fallback: jika semua gagal, tampilkan jadwal default tanpa nama lokasi
     if (mounted) {
       setState(() {
         _times = const [
@@ -170,7 +170,7 @@ class _SholatWidgetState extends State<SholatWidget> {
           _SholatTime(name: 'Maghrib', time: '17:48'),
           _SholatTime(name: 'Isya',    time: '19:03'),
         ];
-        _cityName  = city;
+        _cityName  = ''; // Tidak tampilkan nama lokasi jika tidak terdeteksi
         _isLoading = false;
       });
     }
@@ -236,14 +236,16 @@ class _SholatWidgetState extends State<SholatWidget> {
                           color: GaraColors.dsSlate800,
                         ),
                       ),
-                      Text(
-                        _isLoading ? 'Memuat lokasi...' : _cityName,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          color: GaraColors.dsSlate500,
-                          fontWeight: FontWeight.w500,
+                      // Tampilkan teks lokasi hanya jika berhasil terdeteksi
+                      if (!_isLoading && _cityName.isNotEmpty)
+                        Text(
+                          _cityName,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            color: GaraColors.dsSlate500,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),

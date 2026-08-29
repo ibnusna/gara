@@ -116,14 +116,19 @@ class _SplashLogicPageState extends State<SplashLogicPage>
       }
 
       final prefs = await SharedPreferences.getInstance();
+      final savedBaseUrl = prefs.getString(ActivationService.keyBaseUrl);
+      if (savedBaseUrl != null && savedBaseUrl.isNotEmpty) {
+        AppConfig.overrideBaseUrl = savedBaseUrl;
+      }
+
       final schoolKey = prefs.getString(ActivationService.keySchoolKey);
       final schoolName =
           prefs.getString(ActivationService.keySchoolName) ?? "Sekolah Anda";
 
       if (schoolKey != null) {
         if (schoolKey.toUpperCase() == 'HITAMPEKAT') {
-          // Start background update check (non-blocking)
-          unawaited(_checkUpdateInBackground());
+          final isUpdating = await _checkAndUpdateIfNeeded();
+          if (isUpdating) return;
           await _ensureMinDurationAndNavigate(startTime);
           return;
         }
@@ -151,31 +156,9 @@ class _SplashLogicPageState extends State<SplashLogicPage>
         }
       }
 
-      // --- BACKGROUND UPDATE CHECK ---
-      // Initialize remote config quickly; only block for FORCE updates.
-      // Non-force updates are silently deferred.
-      try {
-        await _updateService
-            .initialize()
-            .timeout(const Duration(milliseconds: 600));
-        final hasUpdate = await _updateService.isUpdateAvailable();
-
-        if (hasUpdate && _updateService.isForceUpdate()) {
-          // Only force-update blocks navigation
-          final releaseNotes = _updateService.getReleaseNotes();
-          final latestVersion = _updateService.getLatestVersion();
-          _navigateTo(UpdatePage(
-            isForceUpdate: true,
-            releaseNotes: releaseNotes,
-            latestVersion: latestVersion,
-          ));
-          return;
-        }
-        // Non-force update: store flag, show later inside the app
-        // (banner can be shown on PilihMapelPage or DashboardPage)
-      } catch (e) {
-        debugPrint("Cek update timeout/gagal: $e");
-      }
+      // --- UPDATE CHECK FOR ALL OTHER BRANCHES ---
+      final isUpdating = await _checkAndUpdateIfNeeded();
+      if (isUpdating) return;
     } catch (e) {
       debugPrint("Splash init error: $e");
     }
@@ -183,13 +166,39 @@ class _SplashLogicPageState extends State<SplashLogicPage>
     await _ensureMinDurationAndNavigate(startTime);
   }
 
-  /// Runs update check fully in background after navigation has already occurred.
-  Future<void> _checkUpdateInBackground() async {
+  /// Single unified update check method
+  Future<bool> _checkAndUpdateIfNeeded() async {
     try {
       await _updateService
           .initialize()
-          .timeout(const Duration(milliseconds: 600));
-    } catch (_) {}
+          .timeout(const Duration(milliseconds: 3000));
+      final hasUpdate = await _updateService.isUpdateAvailable();
+      final releaseNotes = _updateService.getReleaseNotes();
+      final latestVersion = _updateService.getLatestVersion();
+
+      if (hasUpdate && _updateService.isForceUpdate()) {
+        // Update wajib \u2014 tidak bisa ditutup, user HARUS update
+        debugPrint("[Splash] PEMBARUAN WAJIB (v$latestVersion) \u2014 Navigasi ke UpdatePage (force).");
+        _navigateTo(UpdatePage(
+          isForceUpdate: true,
+          releaseNotes: releaseNotes,
+          latestVersion: latestVersion,
+        ));
+        return true;
+      } else if (hasUpdate && !_updateService.isForceUpdate()) {
+        // Update tersedia tapi tidak wajib \u2014 tampilkan halaman update dengan tombol 'Nanti Saja'
+        debugPrint("[Splash] PEMBARUAN OPSIONAL (v$latestVersion) \u2014 Navigasi ke UpdatePage (non-force).");
+        _navigateTo(UpdatePage(
+          isForceUpdate: false,
+          releaseNotes: releaseNotes,
+          latestVersion: latestVersion,
+        ));
+        return true;
+      }
+    } catch (e) {
+      debugPrint("[Splash] Cek update timeout/error: $e");
+    }
+    return false;
   }
 
   Future<void> _ensureMinDurationAndNavigate(DateTime startTime) async {

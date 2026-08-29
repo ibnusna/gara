@@ -41,8 +41,9 @@ class _HybridWrapperState extends State<HybridWrapper>
 
   bool   _isLoading          = true;
   bool   _isExamModeActive   = false;
-  bool   _isPerformingLogout = false; 
-  bool   _showOfflineOverlay = false; 
+  bool   _isPerformingLogout = false;
+  bool   _showOfflineOverlay = false;
+  bool   _isRetrying         = false; // Mencegah Android error flash saat retry
   DateTime? _lastBackPressTime;
 
   
@@ -403,18 +404,15 @@ class _HybridWrapperState extends State<HybridWrapper>
     WebResourceRequest request,
     WebResourceError error,
   ) async {
-    
     if (request.isForMainFrame != true) return;
 
-    final desc    = error.description;
-    final urlStr  = request.url.toString();
+    final desc   = error.description;
+    final urlStr = request.url.toString();
 
-    
     if (desc.contains('ERR_ABORTED')) return;
 
     debugPrint('[GARA Error] $desc — URL: $urlStr');
 
-    
     final isConnectivityError = desc.contains('ERR_CONNECTION_REFUSED') ||
         desc.contains('ERR_INTERNET_DISCONNECTED') ||
         desc.contains('ERR_NAME_NOT_RESOLVED') ||
@@ -425,15 +423,24 @@ class _HybridWrapperState extends State<HybridWrapper>
         !urlStr.contains('/ruang-ujian');
 
     if (isConnectivityError && isNonStudentPath) {
-      
-      if (mounted) setState(() => _showOfflineOverlay = true);
+      // Tampilkan overlay Flutter — jangan load error page Android/HTML
+      if (mounted) {
+        setState(() {
+          _showOfflineOverlay = true;
+          _isRetrying = false; // Reset flag retry jika error terjadi lagi
+        });
+      }
       return;
     }
 
-    
-    await controller.loadUrl(
-      urlRequest: URLRequest(url: WebUri(_errorPageLocalPath)),
-    );
+    // Untuk error non-connectivity (mis. 404, 500), tampilkan overlay juga
+    // agar tidak ada halaman error Android yang terekspos.
+    if (mounted) {
+      setState(() {
+        _showOfflineOverlay = true;
+        _isRetrying = false;
+      });
+    }
   }
 
 
@@ -797,6 +804,18 @@ class _HybridWrapperState extends State<HybridWrapper>
                   onLoadStop: (controller, url) async {
                     if (!mounted) return;
 
+                    // Jika sedang dalam proses retry, sembunyikan overlay
+                    // HANYA setelah WebView benar-benar berhasil load.
+                    // Ini mencegah Android error page terlihat saat retry.
+                    if (_isRetrying) {
+                      if (mounted) {
+                        setState(() {
+                          _showOfflineOverlay = false;
+                          _isRetrying = false;
+                        });
+                      }
+                    }
+
                     try {
                       _pullToRefreshController?.endRefreshing();
                     } catch (e) {
@@ -1026,22 +1045,19 @@ class _HybridWrapperState extends State<HybridWrapper>
                   ),
                 ),
 
-              
-              
+
               if (_showOfflineOverlay)
                 Positioned.fill(
                   child: _OfflineOverlay(
+                    isRetrying: _isRetrying,
                     onRetry: () {
-                      setState(() => _showOfflineOverlay = false);
-                      _webController?.reload();
-                    },
-                    onLogout: () async {
-                      setState(() => _showOfflineOverlay = false);
-                      await AuthService.logout();
+                      // Set _isRetrying = true agar overlay TIDAK dihapus
+                      // sampai WebView berhasil load (onLoadStop).
+                      // Ini mencegah flash halaman error Android.
                       if (mounted) {
-                        Navigator.pushNamedAndRemoveUntil(
-                          context, GaraRoutes.login, (r) => false);
+                        setState(() => _isRetrying = true);
                       }
+                      _webController?.reload();
                     },
                   ),
                 ),
@@ -1160,9 +1176,12 @@ class _SlidingGradientTransform extends GradientTransform {
 
 class _OfflineOverlay extends StatelessWidget {
   final VoidCallback onRetry;
-  final VoidCallback onLogout;
+  final bool isRetrying;
 
-  const _OfflineOverlay({required this.onRetry, required this.onLogout});
+  const _OfflineOverlay({
+    required this.onRetry,
+    this.isRetrying = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1175,12 +1194,11 @@ class _OfflineOverlay extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                
                 Container(
                   width: 88,
                   height: 88,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFE4E6),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFFFE4E6),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.wifi_off_rounded,
@@ -1207,41 +1225,37 @@ class _OfflineOverlay extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),
-                
+                // Tombol Mulai Ulang — satu-satunya aksi yang tersedia
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: onRetry,
-                    icon: const Icon(Icons.refresh_rounded, size: 18),
-                    label: Text('Muat Ulang',
-                        style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600, fontSize: 14)),
+                    // Nonaktifkan tombol saat sedang retry agar tidak double-tap
+                    onPressed: isRetrying ? null : onRetry,
+                    icon: isRetrying
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Icon(Icons.refresh_rounded, size: 18),
+                    label: Text(
+                      isRetrying ? 'Menghubungkan...' : 'Mulai Ulang',
+                      style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600, fontSize: 14),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: GaraColors.studentPrimary,
                       foregroundColor: Colors.white,
+                      disabledBackgroundColor:
+                          GaraColors.studentPrimary.withOpacity(0.7),
+                      disabledForegroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14)),
                       elevation: 0,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: onLogout,
-                    icon: const Icon(Icons.logout_rounded, size: 18),
-                    label: Text('Kembali ke Login',
-                        style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600, fontSize: 14)),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFFDC2626),
-                      side: const BorderSide(color: Color(0xFFDC2626)),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
                     ),
                   ),
                 ),

@@ -33,6 +33,8 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> with WidgetsBinding
   double progress = 0;
   String currentTitle = '';
   bool canGoBack = false;
+  bool _showOfflineOverlay = false;
+  bool _isRetrying = false;
 
   late InAppWebViewSettings settings;
   PullToRefreshController? pullToRefreshController;
@@ -366,6 +368,15 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> with WidgetsBinding
                       },
                       onLoadStop: (controller, url) async {
                         pullToRefreshController?.endRefreshing();
+
+                        // Jika sedang retry, sembunyikan overlay hanya saat load sukses
+                        if (_isRetrying && mounted) {
+                          setState(() {
+                            _showOfflineOverlay = false;
+                            _isRetrying = false;
+                          });
+                        }
+
                         String? title = await controller.getTitle();
                         bool checkCanGoBack = await controller.canGoBack();
                         setState(() {
@@ -414,10 +425,16 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> with WidgetsBinding
                       onReceivedError: (controller, request, error) async {
                         pullToRefreshController?.endRefreshing();
                         if (request.isForMainFrame ?? false) {
-                          debugPrint("[GARA WebView] Error: ${error.description} (Code: ${error.type})");
-                          controller.loadUrl(
-                            urlRequest: URLRequest(url: WebUri('file:///android_asset/flutter_assets/assets/helpers/eror.html')),
-                          );
+                          final desc = error.description;
+                          if (desc.contains('ERR_ABORTED')) return;
+                          debugPrint("[GARA InAppBrowser] Error: ${error.description}");
+                          // Tampilkan Flutter overlay, bukan load file eror.html
+                          if (mounted) {
+                            setState(() {
+                              _showOfflineOverlay = true;
+                              _isRetrying = false;
+                            });
+                          }
                         }
                       },
                       onDownloadStartRequest: (controller, downloadStartRequest) async {
@@ -498,6 +515,97 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> with WidgetsBinding
                       },
                     ),
                   ),
+                  // Overlay error offline — Flutter native, konsisten dengan hybrid_wrapper
+                  if (_showOfflineOverlay)
+                    Positioned.fill(
+                      child: Container(
+                        color: const Color(0xFFF8FAFC),
+                        child: SafeArea(
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 32),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 88,
+                                    height: 88,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFFFE4E6),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.wifi_off_rounded,
+                                        color: Color(0xFFDC2626), size: 40),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  Text(
+                                    'Koneksi Terputus',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                      color: const Color(0xFF1E293B),
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    'Tidak dapat memuat halaman.\nPeriksa koneksi internet Anda.',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 13.5,
+                                      color: const Color(0xFF64748B),
+                                      height: 1.55,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 32),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton.icon(
+                                      onPressed: _isRetrying
+                                          ? null
+                                          : () {
+                                              if (mounted) {
+                                                setState(() => _isRetrying = true);
+                                              }
+                                              webViewController?.reload();
+                                            },
+                                      icon: _isRetrying
+                                          ? const SizedBox(
+                                              width: 18,
+                                              height: 18,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor: AlwaysStoppedAnimation<Color>(
+                                                    Colors.white),
+                                              ),
+                                            )
+                                          : const Icon(Icons.refresh_rounded, size: 18),
+                                      label: Text(
+                                        _isRetrying ? 'Menghubungkan...' : 'Mulai Ulang',
+                                        style: GoogleFonts.poppins(
+                                            fontWeight: FontWeight.w600, fontSize: 14),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: GaraColors.studentPrimary,
+                                        foregroundColor: Colors.white,
+                                        disabledBackgroundColor:
+                                            GaraColors.studentPrimary.withOpacity(0.7),
+                                        disabledForegroundColor: Colors.white,
+                                        padding:
+                                            const EdgeInsets.symmetric(vertical: 14),
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(14)),
+                                        elevation: 0,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   if (_showBlackout)
                     Positioned.fill(
                       child: Container(

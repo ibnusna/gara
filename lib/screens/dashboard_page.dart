@@ -59,7 +59,7 @@ class _DashboardPageState extends State<DashboardPage>
 
   
   List<PengumumanModel> _pengumumanList = [];
-  bool _isFetchingPengumuman = true;
+  bool _isFetchingPengumuman = false; // false: tidak tampilkan spinner di awal
 
   
   Timer? _pollTimer;
@@ -290,7 +290,6 @@ class _DashboardPageState extends State<DashboardPage>
                 _AppHeader(
                       namaSiswa: _nama,
                       sapaan: _sapaan,
-                      poinSiswa: _poin,
                       onBellTap: () => setState(() => _navIndex = 1),
                     ),
                     Expanded(
@@ -433,13 +432,11 @@ class _DashboardMeshPainter extends CustomPainter {
 class _AppHeader extends StatelessWidget {
   final String namaSiswa;
   final String sapaan;
-  final int poinSiswa;
   final VoidCallback onBellTap;
 
   const _AppHeader({
     required this.namaSiswa,
     required this.sapaan,
-    required this.poinSiswa,
     required this.onBellTap,
   });
 
@@ -546,65 +543,36 @@ class _AppHeader extends StatelessWidget {
 
           const SizedBox(width: 10),
 
-          
-          GaraGlassCardStrong(
-            borderRadius: BorderRadius.circular(999),
-            padding: const EdgeInsets.all(5),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEFF6FF).withOpacity(0.60),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(
-                      color: const Color(0xFFBFDBFE).withOpacity(0.50),
+          // Ikon bel notifikasi — satu-satunya aksi di kanan header
+          GestureDetector(
+            onTap: onBellTap,
+            child: Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: GaraColors.dsGlassBgStrong,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: GaraColors.dsGlassBorderStrong,
+                ),
+              ),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Center(
+                    child: Icon(
+                      Icons.notifications_rounded,
+                      size: 22,
+                      color: GaraColors.dsSlate500,
                     ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.stars_rounded,
-                          size: 15, color: Color(0xFFF59E0B)),
-                      const SizedBox(width: 4),
-                      Text(
-                        '$poinSiswa',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: GaraColors.dsSlate800,
-                        ),
-                      ),
-                    ],
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: _PulsingDot(),
                   ),
-                ),
-                
-                GestureDetector(
-                  onTap: onBellTap,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Container(
-                        width: 36,
-                        height: 36,
-                        alignment: Alignment.center,
-                        child: const Icon(
-                          Icons.notifications_rounded,
-                          size: 20,
-                          color: GaraColors.dsSlate500,
-                        ),
-                      ),
-                      Positioned(
-                        top: 7,
-                        right: 7,
-                        child: _PulsingDot(),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],

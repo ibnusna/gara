@@ -125,17 +125,10 @@ class HomeTab extends StatelessWidget {
   }
 
   Widget _buildPengumumanSection() {
-    if (isFetchingPengumuman) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 20),
-          child: CircularProgressIndicator(color: GaraColors.dsPrimaryBright),
-        ),
-      );
-    }
-
+    // Pengumuman berjalan sepenuhnya di background.
+    // Jika belum ada data atau sedang fetch, tidak tampilkan apapun.
     if (pengumumanList.isEmpty) {
-      return const SizedBox.shrink(); 
+      return const SizedBox.shrink();
     }
 
     return Column(
