@@ -255,11 +255,65 @@ class _PilihMapelPageState extends State<PilihMapelPage> with TickerProviderStat
   List<Widget> _buildCardList() {
     final List<Widget> cards = [];
     int animIndex = 0;
-    if (_gateUjianOpen) { cards.add(_buildUjianCard(animIndex)); cards.add(const SizedBox(height: 15)); animIndex++; }
-    for (int i = 0; i < _mapelList.length; i++) {
-      cards.add(_buildMapelCard(_mapelList[i], animIndex));
-      if (i < _mapelList.length - 1) cards.add(const SizedBox(height: 15));
+    if (_gateUjianOpen && _cardFadeAnims.isNotEmpty) {
+      cards.add(_buildUjianCard(animIndex));
+      cards.add(const SizedBox(height: 15));
       animIndex++;
+    }
+    
+    if (_mapelList.isEmpty) {
+      cards.add(
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: GaraColors.dsSlate200),
+            boxShadow: [
+              BoxShadow(
+                color: GaraColors.dsSlate800.withOpacity(0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              const Icon(Icons.calendar_month_rounded, size: 48, color: GaraColors.dsPrimaryBright),
+              const SizedBox(height: 12),
+              Text(
+                'Belum Ada Jadwal Pelajaran',
+                style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700, color: GaraColors.dsSlate800),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Jadwal pelajaran untuk kelas Anda belum diatur oleh operator sekolah.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(fontSize: 13, color: GaraColors.dsSlate500, height: 1.4),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _fetchMapelList,
+                icon: const Icon(Icons.refresh_rounded, size: 18, color: Colors.white),
+                label: Text('Muat Ulang', style: GoogleFonts.plusJakartaSans(color: Colors.white, fontWeight: FontWeight.w600)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: GaraColors.dsPrimaryDeep,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      return cards;
+    }
+
+    for (int i = 0; i < _mapelList.length; i++) {
+      if (animIndex < _cardFadeAnims.length) {
+        cards.add(_buildMapelCard(_mapelList[i], animIndex));
+        if (i < _mapelList.length - 1) cards.add(const SizedBox(height: 15));
+        animIndex++;
+      }
     }
     return cards;
   }
