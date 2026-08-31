@@ -110,11 +110,8 @@ flutter:
 
   # Aset logo GARA (di-move dari Laravel public/assets/img/)
   assets:
-    - assets/images/GARA_WHITE.svg
-    - assets/images/FARA_BLACK.svg
-    - assets/images/3dlogo.svg
     - assets/images/bglogin.jpg
-    # Logo PNG (digunakan sebagai pengganti SVG yang bermasalah di flutter_svg)
+    # Logo PNG resmi aplikasi GARA
     - assets/images/GARA_WHITE.png
     - assets/images/FARA_BLACK.png
     - assets/images/3dlogo.png

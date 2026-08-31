@@ -12,7 +12,6 @@ import '../utils/app_config.dart';
 import 'activation_page.dart';
 import 'status_page.dart';
 import 'update_page.dart';
-import 'login_page.dart';
 import 'welcome_page.dart';
 import 'pilih_mapel_page.dart';
 import '../widgets/hybrid_wrapper.dart';

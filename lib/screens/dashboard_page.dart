@@ -35,6 +35,7 @@ import '../services/pengumuman_service.dart';
 import 'tabs/home_tab.dart';
 import 'tabs/notifikasi_tab.dart';
 import 'tabs/akun_tab.dart';
+import 'session_expired_page.dart';
 
 class DashboardPage extends StatefulWidget {
   final String selectedMapel;
@@ -65,6 +66,8 @@ class _DashboardPageState extends State<DashboardPage>
   Timer? _pollTimer;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   int _prevUnreadCount = 0;
+  // Mencegah SessionExpiredPage muncul lebih dari sekali
+  bool _sessionExpiredHandled = false;
 
   
   late final AnimationController _fadeCtrl;
@@ -108,7 +111,7 @@ class _DashboardPageState extends State<DashboardPage>
     _loadExamStatus(); 
     _fetchPengumuman(); 
     _initNotifications();
-    _startPolling();
+    _checkUnreadCount(isInitial: true);
   }
 
   
@@ -182,20 +185,7 @@ class _DashboardPageState extends State<DashboardPage>
     );
   }
 
-  void _startPolling() {
-    _checkUnreadCount(isInitial: true);
-    int _tickCount = 0;
-    _pollTimer = Timer.periodic(const Duration(seconds: 60), (_) {
-      _tickCount++;
-      // Cek notifikasi baru setiap 60 detik
-      _checkUnreadCount();
-      // Refresh pengumuman & status ujian setiap 3 menit (setiap 3 tick)
-      if (_tickCount % 3 == 0) {
-        _fetchPengumuman();
-        _loadExamStatus();
-      }
-    });
-  }
+
 
   Future<void> _checkUnreadCount({bool isInitial = false}) async {
     final count = await NotificationService.getUnreadCount();
@@ -230,8 +220,36 @@ class _DashboardPageState extends State<DashboardPage>
   }
 
   Future<void> _refreshProfile() async {
-    final success = await AuthService.getProfile();
-    if (success && mounted) _loadUserData();
+    final result = await AuthService.getProfileWithStatus();
+    if (result == AuthProfileStatus.sessionExpired) {
+      _handleSessionExpired();
+      return;
+    }
+    if (result == AuthProfileStatus.success && mounted) _loadUserData();
+  }
+
+  /// Tampilkan halaman peringatan sesi berakhir.
+  /// Dipanggil saat token invalid terdeteksi dari polling atau API.
+  void _handleSessionExpired() {
+    if (_sessionExpiredHandled) return; // Hanya sekali
+    _sessionExpiredHandled = true;
+    _pollTimer?.cancel(); // Stop polling
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => const SessionExpiredPage(
+          reason:
+              'Akun Anda telah masuk dari perangkat lain. '
+              'Sesi di perangkat ini telah diakhiri untuk '
+              'menjaga keamanan akun Anda.',
+        ),
+        transitionsBuilder: (_, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
+        transitionDuration: const Duration(milliseconds: 400),
+      ),
+      (route) => false,
+    );
   }
 
   Future<void> _loadExamStatus() async {
@@ -241,7 +259,8 @@ class _DashboardPageState extends State<DashboardPage>
 
   Future<void> _fetchPengumuman() async {
     if (!mounted) return;
-    setState(() => _isFetchingPengumuman = true);
+    // Tidak set _isFetchingPengumuman = true agar tidak ada rebuild / loading state.
+    // Pengumuman berjalan sepenuhnya di background — UI hanya diupdate saat data siap.
     final result = await PengumumanService.getPengumumanList();
     if (mounted) {
       setState(() {
