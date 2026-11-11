@@ -149,10 +149,14 @@ class _SholatWidgetState extends State<SholatWidget> {
       try {
         final Map<String, dynamic> c = jsonDecode(cached);
         final List times = c['times'] as List;
+        final String cachedCity = c['city'] as String? ?? '';
+        // Jika cache menyimpan 'Lokasi Saat Ini' dari GPS sesi lama,
+        // jangan tampilkan — GPS mungkin tidak aktif di sesi ini.
+        final String displayCity = (cachedCity == 'Lokasi Saat Ini') ? '' : cachedCity;
         if (mounted) {
           setState(() {
             _times    = times.map((t) => _SholatTime(name: t['name'], time: t['time'])).toList();
-            _cityName = c['city'] ?? city;
+            _cityName = displayCity;
             _isLoading = false;
           });
         }

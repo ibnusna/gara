@@ -39,3 +39,12 @@ class InfinityFreeBypassException implements Exception {
         '$snippet';
   }
 }
+
+/// Exception khusus jika domain di-suspend oleh InfinityFree (reaching limit, dll)
+class InfinityFreeSuspendedException implements Exception {
+  final String message;
+  const InfinityFreeSuspendedException([this.message = 'Server InfinityFree sedang maintenance / suspended.']);
+  
+  @override
+  String toString() => 'InfinityFreeSuspendedException: $message';
+}

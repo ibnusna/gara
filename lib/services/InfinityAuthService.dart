@@ -1,19 +1,4 @@
-// ════════════════════════════════════════════════════════════════════════════
-// lib/services/InfinityAuthService.dart
-//
 // GARA Mobile — InfinityFree AES JS Bypass Authentication Service
-//
-// MASALAH: InfinityFree (rf.gd) memblokir request HTTP mentah menggunakan
-//          AES JavaScript Challenge.
-//
-// SOLUSI:
-// 1. Panggil InfinityBypassEngine.getValidCookie() untuk menyelesaikan
-//    JS challenge secara asinkron di HeadlessWebView dan mengambil cookie '__test'.
-// 2. Kirim POST request login menggunakan client HTTP standar (http package)
-//    dengan menyertakan cookie '__test' di header.
-// 3. Ini JAUH LEBIH STABIL & CEPAT dibandingkan melakukan POST langsung lewat WebView.
-// ════════════════════════════════════════════════════════════════════════════
-
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
@@ -23,40 +8,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/app_config.dart';
 import '../utils/app_constants.dart';
 import '../models/mapel_model.dart';
+import '../models/infinity_auth_result.dart';
 import 'infinity_bypass_exception.dart';
 import 'InfinityBypassEngine.dart';
 import 'InfinityApiClient.dart';
 
 export 'infinity_bypass_exception.dart';
-
-class InfinityAuthResult {
-  final bool success;
-  final String? token;
-  final String? role;
-  final String? nama;
-  final String? username;
-  final String? profilePhotoUrl;
-  final String? errorMessage;
-  final bool isMaintenance;
-
-  const InfinityAuthResult({
-    required this.success,
-    this.token,
-    this.role,
-    this.nama,
-    this.username,
-    this.profilePhotoUrl,
-    this.errorMessage,
-    this.isMaintenance = false,
-  });
-
-  factory InfinityAuthResult.error(String msg, {bool maintenance = false}) =>
-      InfinityAuthResult(
-        success: false,
-        errorMessage: msg,
-        isMaintenance: maintenance,
-      );
-}
+export '../models/infinity_auth_result.dart';
 
 class InfinityAuthService {
   InfinityAuthService._();
@@ -64,70 +22,57 @@ class InfinityAuthService {
   static const Duration _requestTimeout = Duration(seconds: 15);
   static String get _loginUrl => '${AppConfig.apiMobileUrl}/login';
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // login() — Bypass InfinityFree & Autentikasi User
-  // ──────────────────────────────────────────────────────────────────────────
   static Future<InfinityAuthResult> login({
     required String identifier,
     required String password,
   }) async {
     final trimmedId = identifier.trim();
-
-    if (trimmedId.isEmpty) {
-      return InfinityAuthResult.error('Username/NIS tidak boleh kosong.');
-    }
-    if (password.isEmpty) {
-      return InfinityAuthResult.error('Password tidak boleh kosong.');
-    }
+    if (trimmedId.isEmpty) return InfinityAuthResult.error('Username/NIS tidak boleh kosong.');
+    if (password.isEmpty) return InfinityAuthResult.error('Password tidak boleh kosong.');
 
     try {
       String rawText = '';
       String testCookie = '';
+      final prefs = await SharedPreferences.getInstance();
+      testCookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
 
-      if (AppConfig.isLocalServer || AppConfig.isDebugMode) {
-        debugPrint('[InfinityAuth] Mode Lokal / Debug: Mengirim HTTP POST langsung');
-        final response = await http.post(
-          Uri.parse(_loginUrl),
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-App': 'GARA_MOBILE',
-            'X-Requested-With': 'XMLHttpRequest',
-          },
-          body: jsonEncode({
-            'identifier': trimmedId,
-            'password': password,
-          }),
-        ).timeout(_requestTimeout);
+      debugPrint('[InfinityAuth] Mengirim HTTP POST langsung ke: $_loginUrl');
+      final response = await http.post(
+        Uri.parse(_loginUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-App': 'GARA_MOBILE',
+          'X-Requested-With': 'XMLHttpRequest',
+          'User-Agent': 'Mozilla/5.0 (Linux; Android 13; GARA_APP) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+          'Cookie': '__test=$testCookie',
+        },
+        body: jsonEncode({
+          'identifier': trimmedId,
+          'password': password,
+        }),
+      ).timeout(_requestTimeout);
 
-        if (response.statusCode == 503) {
-          return InfinityAuthResult.error(
-            'Sistem sedang dalam pemeliharaan. Coba lagi nanti.',
-            maintenance: true,
-          );
-        }
-        rawText = response.body.trim();
-      } else {
-        debugPrint('[InfinityAuth] Mode Produksi: Menggunakan Headless InAppWebView Login Bypass');
+      if (response.statusCode == 503) {
+        return InfinityAuthResult.error(
+          'Sistem sedang dalam pemeliharaan. Coba lagi nanti.',
+          maintenance: true,
+        );
+      }
+      rawText = response.body.trim();
+
+      if (rawText.contains('javascript') && (rawText.contains('document.cookie') || rawText.contains('/aes.js'))) {
+        debugPrint('[InfinityAuth] Terdeteksi JS Challenge InfinityFree. Memulai loginViaHeadlessWebView');
         rawText = await InfinityBypassEngine.loginViaHeadlessWebView(
           identifier: trimmedId,
           password: password,
         );
-
-        final prefs = await SharedPreferences.getInstance();
         testCookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
-      }
-
-      // Cek apakah response diblokir oleh InfinityFree (mengembalikan HTML challenge)
-      if (rawText.contains('javascript') && (rawText.contains('document.cookie') || rawText.contains('/aes.js'))) {
-        debugPrint('[InfinityAuth] Cookie __test ditolak/expired oleh server InfinityFree.');
-
-        // Bersihkan cookie kadaluarsa
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.remove(GaraPrefKeys.bypassTestCookie);
-        await prefs.remove(GaraPrefKeys.bypassCookieTimestamp);
-
-        return InfinityAuthResult.error('__RETRY_BYPASS__');
+        if (rawText.contains('javascript') && (rawText.contains('document.cookie') || rawText.contains('/aes.js'))) {
+          await prefs.remove(GaraPrefKeys.bypassTestCookie);
+          await prefs.remove(GaraPrefKeys.bypassCookieTimestamp);
+          return InfinityAuthResult.error('__RETRY_BYPASS__');
+        }
       }
 
       return _handleLoginResponse(rawText, testCookie);
@@ -165,20 +110,20 @@ class InfinityAuthService {
       );
     }
 
-    // Ambil laravel_session dari cookie response header jika ada,
-    // atau biarkan CookieManager WebView menangkapnya nanti via Handoff.
-    // Kita juga sinkronkan cookies ke CookieManager global agar WebView
-    // langsung memiliki cookie ini saat dibuka.
-    final targetUrl = WebUri('https://garaedu.rf.gd');
-    await CookieManager.instance().setCookie(
-      url: targetUrl,
-      name: '__test',
-      value: testCookie,
-      domain: 'garaedu.rf.gd',
-      isSecure: true,
-    );
+    if (testCookie.isNotEmpty) {
+      try {
+        final baseUrl = AppConfig.baseUrl;
+        await CookieManager.instance().setCookie(
+          url: WebUri(baseUrl),
+          name: '__test',
+          value: testCookie,
+          isSecure: baseUrl.startsWith('https'),
+        );
+      } catch (e) {
+        debugPrint('[InfinityAuth] Warning setCookie: $e');
+      }
+    }
 
-    // Simpan data sesi ke SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(GaraPrefKeys.isLoggedIn, true);
     await prefs.setString(GaraPrefKeys.authToken, data['token'] as String? ?? '');
@@ -186,10 +131,11 @@ class InfinityAuthService {
     await prefs.setString(GaraPrefKeys.namaLengkap, data['nama'] as String? ?? '');
     await prefs.setString(GaraPrefKeys.namaSiswa, data['nama'] as String? ?? '');
     await prefs.setString(GaraPrefKeys.profilePhotoUrl, data['profile_photo'] as String? ?? '');
-
-    // Simpan cookie __test agar API Client lain bisa langsung pakai
     await prefs.setString(GaraPrefKeys.bypassTestCookie, testCookie);
     await prefs.setInt(GaraPrefKeys.bypassCookieTimestamp, DateTime.now().millisecondsSinceEpoch);
+
+    final mustChange = data['must_change_password'] as bool? ?? false;
+    final isForced = data['is_forced_change'] as bool? ?? false;
 
     return InfinityAuthResult(
       success: true,
@@ -198,6 +144,8 @@ class InfinityAuthService {
       nama: data['nama'] as String?,
       username: data['username'] as String?,
       profilePhotoUrl: data['profile_photo'] as String?,
+      mustChangePassword: mustChange,
+      isForcedChange: isForced,
     );
   }
 
@@ -236,19 +184,16 @@ class InfinityAuthService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
     try {
-      await CookieManager.instance().deleteCookies(url: WebUri('https://garaedu.rf.gd'));
+      await CookieManager.instance().deleteCookies(url: WebUri(AppConfig.baseUrl));
     } catch (_) {}
   }
 
   static Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
-    final loggedIn = prefs.getBool(GaraPrefKeys.isLoggedIn) ?? false;
-    final token = prefs.getString(GaraPrefKeys.authToken) ?? '';
-    return loggedIn && token.isNotEmpty;
+    return (prefs.getBool(GaraPrefKeys.isLoggedIn) ?? false) &&
+        (prefs.getString(GaraPrefKeys.authToken)?.isNotEmpty ?? false);
   }
 
-  static Future<String?> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(GaraPrefKeys.authToken);
-  }
+  static Future<String?> getToken() async =>
+      (await SharedPreferences.getInstance()).getString(GaraPrefKeys.authToken);
 }

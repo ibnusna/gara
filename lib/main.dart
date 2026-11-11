@@ -24,6 +24,7 @@ import 'screens/dashboard_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/splash_logic_page.dart';
+import 'services/server_fallback_service.dart';
 
 Future<void> main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -38,8 +39,9 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  
-  
+  // Cek apakah ada masa fallback (Alternative Server) yang sedang berjalan
+  await ServerFallbackService.checkAndApplyFallbackOnStartup();
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,

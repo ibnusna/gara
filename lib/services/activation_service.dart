@@ -13,12 +13,13 @@ class ActivationService {
     if (schoolKey.trim().toUpperCase() == 'HITAMPEKAT') {
       final data = {
         'school_name': 'Garuda Local Debug (ADB)',
-        'url': 'http://localhost:8000',
+        'url': 'http://127.0.0.1:8000',
       };
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(keySchoolKey, 'HITAMPEKAT');
       await prefs.setString(keySchoolName, data['school_name']!);
       await prefs.setString(keyBaseUrl, data['url']!);
+      AppConfig.overrideBaseUrl = data['url']!;
       return data;
     }
 
@@ -30,6 +31,7 @@ class ActivationService {
         await prefs.setString(keySchoolKey, schoolKey);
         await prefs.setString(keySchoolName, data['school_name'] ?? '');
         await prefs.setString(keyBaseUrl, data['url'] ?? '');
+        AppConfig.overrideBaseUrl = data['url'] ?? '';
         return data;
       }
       return null; // Invalid school key

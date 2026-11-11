@@ -41,6 +41,13 @@ class AuthResult {
   });
 }
 
+/// Status pengembalian untuk cek profil.
+/// Digunakan untuk membedakan:
+/// - success: profil berhasil diambil
+/// - sessionExpired: token 401/Unauthenticated (login di perangkat lain)
+/// - failure: error jaringan atau server lainnya
+enum AuthProfileStatus { success, sessionExpired, failure }
+
 
 
 
@@ -370,6 +377,58 @@ class AuthService {
   }
 
   
+  /// Mengambil profil dengan deteksi session expired.
+  /// Mengembalikan [AuthProfileStatus.sessionExpired] jika server
+  /// mengembalikan HTTP 401 (token tidak valid / login di perangkat lain).
+  static Future<AuthProfileStatus> getProfileWithStatus() async {
+    try {
+      final token = await getToken();
+      if (token == null || token.isEmpty) {
+        return AuthProfileStatus.sessionExpired;
+      }
+
+      final prefs = await SharedPreferences.getInstance();
+      final testCookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
+
+      final response = await http.get(
+        Uri.parse('${AppConfig.apiMobileUrl}/profile'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept':        'application/json',
+          'User-Agent': 'Mozilla/5.0 (Linux; Android 13; GARA_APP) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+          'Cookie': '__test=$testCookie',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      // 401 = Unauthenticated: token tidak valid atau diinvalidasi server
+      if (response.statusCode == 401) {
+        debugPrint('[AuthService] 401 Unauthenticated — sesi expired (login di perangkat lain?).');
+        return AuthProfileStatus.sessionExpired;
+      }
+
+      final rawText = response.body.trim();
+      if (rawText.contains('javascript') && rawText.contains('document.cookie')) {
+        return AuthProfileStatus.failure;
+      }
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(rawText) as Map<String, dynamic>;
+        if (data['status'] == 'success') {
+          final profile = data['data'] as Map<String, dynamic>;
+          await prefs.setString(GaraPrefKeys.namaSiswa,   profile['nama']  as String? ?? '');
+          await prefs.setString(GaraPrefKeys.kelasSiswa,  profile['kelas'] as String? ?? '');
+          await prefs.setInt('student_points',            profile['poin'] as int? ?? 0);
+          await prefs.setInt('student_attendance',        profile['absensi_persen'] as int? ?? 0);
+          await prefs.setInt('student_pending_tasks',     profile['tugas_pending'] as int? ?? 0);
+          return AuthProfileStatus.success;
+        }
+      }
+    } catch (e) {
+      debugPrint('[AuthService.getProfileWithStatus] Error: $e');
+    }
+    return AuthProfileStatus.failure;
+  }
+
   static Future<bool> getProfile() async {
     try {
       final token = await getToken();

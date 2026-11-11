@@ -148,6 +148,7 @@ class _SplashLogicPageState extends State<SplashLogicPage>
             }
             if (data['url'] != null) {
               await prefs.setString(ActivationService.keyBaseUrl, data['url']);
+              AppConfig.overrideBaseUrl = data['url'];
             }
           }
         } catch (e) {

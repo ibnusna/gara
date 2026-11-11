@@ -656,6 +656,15 @@ class _HybridWrapperState extends State<HybridWrapper>
                         }
                       },
                     );
+                    c.addJavaScriptHandler(
+                      handlerName: 'passwordChanged',
+                      callback: (args) {
+                        debugPrint('[HybridWrapper] Password changed event received.');
+                        if (mounted && Navigator.canPop(context)) {
+                          Navigator.pop(context, true);
+                        }
+                      },
+                    );
                     // ─────────────────────────────────────────────────────────
                   },
 
@@ -857,6 +866,11 @@ class _HybridWrapperState extends State<HybridWrapper>
                     if (reqUrl != null) {
                       debugPrint('[GARA Window] Popup requested: $reqUrl');
                       if (['http', 'https'].contains(reqUrl.scheme.toLowerCase())) {
+                        final host = reqUrl.host.toLowerCase();
+                        if (AppConfig.isAllowedDomain(host)) {
+                          controller.loadUrl(urlRequest: URLRequest(url: reqUrl));
+                          return true;
+                        }
                         try {
                           await launchUrl(reqUrl, mode: LaunchMode.externalApplication);
                           return true;

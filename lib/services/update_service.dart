@@ -1,44 +1,53 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dio/dio.dart';
-import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:flutter/foundation.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
 class UpdateService {
-  final FirebaseRemoteConfig _remoteConfig = FirebaseRemoteConfig.instance;
+  Map<String, dynamic> _config = {};
 
   Future<void> initialize() async {
-    await _remoteConfig.setConfigSettings(RemoteConfigSettings(
-      fetchTimeout: const Duration(seconds: 10),
-      minimumFetchInterval: const Duration(minutes: 5), // Change to 0 for testing if needed
-    ));
-    await _remoteConfig.setDefaults(const {
-      "build_number": 1,
-      "latest_version": "1.0.0",
-      "repo_path": "ibnusna/gara",
-      "force_update": false,
-      "release_notes": "Versi awal GARA.",
-    });
-    await _remoteConfig.fetchAndActivate();
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('app_config')
+          .doc('remote_config')
+          .get()
+          .timeout(const Duration(seconds: 3));
+
+      if (doc.exists && doc.data() != null) {
+        _config = doc.data()!;
+        debugPrint('[UpdateService] Firestore RemoteConfig terisi: $_config');
+      }
+    } catch (e) {
+      debugPrint('[UpdateService] Error fetching remote_config from Firestore: $e');
+    }
   }
 
   Future<bool> isUpdateAvailable() async {
     final packageInfo = await PackageInfo.fromPlatform();
     final localBuildNumber = int.tryParse(packageInfo.buildNumber) ?? 1;
-    final remoteBuildNumber = _remoteConfig.getInt('build_number');
+    
+    final remoteBuildRaw = _config['build_number'];
+    final remoteBuildNumber = remoteBuildRaw is int
+        ? remoteBuildRaw
+        : int.tryParse(remoteBuildRaw?.toString() ?? '1') ?? 1;
+
+    debugPrint('[UpdateService] Local Build: $localBuildNumber, Remote Build: $remoteBuildNumber');
     return remoteBuildNumber > localBuildNumber;
   }
 
   bool isForceUpdate() {
-    return _remoteConfig.getBool('force_update');
+    return _config['force_update'] as bool? ?? false;
   }
 
-  String getLatestVersion() => _remoteConfig.getString('latest_version');
-  String getReleaseNotes() => _remoteConfig.getString('release_notes');
+  String getLatestVersion() => _config['latest_version'] as String? ?? '1.0.0';
+  String getReleaseNotes() => _config['release_notes'] as String? ?? 'Pembaruan aplikasi GARA.';
 
   Future<String?> fetchLatestApkUrl() async {
-    final repoPath = _remoteConfig.getString('repo_path');
+    final repoPath = _config['repo_path'] as String? ?? 'ibnusna/appsgara';
     final apiUrl = 'https://api.github.com/repos/$repoPath/releases/latest';
     try {
       final dio = Dio();
@@ -54,7 +63,7 @@ class UpdateService {
         }
       }
     } catch (e) {
-      print('Failed to fetch github release: $e');
+      debugPrint('Failed to fetch github release: $e');
     }
     return null;
   }

@@ -24,14 +24,15 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/app_config.dart';
 import '../utils/app_constants.dart';
 import 'infinity_bypass_exception.dart';
 
 class InfinityBypassEngine {
   InfinityBypassEngine._();
 
-  static const String targetDomain = 'garaedu.rf.gd';
-  static final WebUri targetUri = WebUri('https://$targetDomain');
+  static String get targetDomain => Uri.parse(AppConfig.baseUrl).host;
+  static WebUri get targetUri => WebUri(AppConfig.baseUrl);
   static const Duration warmUpTimeout = Duration(seconds: 20);
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -164,7 +165,7 @@ class InfinityBypassEngine {
     HeadlessInAppWebView? headlessWebView;
     bool hasSubmitted = false;
 
-    debugPrint('[BypassEngine] Memulai Headless WebView Login ke: $targetUri');
+    debugPrint('[BypassEngine] Memulai Headless WebView Login ke: ${AppConfig.baseUrl}');
 
     final timer = Timer(warmUpTimeout, () {
       if (!completer.isCompleted) {
@@ -191,7 +192,7 @@ class InfinityBypassEngine {
               'AppleWebKit/537.36 (KHTML, like Gecko) '
               'Chrome/120.0.0.0 Mobile Safari/537.36',
         ),
-        initialUrlRequest: URLRequest(url: targetUri),
+        initialUrlRequest: URLRequest(url: WebUri(AppConfig.baseUrl)),
         onWebViewCreated: (controller) {
           // Registrasikan handler hasil login ke Dart SAAT WEBVIEW DIBUAT (sebelum onLoadStop)
           controller.addJavaScriptHandler(
@@ -241,41 +242,49 @@ class InfinityBypassEngine {
           if (completer.isCompleted || hasSubmitted) return;
 
           try {
-            debugPrint('[BypassEngine] onLoadStop dipanggil untuk URL: $url. Menjalankan JS login script...');
-            hasSubmitted = true;
+            debugPrint('[BypassEngine] onLoadStop dipanggil untuk URL: $url.');
+            
+            // Cek cookies
+            final cookies = await CookieManager.instance().getCookies(url: WebUri(AppConfig.baseUrl));
+            String testCookieValue = '';
+            for (final cookie in cookies) {
+              if (cookie.name == '__test' || cookie.name.startsWith('_test')) {
+                testCookieValue = cookie.value.toString();
+                break;
+              }
+            }
 
-            // Jalankan JS fetch POST ke /api/mobile/login dari dalam WebView
-            final jsCode = '''
-              (async function() {
-                try {
-                  let attempts = 0;
-                  while (!document.cookie.includes('__test') && attempts < 10) {
-                    await new Promise(r => setTimeout(r, 300));
-                    attempts++;
+            if (testCookieValue.isNotEmpty) {
+              hasSubmitted = true;
+              debugPrint('[BypassEngine] Cookie __test ditemukan, menjalankan fetch login...');
+              
+              final jsCode = '''
+                (async function() {
+                  try {
+                    const res = await fetch('${AppConfig.apiMobileUrl}/login', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-App': 'GARA_MOBILE',
+                        'X-Requested-With': 'XMLHttpRequest'
+                      },
+                      body: JSON.stringify({
+                        identifier: ${jsonEncode(identifier)},
+                        password: ${jsonEncode(password)}
+                      })
+                    });
+                    const text = await res.text();
+                    window.flutter_inappwebview.callHandler('onLoginResult', text);
+                  } catch (e) {
+                    window.flutter_inappwebview.callHandler('onLoginResult', JSON.stringify({ status: 'error', message: e.toString() }));
                   }
-                  const res = await fetch('https://garaedu.rf.gd/api/mobile/login', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Accept': 'application/json',
-                      'X-App': 'GARA_MOBILE',
-                      'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                      identifier: ${jsonEncode(identifier)},
-                      password: ${jsonEncode(password)}
-                    })
-                  });
-                  const text = await res.text();
-                  window.flutter_inappwebview.callHandler('onLoginResult', text);
-                } catch (e) {
-                  window.flutter_inappwebview.callHandler('onLoginResult', JSON.stringify({ status: 'error', message: e.toString() }));
-                }
-              })();
-            ''';
-
-            await controller.evaluateJavascript(source: jsCode);
+                })();
+              ''';
+              await controller.evaluateJavascript(source: jsCode);
+            } else {
+              debugPrint('[BypassEngine] Menunggu cookie __test (reload mungkin terjadi)...');
+            }
           } catch (e) {
             debugPrint('[BypassEngine] Error pada Headless login onLoadStop: $e');
             timer.cancel();

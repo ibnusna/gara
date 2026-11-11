@@ -1,14 +1,13 @@
 // ════════════════════════════════════════════════════════════════════════════
 // lib/services/InfinityApiClient.dart
 //
-// GARA Mobile — InfinityFree Generic HTTP API Client
+// GARA Mobile — InfinityFree Generic HTTP API Client dengan Auto-Retry Bypass
 //
 // Deskripsi:
-// Mengganti WebView yang lambat dengan HTTP request (http package) biasa.
-// Cookie bypass '__test' diambil dari InfinityBypassEngine dan disuntikkan
-// ke setiap header request.
-// Jika request mengembalikan HTML challenge (session/cookie expire),
-// client akan otomatis me-refresh cookie (warm-up ulang) dan mengulangi request.
+// Menggunakan HTTP request (http package) super cepat dengan cookie injection.
+// Jika request mengembalikan HTML challenge (session/cookie expired),
+// client akan OTOMATIS melakukan silent refresh cookie via InfinityBypassEngine
+// dan mengulangi request (retry) secara seamless tanpa error!
 // ════════════════════════════════════════════════════════════════════════════
 
 import 'dart:async';
@@ -18,26 +17,54 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/app_config.dart';
 import '../utils/app_constants.dart';
+import 'InfinityBypassEngine.dart';
 import 'infinity_bypass_exception.dart';
+import 'server_fallback_service.dart';
 
 class InfinityApiClient {
   static const Duration _requestTimeout = Duration(seconds: 15);
-  static const String _userAgent = 'Mozilla/5.0 (Linux; Android 13; GARA_APP) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36';
+  static const String _userAgent =
+      'Mozilla/5.0 (Linux; Android 13; GARA_APP) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36';
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // getJson() — HTTP GET Request dengan cookie injection
-  // ──────────────────────────────────────────────────────────────────────────
+  /// Mendeteksi apakah response dari server berupa HTML Challenge InfinityFree (bukan JSON API)
+  static bool _isChallengeHtml(String text) {
+    final lower = text.toLowerCase().trim();
+    if (lower.isEmpty) return true;
+    if (lower.startsWith('<!doctype') || lower.startsWith('<html') || lower.startsWith('<head') || lower.startsWith('<body')) {
+      return true;
+    }
+    if (lower.contains('/aes.js') || lower.contains('javascript') || lower.contains('slowaes') || lower.contains('document.cookie')) {
+      return true;
+    }
+    // Jika tidak diawali { atau [, pasti bukan JSON
+    if (!lower.startsWith('{') && !lower.startsWith('[')) {
+      return true;
+    }
+    return false;
+  }
+
+  /// Mendeteksi apakah response dari server adalah halaman Suspend dari InfinityFree
+  static bool _isSuspendedHtml(String text) {
+    final lower = text.toLowerCase().trim();
+    if (lower.contains('suspended-domain.net') || 
+        lower.contains('domain suspended') || 
+        lower.contains('domain has been suspended')) {
+      return true;
+    }
+    return false;
+  }
+
+  /// HTTP GET Request dengan cookie injection & auto silent-retry
   Future<Map<String, dynamic>> getJson(String endpoint) async {
-    final fullUrl = endpoint.startsWith('http')
-        ? endpoint
-        : '${AppConfig.baseUrl}$endpoint';
+    return _executeWithRetry((cookie) async {
+      final fullUrl = endpoint.startsWith('http')
+          ? endpoint
+          : '${AppConfig.baseUrl}$endpoint';
 
-    debugPrint('[InfinityApiClient] GET: $fullUrl');
-
-    try {
       final prefs = await SharedPreferences.getInstance();
-      final testCookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
       final authToken = prefs.getString(GaraPrefKeys.authToken) ?? '';
+
+      debugPrint('[InfinityApiClient] GET: $fullUrl (Cookie: __test=$cookie)');
 
       final response = await http.get(
         Uri.parse(fullUrl),
@@ -47,45 +74,28 @@ class InfinityApiClient {
           'X-Requested-With': 'XMLHttpRequest',
           'User-Agent': _userAgent,
           if (authToken.isNotEmpty) 'Authorization': 'Bearer $authToken',
-          'Cookie': '__test=$testCookie',
+          'Cookie': '__test=$cookie',
         },
       ).timeout(_requestTimeout);
 
-      final rawText = response.body.trim();
-
-      // Cek apakah terblokir/challenge muncul (karena cookie expired/invalid)
-      if (rawText.contains('javascript') && rawText.contains('document.cookie')) {
-        debugPrint('[InfinityApiClient] Cookie __test ditolak/expired. Melempar error REFRESH.');
-        throw InfinityFreeBypassException(
-          message: '__RETRY_BYPASS__',
-          rawHtmlSnippet: rawText,
-        );
-      }
-
-      return _parseResponse(rawText, fullUrl);
-    } catch (e) {
-      debugPrint('[InfinityApiClient] GET Error: $e');
-      rethrow;
-    }
+      return response.body.trim();
+    }, endpoint);
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // postJson() — HTTP POST Request dengan cookie injection
-  // ──────────────────────────────────────────────────────────────────────────
+  /// HTTP POST Request dengan cookie injection & auto silent-retry
   Future<Map<String, dynamic>> postJson(
     String endpoint,
     Map<String, dynamic> body,
   ) async {
-    final fullUrl = endpoint.startsWith('http')
-        ? endpoint
-        : '${AppConfig.baseUrl}$endpoint';
+    return _executeWithRetry((cookie) async {
+      final fullUrl = endpoint.startsWith('http')
+          ? endpoint
+          : '${AppConfig.baseUrl}$endpoint';
 
-    debugPrint('[InfinityApiClient] POST: $fullUrl');
-
-    try {
       final prefs = await SharedPreferences.getInstance();
-      final testCookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
       final authToken = prefs.getString(GaraPrefKeys.authToken) ?? '';
+
+      debugPrint('[InfinityApiClient] POST: $fullUrl (Cookie: __test=$cookie)');
 
       final response = await http.post(
         Uri.parse(fullUrl),
@@ -96,39 +106,71 @@ class InfinityApiClient {
           'X-Requested-With': 'XMLHttpRequest',
           'User-Agent': _userAgent,
           if (authToken.isNotEmpty) 'Authorization': 'Bearer $authToken',
-          'Cookie': '__test=$testCookie',
+          'Cookie': '__test=$cookie',
         },
         body: jsonEncode(body),
       ).timeout(_requestTimeout);
 
-      final rawText = response.body.trim();
-
-      if (rawText.contains('javascript') && rawText.contains('document.cookie')) {
-        debugPrint('[InfinityApiClient] Cookie __test expired pada POST. Melempar error REFRESH.');
-        throw InfinityFreeBypassException(
-          message: '__RETRY_BYPASS__',
-          rawHtmlSnippet: rawText,
-        );
-      }
-
-      return _parseResponse(rawText, fullUrl);
-    } catch (e) {
-      debugPrint('[InfinityApiClient] POST Error: $e');
-      rethrow;
-    }
+      return response.body.trim();
+    }, endpoint);
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // _parseResponse() — Parser JSON response
-  // ──────────────────────────────────────────────────────────────────────────
-  Map<String, dynamic> _parseResponse(String rawText, String url) {
+  /// Eksekusi HTTP request dengan penanganan auto-retry jika cookie expired/challenge muncul
+  Future<Map<String, dynamic>> _executeWithRetry(
+    Future<String> Function(String cookie) requestFn,
+    String url,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    String testCookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
+
+    // Attempt 1: Coba jalankan HTTP Request langsung dengan cookie tersimpan
     try {
-      return jsonDecode(rawText) as Map<String, dynamic>;
-    } catch (_) {
+      final rawText = await requestFn(testCookie);
+
+      if (_isSuspendedHtml(rawText)) {
+        throw const InfinityFreeSuspendedException();
+      }
+
+      if (!_isChallengeHtml(rawText)) {
+        return jsonDecode(rawText) as Map<String, dynamic>;
+      }
+      debugPrint('[InfinityApiClient] Attempt 1 terdeteksi Challenge HTML / Cookie Expired.');
+    } catch (e) {
+      if (e is InfinityFreeSuspendedException) {
+        debugPrint('[InfinityApiClient] MENDETEKSI DOMAIN SUSPEND! Mencoba fallback ke server alternatif...');
+        final success = await ServerFallbackService.activateFallback();
+        if (success) {
+          debugPrint('[InfinityApiClient] Fallback aktif. Mengulangi request dengan server baru...');
+          // Retry dengan URL yang baru ter-resolve berkat overrideBaseUrl
+          final retryText = await requestFn(testCookie);
+          if (!_isChallengeHtml(retryText)) {
+            return jsonDecode(retryText) as Map<String, dynamic>;
+          }
+        }
+        rethrow;
+      }
+      debugPrint('[InfinityApiClient] Attempt 1 Gagal: $e');
+    }
+
+    // Attempt 2: Terjadi Challenge HTML / Cookie Expired → Panggil Silent Bypass Refresh!
+    debugPrint('[InfinityApiClient] Memperbarui cookie __test secara silent di background...');
+    try {
+      testCookie = await InfinityBypassEngine.getValidCookie(forceRefresh: true);
+      debugPrint('[InfinityApiClient] Cookie baru didapatkan! Mengulangi HTTP request...');
+      
+      final rawText2 = await requestFn(testCookie);
+
+      if (!_isChallengeHtml(rawText2)) {
+        return jsonDecode(rawText2) as Map<String, dynamic>;
+      }
+
       throw InfinityFreeBypassException(
-        message: 'Gagal parse JSON response dari: $url',
-        rawHtmlSnippet: rawText,
+        message: 'Gagal bypass InfinityFree setelah refresh cookie.',
+        rawHtmlSnippet: rawText2,
       );
+    } catch (e) {
+      debugPrint('[InfinityApiClient] Attempt 2 Error: $e');
+      rethrow;
     }
   }
 }
