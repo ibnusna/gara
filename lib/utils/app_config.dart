@@ -3,35 +3,24 @@ import 'package:flutter/foundation.dart';
 class AppConfig {
   AppConfig._();
 
-  static const String _devUrl = 'http://localhost:8000';
-  static const String _prodUrl = 'https://garaedu.rf.gd';
+  static const String _localUrl = 'http://127.0.0.1:8000';
 
   static bool _debugOverride = false;
   static bool get isDebugMode => kDebugMode || _debugOverride;
   static set isDebugMode(bool value) => _debugOverride = value;
 
-  /// Dynamic base URL override (from SmartConnect or Firebase school activation)
+  /// Dynamic base URL set exclusively from Google Firebase Firestore (or HITAMPEKAT)
   static String? overrideBaseUrl;
 
   static String get baseUrl {
     if (overrideBaseUrl != null && overrideBaseUrl!.isNotEmpty) {
       String url = overrideBaseUrl!;
-      if (url.contains('garaedu.rf.gd/ite/gara')) {
-        url = url.replaceAll('/ite/gara', '');
-      } else if (url.contains('garaedu.rf.gd/ite')) {
-        url = url.replaceAll('/ite', '');
-      }
       return url.endsWith('/') ? url.substring(0, url.length - 1) : url;
     }
-    return isDebugMode ? _devUrl : _prodUrl;
+    return _localUrl;
   }
 
-  static const String _examDevUrl = 'http://127.0.0.1:8001';
-  static const String _examProdUrl = 'https://garaedu.rf.gd';
-
-  static String get examBaseUrl => (overrideBaseUrl != null && overrideBaseUrl!.isNotEmpty)
-      ? baseUrl
-      : (isDebugMode ? _examDevUrl : _examProdUrl);
+  static String get examBaseUrl => baseUrl;
 
   static String get apiMobileUrl => '$baseUrl/api/mobile';
 
@@ -116,6 +105,7 @@ class AppConfig {
         _ => studentDashboardPath,
       };
 
+  /// Domain validation: Only local domains (ADB / HITAMPEKAT) and Google Firebase hosting domains are allowed.
   static bool isAllowedDomain(String urlOrHost) {
     final cleaned = urlOrHost.toLowerCase().trim();
     if (cleaned.isEmpty) return true;
@@ -127,17 +117,23 @@ class AppConfig {
     }
     if (host.contains(':')) host = host.split(':').first;
 
+    // 1. Domain lokal & schoolkey HITAMPEKAT (ADB debugging)
+    if (host == 'localhost' ||
+        host == '127.0.0.1' ||
+        host == '10.0.2.2' ||
+        host.startsWith('192.168.') ||
+        host.startsWith('10.') ||
+        host.startsWith('172.')) {
+      return true;
+    }
+
     bool matchesTarget(String targetHost) {
       if (targetHost.isEmpty) return false;
       String th = targetHost.contains(':') ? targetHost.split(':').first : targetHost;
       return host == th || host.endsWith('.$th') || th == host || th.endsWith('.$host');
     }
 
-    try {
-      final bHost = Uri.tryParse(baseUrl)?.host.toLowerCase();
-      if (bHost != null && bHost.isNotEmpty && matchesTarget(bHost)) return true;
-    } catch (_) {}
-
+    // 2. Domain hosting resmi dari config Google Firebase
     if (overrideBaseUrl != null && overrideBaseUrl!.isNotEmpty) {
       try {
         final oHost = Uri.tryParse(overrideBaseUrl!)?.host.toLowerCase();
@@ -146,16 +142,11 @@ class AppConfig {
     }
 
     try {
-      final eHost = Uri.tryParse(examBaseUrl)?.host.toLowerCase();
-      if (eHost != null && eHost.isNotEmpty && matchesTarget(eHost)) return true;
+      final bHost = Uri.tryParse(baseUrl)?.host.toLowerCase();
+      if (bHost != null && bHost.isNotEmpty && matchesTarget(bHost)) return true;
     } catch (_) {}
 
-    return host.contains('localhost') ||
-        host.contains('127.0.0.1') ||
-        host.contains('garaedu.rf.gd') ||
-        host.contains('rf.gd') ||
-        host.contains('ifastnet.com') ||
-        host.contains('infinityfree.net');
+    return false;
   }
 
   static bool isExamArenaUrl(String url) =>

@@ -18,7 +18,7 @@ import '../../utils/app_constants.dart';
 import '../../utils/app_config.dart';
 import '../../utils/responsive_utils.dart';
 import '../../services/auth_service.dart';
-import '../../widgets/hybrid_wrapper.dart';
+import '../in_app_browser_page.dart';
 
 class AkunTab extends StatefulWidget {
   final String namaSiswa;
@@ -101,9 +101,10 @@ class _AkunTabState extends State<AkunTab> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => HybridWrapper(
-          url: handoffUrl,
-          pageTitle: 'Ganti Password',
+        builder: (_) => InAppBrowserPage(
+          title: 'Ganti Password',
+          initialUrl: handoffUrl,
+          isPasswordFlow: true,
         ),
       ),
     ).then((_) {
