@@ -52,12 +52,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _animCtrl.dispose();
-    _entranceCtrl.dispose();
-    _identifierCtrl.dispose();
-    _passwordCtrl.dispose();
-    _identifierFocus.dispose();
-    _passwordFocus.dispose();
+    _animCtrl.dispose(); _entranceCtrl.dispose();
+    _identifierCtrl.dispose(); _passwordCtrl.dispose();
+    _identifierFocus.dispose(); _passwordFocus.dispose();
     super.dispose();
   }
 
@@ -74,17 +71,13 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       ),
     ).then((changed) {
       if (changed == true && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Password berhasil diperbarui! Silakan masuk dengan password baru.',
-              style: GoogleFonts.poppins(fontSize: 13, color: Colors.white),
-            ),
-            backgroundColor: const Color(0xFF10B981),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Password berhasil diperbarui! Silakan masuk dengan password baru.',
+              style: GoogleFonts.poppins(fontSize: 13, color: Colors.white)),
+          backgroundColor: const Color(0xFF10B981),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ));
       }
     });
   }
@@ -142,9 +135,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     final role = result.role ?? GaraRoles.siswa;
     final token = result.token ?? '';
 
-    if (result.mustChangePassword) {
+    if (role == GaraRoles.siswa && result.mustChangePassword) {
       final handoffUrl = AppConfig.getHandoffUrl(token: token, targetPath: '/auth/change-password-mandatory');
-      await Navigator.push<bool>(
+      final changed = await Navigator.push<bool>(
         context,
         MaterialPageRoute(
           builder: (_) => InAppBrowserPage(
@@ -155,6 +148,14 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         ),
       );
       if (!mounted) return;
+      if (result.isForcedChange && changed != true) {
+        LoginDialogUtils.showError(
+          context,
+          'Wajib Ganti Password',
+          'Batas login tercapai. Silakan ubah password akun terlebih dahulu.',
+        );
+        return;
+      }
     }
 
     final nextScreen = (role == GaraRoles.siswa)

@@ -660,7 +660,11 @@ class _HybridWrapperState extends State<HybridWrapper>
                       handlerName: 'passwordChanged',
                       callback: (args) {
                         debugPrint('[HybridWrapper] Password changed event received.');
-                        if (mounted && Navigator.canPop(context)) {
+                        final isRoleDash = widget.url.contains('/guru') ||
+                            widget.url.contains('/operator') ||
+                            widget.url.contains('/kepsek') ||
+                            widget.url.contains('/super-admin');
+                        if (!isRoleDash && mounted && Navigator.canPop(context)) {
                           Navigator.pop(context, true);
                         }
                       },

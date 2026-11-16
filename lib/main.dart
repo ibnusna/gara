@@ -22,22 +22,28 @@ import 'screens/login_page.dart';
 import 'screens/pilih_mapel_page.dart';
 import 'screens/dashboard_page.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'screens/splash_logic_page.dart';
 import 'services/server_fallback_service.dart';
+import 'utils/app_config.dart';
 
 Future<void> main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-
-  
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-
   GoogleFonts.config.allowRuntimeFetching = true;
 
   await PerformanceConfig.initialize();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Restore saved school base URL immediately
+  final prefs = await SharedPreferences.getInstance();
+  final savedUrl = prefs.getString('base_url');
+  if (savedUrl != null && savedUrl.isNotEmpty) {
+    AppConfig.overrideBaseUrl = savedUrl;
+  }
 
   // Cek apakah ada masa fallback (Alternative Server) yang sedang berjalan
   await ServerFallbackService.checkAndApplyFallbackOnStartup();

@@ -17,6 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/app_config.dart';
 import '../utils/app_constants.dart';
 import '../models/mapel_model.dart';
+import 'InfinityAuthService.dart';
 
 
 class AuthResult {
@@ -169,65 +170,18 @@ class AuthService {
   
   static Future<MapelResponse> getMapelList() async {
     try {
-      final token = await getToken();
-      if (token == null) return MapelResponse.error('Sesi berakhir. Silakan login ulang.');
-
-      final prefs = await SharedPreferences.getInstance();
-      final testCookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
-
-      final response = await http.get(
-        Uri.parse('${AppConfig.apiMobileUrl}/mapel'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept':        'application/json',
-          'User-Agent': 'Mozilla/5.0 (Linux; Android 13; GARA_APP) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
-          'Cookie': '__test=$testCookie',
-        },
-      ).timeout(const Duration(seconds: 15));
-
-      final rawText = response.body.trim();
-      if (rawText.contains('javascript') && rawText.contains('document.cookie')) {
-        // Cookie bypass expired — coba load dari cache terlebih dahulu
-        final cached = await getCachedMapelList();
-        if (cached != null) return cached;
-        return MapelResponse.error('Sesi pengaman expired. Silakan login ulang.');
-      }
-
-      final data = jsonDecode(rawText) as Map<String, dynamic>;
-
-      if (response.statusCode == 200 && data['status'] == 'success') {
-        final List mapelJson = data['mapel_list'] as List;
-        final mapelList = mapelJson.map((j) => MapelModel.fromJson(j)).toList();
-
-        // Simpan ke cache SharedPreferences
-        await prefs.setString(GaraPrefKeys.namaSiswa,  data['nama_siswa']  as String? ?? '');
-        await prefs.setString(GaraPrefKeys.kelasSiswa, data['kelas_siswa'] as String? ?? '');
-        await prefs.setString(GaraPrefKeys.cachedNamaSiswa,   data['nama_siswa']   as String? ?? '');
-        await prefs.setString(GaraPrefKeys.cachedKelasSiswa,  data['kelas_siswa']  as String? ?? '');
-        await prefs.setString(GaraPrefKeys.cachedSekolahNama, data['sekolah_nama'] as String? ?? 'Garuda Akademi');
-        await prefs.setBool(GaraPrefKeys.cachedGateUjian,     data['gate_ujian_open'] as bool? ?? false);
-        await prefs.setString(GaraPrefKeys.cachedMapelList,   jsonEncode(mapelJson));
-        await prefs.setInt(GaraPrefKeys.cachedMapelTimestamp, DateTime.now().millisecondsSinceEpoch);
-
-        return MapelResponse(
-          success:       true,
-          namaSiswa:     data['nama_siswa']  as String? ?? '',
-          kelasSiswa:    data['kelas_siswa'] as String? ?? '',
-          sekolahNama:   data['sekolah_nama'] as String? ?? 'Garuda Akademi',
-          gateUjianOpen: data['gate_ujian_open'] as bool? ?? false,
-          mapelList:     mapelList,
-        );
-      }
-
-      return MapelResponse.error(data['message'] as String? ?? 'Gagal mengambil data mapel.');
-    } catch (e) {
-      debugPrint('[AuthService.getMapelList] Error: $e');
-      // Fallback ke cache jika ada
+      final res = await InfinityAuthService.getMapelList();
+      if (res.success) return res;
       final cached = await getCachedMapelList();
       if (cached != null) {
         debugPrint('[AuthService.getMapelList] Menggunakan data cache offline.');
         return cached.copyWith(fromCache: true);
       }
+      return res;
+    } catch (e) {
+      debugPrint('[AuthService.getMapelList] Error: $e');
+      final cached = await getCachedMapelList();
+      if (cached != null) return cached.copyWith(fromCache: true);
       return MapelResponse.error('Terjadi kesalahan koneksi.');
     }
   }

@@ -27,7 +27,6 @@ class _PilihMapelPageState extends State<PilihMapelPage> with TickerProviderStat
   bool _isLoading = true;
   String _namaSiswa = '';
   String _kelasSiswa = '';
-  String _sekolahNama = 'Garuda Akademi';
   bool _gateUjianOpen = false;
   List<MapelModel> _mapelList = [];
   String? _errorMessage;
@@ -59,23 +58,21 @@ class _PilihMapelPageState extends State<PilihMapelPage> with TickerProviderStat
     final result = await AuthService.getMapelList();
     if (!mounted) return;
     if (!result.success) {
+      final cached = await AuthService.getCachedMapelList();
+      if (cached != null && mounted) {
+        setState(() {
+          _isLoading = false;
+          _namaSiswa = cached.namaSiswa;
+          _kelasSiswa = cached.kelasSiswa;
+          _gateUjianOpen = cached.gateUjianOpen;
+          _mapelList = cached.mapelList;
+          _isFromCache = true;
+        });
+        _initAnimations();
+        return;
+      }
       final msg = result.errorMessage?.toLowerCase() ?? '';
-      if (msg.contains('sesi') || msg.contains('login') || msg.contains('unauth') || msg.contains('expired')) {
-        // Sebelum logout karena sesi, cek apakah ada cache untuk mode offline
-        final cached = await AuthService.getCachedMapelList();
-        if (cached != null && mounted) {
-          setState(() {
-            _isLoading = false;
-            _namaSiswa = cached.namaSiswa;
-            _kelasSiswa = cached.kelasSiswa;
-            _sekolahNama = cached.sekolahNama;
-            _gateUjianOpen = cached.gateUjianOpen;
-            _mapelList = cached.mapelList;
-            _isFromCache = true;
-          });
-          _initAnimations();
-          return;
-        }
+      if (msg.contains('unauthenticated') || msg.contains('token tidak valid')) {
         await AuthService.clearSession();
         if (mounted) Navigator.pushNamedAndRemoveUntil(context, GaraRoutes.login, (route) => false);
         return;
@@ -87,7 +84,6 @@ class _PilihMapelPageState extends State<PilihMapelPage> with TickerProviderStat
       _isLoading = false;
       _namaSiswa = result.namaSiswa;
       _kelasSiswa = result.kelasSiswa;
-      _sekolahNama = result.sekolahNama;
       _gateUjianOpen = result.gateUjianOpen;
       _mapelList = result.mapelList;
       _isFromCache = result.fromCache;

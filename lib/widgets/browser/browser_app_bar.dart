@@ -8,6 +8,7 @@ class BrowserAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final bool canGoBack;
   final VoidCallback onBack;
+  final VoidCallback? onClose;
   final Future<String?> Function() onGetCurrentUrl;
   final String fallbackUrl;
 
@@ -16,9 +17,30 @@ class BrowserAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.title,
     required this.canGoBack,
     required this.onBack,
+    this.onClose,
     required this.onGetCurrentUrl,
     required this.fallbackUrl,
   });
+
+  static bool isRawDomainOrUrl(String t) {
+    final lower = t.toLowerCase().trim();
+    if (lower.isEmpty) return true;
+    return lower.contains('://') ||
+        lower.contains('http') ||
+        lower.contains('.tc') ||
+        lower.contains('.gd') ||
+        lower.contains('.rf') ||
+        lower.contains('127.0.0.1') ||
+        lower.contains('localhost') ||
+        (!lower.contains(' ') && lower.contains('.'));
+  }
+
+  String get _displayTitle {
+    if (title.isNotEmpty && !isRawDomainOrUrl(title)) {
+      return title;
+    }
+    return 'Garuda Akademi';
+  }
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -31,7 +53,7 @@ class BrowserAppBar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: true,
       leading: IconButton(
         icon: const Icon(Icons.close_rounded, color: GaraColors.studentTextMain),
-        onPressed: () => Navigator.pop(context),
+        onPressed: onClose ?? () => Navigator.pop(context, false),
       ),
       title: Row(
         mainAxisSize: MainAxisSize.min,
@@ -39,7 +61,7 @@ class BrowserAppBar extends StatelessWidget implements PreferredSizeWidget {
           const GaraLogoBlack(height: 24),
           const SizedBox(width: 8),
           Text(
-            title.isNotEmpty ? title : 'Garuda Akademi',
+            _displayTitle,
             style: GoogleFonts.poppins(
               fontWeight: FontWeight.w600,
               fontSize: 15,
