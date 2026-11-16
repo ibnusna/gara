@@ -135,7 +135,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     final role = result.role ?? GaraRoles.siswa;
     final token = result.token ?? '';
 
-    if (role == GaraRoles.siswa && result.mustChangePassword) {
+    if (result.mustChangePassword) {
       final handoffUrl = AppConfig.getHandoffUrl(token: token, targetPath: '/auth/change-password-mandatory');
       final changed = await Navigator.push<bool>(
         context,
@@ -148,12 +148,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         ),
       );
       if (!mounted) return;
-      if (result.isForcedChange && changed != true) {
-        LoginDialogUtils.showError(
-          context,
-          'Wajib Ganti Password',
-          'Batas login tercapai. Silakan ubah password akun terlebih dahulu.',
-        );
+      if (changed != true) {
+        await InfinityAuthService.logout();
         return;
       }
     }

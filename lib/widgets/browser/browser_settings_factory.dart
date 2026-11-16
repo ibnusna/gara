@@ -30,10 +30,12 @@ class BrowserSettingsFactory {
       final testCookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
       if (testCookie.isNotEmpty) {
         final baseUrl = AppConfig.baseUrl;
+        final host = Uri.tryParse(baseUrl)?.host;
         await CookieManager.instance().setCookie(
           url: WebUri(baseUrl),
           name: '__test',
           value: testCookie,
+          domain: (host != null && host.isNotEmpty) ? host : null,
           isSecure: baseUrl.startsWith('https'),
           isHttpOnly: false,
         );

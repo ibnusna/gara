@@ -65,6 +65,7 @@ class MapelResponse {
   final String? errorMessage;
   /// true jika data diambil dari cache lokal (mode offline)
   final bool fromCache;
+  final bool requiresPasswordChange;
 
   const MapelResponse({
     required this.success,
@@ -75,10 +76,15 @@ class MapelResponse {
     this.mapelList = const [],
     this.errorMessage,
     this.fromCache = false,
+    this.requiresPasswordChange = false,
   });
 
-  factory MapelResponse.error(String message) {
-    return MapelResponse(success: false, errorMessage: message);
+  factory MapelResponse.error(String message, {bool requiresPasswordChange = false}) {
+    return MapelResponse(
+      success: false,
+      errorMessage: message,
+      requiresPasswordChange: requiresPasswordChange,
+    );
   }
 
   MapelResponse copyWith({
@@ -90,16 +96,18 @@ class MapelResponse {
     List<MapelModel>? mapelList,
     String? errorMessage,
     bool? fromCache,
+    bool? requiresPasswordChange,
   }) {
     return MapelResponse(
-      success:       success       ?? this.success,
-      namaSiswa:     namaSiswa     ?? this.namaSiswa,
-      kelasSiswa:    kelasSiswa    ?? this.kelasSiswa,
-      sekolahNama:   sekolahNama   ?? this.sekolahNama,
-      gateUjianOpen: gateUjianOpen ?? this.gateUjianOpen,
-      mapelList:     mapelList     ?? this.mapelList,
-      errorMessage:  errorMessage  ?? this.errorMessage,
-      fromCache:     fromCache     ?? this.fromCache,
+      success:                success                ?? this.success,
+      namaSiswa:              namaSiswa              ?? this.namaSiswa,
+      kelasSiswa:             kelasSiswa             ?? this.kelasSiswa,
+      sekolahNama:            sekolahNama            ?? this.sekolahNama,
+      gateUjianOpen:          gateUjianOpen          ?? this.gateUjianOpen,
+      mapelList:              mapelList              ?? this.mapelList,
+      errorMessage:           errorMessage           ?? this.errorMessage,
+      fromCache:              fromCache              ?? this.fromCache,
+      requiresPasswordChange: requiresPasswordChange ?? this.requiresPasswordChange,
     );
   }
 }

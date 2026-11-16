@@ -46,6 +46,16 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> {
     Navigator.pop(context, false);
   }
 
+  void _handlePasswordNav(WebUri? url) {
+    if (!widget.isPasswordFlow || url == null || _hasClosed) return;
+    final p = url.path.toLowerCase();
+    if (p == '/login' || p.endsWith('/login')) {
+      _passwordChangedSuccess ? _closeWithSuccess() : _closeWithCancel();
+    } else if (_passwordChangedSuccess || p.contains('pilih-mapel') || p.contains('pilih-sesi') || p.contains('dashboard') || p.contains('materi')) {
+      _closeWithSuccess();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -132,21 +142,12 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> {
                         final back = await c.canGoBack();
                         if (mounted) setState(() => canGoBack = back);
 
-                        if (widget.isPasswordFlow && url != null) {
-                          final path = url.path.toLowerCase();
-                          if (_passwordChangedSuccess && (path == '/login' || path.endsWith('/login') || path.contains('/dashboard'))) {
-                            _closeWithSuccess();
-                          } else if (!_passwordChangedSuccess && (path == '/login' || path.endsWith('/login'))) {
-                            _closeWithCancel();
-                          }
-                        }
+                        if (widget.isPasswordFlow && url != null) _handlePasswordNav(url);
                       },
                       onReceivedError: (_, req, err) async {
                         pullToRefreshController?.endRefreshing();
                         if (req.isForMainFrame ?? false) {
-                          if (!err.description.contains('ERR_ABORTED') && mounted) {
-                            setState(() => _showOfflineOverlay = true);
-                          }
+                          if (!err.description.contains('ERR_ABORTED') && mounted) setState(() => _showOfflineOverlay = true);
                         }
                       },
                       onCreateWindow: (c, action) async {
@@ -163,14 +164,10 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> {
                       shouldOverrideUrlLoading: (_, nav) async {
                         final uri = nav.request.url;
                         if (uri == null) return NavigationActionPolicy.CANCEL;
-
                         if (widget.isPasswordFlow) {
-                          final path = uri.path.toLowerCase();
-                          if (_passwordChangedSuccess && (path == '/login' || path.endsWith('/login') || path.contains('/dashboard'))) {
-                            _closeWithSuccess();
-                            return NavigationActionPolicy.CANCEL;
-                          } else if (!_passwordChangedSuccess && (path == '/login' || path.endsWith('/login'))) {
-                            _closeWithCancel();
+                          _handlePasswordNav(uri);
+                          final p = uri.path.toLowerCase();
+                          if (p == '/login' || p.endsWith('/login') || p.contains('pilih-') || p.contains('dashboard') || p.contains('materi')) {
                             return NavigationActionPolicy.CANCEL;
                           }
                         }

@@ -31,10 +31,8 @@ class InfinityAuthService {
     if (password.isEmpty) return InfinityAuthResult.error('Password tidak boleh kosong.');
 
     try {
-      String rawText = '';
-      String testCookie = '';
       final prefs = await SharedPreferences.getInstance();
-      testCookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
+      String testCookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
 
       debugPrint('[InfinityAuth] Mengirim HTTP POST langsung ke: $_loginUrl');
       final response = await http.post(
@@ -47,26 +45,17 @@ class InfinityAuthService {
           'User-Agent': 'Mozilla/5.0 (Linux; Android 13; GARA_APP) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
           'Cookie': '__test=$testCookie',
         },
-        body: jsonEncode({
-          'identifier': trimmedId,
-          'password': password,
-        }),
+        body: jsonEncode({'identifier': trimmedId, 'password': password}),
       ).timeout(_requestTimeout);
 
       if (response.statusCode == 503) {
-        return InfinityAuthResult.error(
-          'Sistem sedang dalam pemeliharaan. Coba lagi nanti.',
-          maintenance: true,
-        );
+        return InfinityAuthResult.error('Sistem sedang dalam pemeliharaan. Coba lagi nanti.', maintenance: true);
       }
-      rawText = response.body.trim();
+      String rawText = response.body.trim();
 
       if (rawText.contains('javascript') && (rawText.contains('document.cookie') || rawText.contains('/aes.js'))) {
         debugPrint('[InfinityAuth] Terdeteksi JS Challenge InfinityFree. Memulai loginViaHeadlessWebView');
-        rawText = await InfinityBypassEngine.loginViaHeadlessWebView(
-          identifier: trimmedId,
-          password: password,
-        );
+        rawText = await InfinityBypassEngine.loginViaHeadlessWebView(identifier: trimmedId, password: password);
         testCookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
         if (rawText.contains('javascript') && (rawText.contains('document.cookie') || rawText.contains('/aes.js'))) {
           await prefs.remove(GaraPrefKeys.bypassTestCookie);
@@ -82,32 +71,19 @@ class InfinityAuthService {
     }
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // _handleLoginResponse() — Memproses response dari server Laravel
-  // ──────────────────────────────────────────────────────────────────────────
   static Future<InfinityAuthResult> _handleLoginResponse(String rawText, String testCookie) async {
     Map<String, dynamic> data;
     try {
       data = jsonDecode(rawText) as Map<String, dynamic>;
     } catch (_) {
-      // Jika masih bukan JSON, throw exception khusus
-      throw InfinityFreeBypassException(
-        message: 'Respon server tidak valid (Bukan JSON).',
-        rawHtmlSnippet: rawText,
-      );
+      throw InfinityFreeBypassException(message: 'Respon server tidak valid (Bukan JSON).', rawHtmlSnippet: rawText);
     }
 
     if (data['status'] == 'maintenance') {
-      return InfinityAuthResult.error(
-        'Sistem sedang dalam pemeliharaan. Coba lagi nanti.',
-        maintenance: true,
-      );
+      return InfinityAuthResult.error('Sistem sedang dalam pemeliharaan. Coba lagi nanti.', maintenance: true);
     }
-
     if (data['status'] != 'success') {
-      return InfinityAuthResult.error(
-        data['message'] as String? ?? 'Login gagal.',
-      );
+      return InfinityAuthResult.error(data['message'] as String? ?? 'Login gagal.');
     }
 
     if (testCookie.isNotEmpty) {
@@ -134,8 +110,17 @@ class InfinityAuthService {
     await prefs.setString(GaraPrefKeys.bypassTestCookie, testCookie);
     await prefs.setInt(GaraPrefKeys.bypassCookieTimestamp, DateTime.now().millisecondsSinceEpoch);
 
-    final mustChange = data['must_change_password'] as bool? ?? false;
-    final isForced = data['is_forced_change'] as bool? ?? false;
+    bool toBool(dynamic v) {
+      if (v == null) return false;
+      if (v is bool) return v;
+      if (v is num) return v != 0;
+      final s = v.toString().toLowerCase().trim();
+      return s == '1' || s == 'true';
+    }
+
+    final isPwdChanged = data.containsKey('is_password_changed') ? toBool(data['is_password_changed']) : true;
+    final mustChange = toBool(data['must_change_password']) || !isPwdChanged;
+    final isForced = toBool(data['is_forced_change']);
 
     return InfinityAuthResult(
       success: true,
@@ -149,11 +134,18 @@ class InfinityAuthService {
     );
   }
 
-  // Wrapper backward compatibility untuk mapel
   static Future<MapelResponse> getMapelList() async {
     try {
       final client = InfinityApiClient();
       final data = await client.getJson('/api/mobile/mapel');
+
+      if (data['status'] == 'mandatory_password_change_required' ||
+          (data['message'] as String? ?? '').toLowerCase().contains('mengubah password')) {
+        return MapelResponse.error(
+          data['message'] as String? ?? 'Anda wajib mengubah password bawaan sebelum melanjutkan.',
+          requiresPasswordChange: true,
+        );
+      }
 
       if (data['status'] == 'success') {
         final List mapelJson = data['mapel_list'] as List;
@@ -183,9 +175,7 @@ class InfinityAuthService {
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
-    try {
-      await CookieManager.instance().deleteCookies(url: WebUri(AppConfig.baseUrl));
-    } catch (_) {}
+    try { await CookieManager.instance().deleteCookies(url: WebUri(AppConfig.baseUrl)); } catch (_) {}
   }
 
   static Future<bool> isLoggedIn() async {

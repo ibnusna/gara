@@ -171,6 +171,7 @@ class AuthService {
   static Future<MapelResponse> getMapelList() async {
     try {
       final res = await InfinityAuthService.getMapelList();
+      if (res.requiresPasswordChange) return res;
       if (res.success) return res;
       final cached = await getCachedMapelList();
       if (cached != null) {

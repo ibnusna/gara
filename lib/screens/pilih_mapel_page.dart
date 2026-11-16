@@ -14,6 +14,8 @@ import '../widgets/hybrid_wrapper.dart';
 import '../widgets/dashboard/ds_glass_card.dart';
 import 'dashboard_page.dart';
 import 'smart_connect_page.dart';
+import 'in_app_browser_page.dart';
+import '../services/InfinityAuthService.dart';
 
 
 class PilihMapelPage extends StatefulWidget {
@@ -72,6 +74,30 @@ class _PilihMapelPageState extends State<PilihMapelPage> with TickerProviderStat
         return;
       }
       final msg = result.errorMessage?.toLowerCase() ?? '';
+      if (result.requiresPasswordChange || msg.contains('mengubah password') || msg.contains('mandatory_password_change')) {
+        final token = await InfinityAuthService.getToken() ?? '';
+        final handoffUrl = AppConfig.getHandoffUrl(token: token, targetPath: '/auth/change-password-mandatory');
+        if (!mounted) return;
+        final changed = await Navigator.push<bool>(
+          context,
+          MaterialPageRoute(
+            builder: (_) => InAppBrowserPage(
+              title: 'Pengamanan Akun',
+              initialUrl: handoffUrl,
+              isPasswordFlow: true,
+            ),
+          ),
+        );
+        if (!mounted) return;
+        if (changed == true) {
+          _fetchMapelList();
+          return;
+        } else {
+          await AuthService.clearSession();
+          if (mounted) Navigator.pushNamedAndRemoveUntil(context, GaraRoutes.login, (route) => false);
+          return;
+        }
+      }
       if (msg.contains('unauthenticated') || msg.contains('token tidak valid')) {
         await AuthService.clearSession();
         if (mounted) Navigator.pushNamedAndRemoveUntil(context, GaraRoutes.login, (route) => false);
