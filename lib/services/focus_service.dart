@@ -1,54 +1,82 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// BUG-001 Fix: FocusService migrated from SharedPreferences to SQLite
-//
-// BEFORE: save() encode FocusData → prefs.setString() → full XML write
-// AFTER:  UPDATE focus_data SET ... WHERE id = 1  → partial column update
-//         History semakin besar per hari tapi tidak re-serialize seluruh list
-// ─────────────────────────────────────────────────────────────────────────────
-
-import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
 import '../models/focus_model.dart';
-import 'db_service.dart';
+import 'local_database_service.dart';
 
 class FocusService {
   FocusService._();
 
-  static Future<Database> get _db => DbService.database;
+  static Future<Database> get _db => LocalDatabaseService.instance.database;
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // load() — baca singleton focus_data dari SQLite
-  // Query: SELECT * FROM focus_data WHERE id = 1
-  // ──────────────────────────────────────────────────────────────────────────
   static Future<FocusData> load() async {
     final db = await _db;
-    final rows = await db.query('focus_data', where: 'id = ?', whereArgs: [1]);
-    if (rows.isEmpty) return FocusData();
-    try {
-      return _rowToFocusData(rows.first);
-    } catch (_) {
-      return FocusData();
-    }
-  }
+    final metaRows = await db.query('focus_meta', where: 'id = ?', whereArgs: [1]);
+    final histRows = await db.query('focus_history');
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // save() — update singleton focus_data
-  // Query: UPDATE focus_data SET ... WHERE id = 1
-  // ──────────────────────────────────────────────────────────────────────────
-  static Future<void> save(FocusData data) async {
-    final db = await _db;
-    await db.update(
-      'focus_data',
-      _focusDataToRow(data),
-      where: 'id = ?',
-      whereArgs: [1],
+    final Map<String, int> history = {};
+    for (final r in histRows) {
+      history[r['focus_date'] as String] = r['completed_sessions'] as int? ?? 0;
+    }
+
+    if (metaRows.isEmpty) {
+      return FocusData(history: history);
+    }
+
+    final m = metaRows.first;
+    return FocusData(
+      settings: FocusSettings(
+        focusDuration: m['focus_duration'] as int? ?? 25,
+        shortBreak: m['short_break'] as int? ?? 5,
+        longBreak: m['long_break'] as int? ?? 15,
+      ),
+      stats: FocusStats(
+        totalSessions: m['total_sessions'] as int? ?? 0,
+        totalFocusMinutes: m['total_focus_minutes'] as int? ?? 0,
+      ),
+      streak: FocusStreak(
+        current: m['current_streak'] as int? ?? 0,
+        longest: m['longest_streak'] as int? ?? 0,
+        lastFocusDate: m['last_focus_date'] as String?,
+      ),
+      plantWaterPoints: m['plant_water_points'] as int? ?? 0,
+      plantLevel: m['plant_level'] as int? ?? 1,
+      history: history,
     );
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // completeSession() — mutasi in-memory lalu simpan
-  // Logic bisnis tidak berubah, hanya persistence backend yang berbeda
-  // ──────────────────────────────────────────────────────────────────────────
+  static Future<void> save(FocusData data) async {
+    final db = await _db;
+    await db.transaction((txn) async {
+      await txn.insert(
+        'focus_meta',
+        {
+          'id': 1,
+          'focus_duration': data.settings.focusDuration,
+          'short_break': data.settings.shortBreak,
+          'long_break': data.settings.longBreak,
+          'total_sessions': data.stats.totalSessions,
+          'total_focus_minutes': data.stats.totalFocusMinutes,
+          'current_streak': data.streak.current,
+          'longest_streak': data.streak.longest,
+          'last_focus_date': data.streak.lastFocusDate,
+          'plant_water_points': data.plantWaterPoints,
+          'plant_level': data.plantLevel,
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+
+      for (final entry in data.history.entries) {
+        await txn.insert(
+          'focus_history',
+          {
+            'focus_date': entry.key,
+            'completed_sessions': entry.value,
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+    });
+  }
+
   static void completeSession(FocusData data) {
     data.stats.totalSessions++;
     data.stats.totalFocusMinutes += data.settings.focusDuration;
@@ -83,48 +111,4 @@ class FocusService {
         pts >= 40 ? 5 : pts >= 25 ? 4 : pts >= 15 ? 3 : pts >= 8 ? 2 : 1;
     if (newLevel > data.plantLevel) data.plantLevel = newLevel;
   }
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // Konversi: Map baris SQLite → FocusData
-  // ──────────────────────────────────────────────────────────────────────────
-  static FocusData _rowToFocusData(Map<String, dynamic> row) {
-    Map<String, dynamic> decodeMap(String key) {
-      try {
-        return jsonDecode(row[key] as String? ?? '{}') as Map<String, dynamic>;
-      } catch (_) {
-        return {};
-      }
-    }
-
-    Map<String, int> decodeHistory() {
-      try {
-        final raw =
-            jsonDecode(row['history_json'] as String? ?? '{}') as Map<String, dynamic>;
-        return raw.map((k, v) => MapEntry(k, (v as num).toInt()));
-      } catch (_) {
-        return {};
-      }
-    }
-
-    return FocusData(
-      settings:         FocusSettings.fromJson(decodeMap('settings_json')),
-      stats:            FocusStats.fromJson(decodeMap('stats_json')),
-      streak:           FocusStreak.fromJson(decodeMap('streak_json')),
-      plantWaterPoints: row['plant_water_points'] as int? ?? 0,
-      plantLevel:       row['plant_level'] as int? ?? 1,
-      history:          decodeHistory(),
-    );
-  }
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // Konversi: FocusData → Map baris SQLite
-  // ──────────────────────────────────────────────────────────────────────────
-  static Map<String, dynamic> _focusDataToRow(FocusData data) => {
-        'settings_json':      jsonEncode(data.settings.toJson()),
-        'stats_json':         jsonEncode(data.stats.toJson()),
-        'streak_json':        jsonEncode(data.streak.toJson()),
-        'plant_water_points': data.plantWaterPoints,
-        'plant_level':        data.plantLevel,
-        'history_json':       jsonEncode(data.history),
-      };
 }

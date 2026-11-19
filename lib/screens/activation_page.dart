@@ -251,13 +251,13 @@ class _ActivationPageState extends State<ActivationPage>
                                   fillColor: Colors.white.withOpacity(0.6),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
+                                    borderSide: const BorderSide(
                                         color: GaraColors.dsSlate200,
                                         width: 1.5),
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
+                                    borderSide: const BorderSide(
                                         color: GaraColors.dsSlate200,
                                         width: 1.5),
                                   ),
@@ -312,15 +312,14 @@ class _ActivationPageState extends State<ActivationPage>
                               SizedBox(
                                 height: 52,
                                 child: _isLoading
-                                    ? Center(
+                                    ? const Center(
                                         child: SizedBox(
                                           width: 26,
                                           height: 26,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2.5,
                                             valueColor:
-                                                const AlwaysStoppedAnimation<
-                                                    Color>(
+                                                AlwaysStoppedAnimation<Color>(
                                               GaraColors.dsPrimaryDeep,
                                             ),
                                           ),

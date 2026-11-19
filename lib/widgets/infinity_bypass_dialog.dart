@@ -37,8 +37,8 @@ class _InfinityBypassDialogState extends State<InfinityBypassDialog> {
   @override
   Widget build(BuildContext context) {
     // Dialog loading yang transparan tapi memuat InAppWebView
-    return WillPopScope(
-      onWillPop: () async => false,
+    return PopScope(
+      canPop: false,
       child: Dialog(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -79,7 +79,7 @@ class _InfinityBypassDialogState extends State<InfinityBypassDialog> {
                           
                           if (!_hasCompleted) {
                             _hasCompleted = true;
-                            if (mounted) Navigator.pop(context, testCookieValue);
+                            if (context.mounted) Navigator.pop(context, testCookieValue);
                           }
                           break;
                         }

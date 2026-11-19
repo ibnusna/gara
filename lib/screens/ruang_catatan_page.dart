@@ -574,7 +574,7 @@ class _NoteCardState extends State<_NoteCard>
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.sticky_note_2_outlined,
+        const Icon(Icons.sticky_note_2_outlined,
             size: 12, color: GaraColors.studentTextMuted),
         const SizedBox(width: 3),
         Text('${note.blocks.length} blok',
@@ -582,8 +582,8 @@ class _NoteCardState extends State<_NoteCard>
                 fontSize: 11, color: GaraColors.studentTextMuted)),
         if (checkCount > 0) ...[
           const SizedBox(width: 8),
-          Icon(Icons.check_box_rounded,
-              size: 12, color: const Color(0xFF22C55E)),
+          const Icon(Icons.check_box_rounded,
+              size: 12, color: Color(0xFF22C55E)),
           const SizedBox(width: 3),
           Text('$checkedCount/$checkCount',
               style: GoogleFonts.poppins(

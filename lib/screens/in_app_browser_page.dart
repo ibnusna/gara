@@ -29,7 +29,8 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> {
   double progress = 0;
   String currentTitle = '';
   bool canGoBack = false, _showOfflineOverlay = false, _isRetrying = false;
-  bool _passwordChangedSuccess = false, _hasClosed = false;
+  bool _passwordChangedSuccess = false, _hasClosed = false, _isCookieReady = false;
+  int _cookieRetryCount = 0;
 
   late final InAppWebViewSettings settings = BrowserSettingsFactory.createDefaultSettings();
   PullToRefreshController? pullToRefreshController;
@@ -56,12 +57,16 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> {
     }
   }
 
+  Future<void> _prepareCookies() async {
+    await BrowserSettingsFactory.injectBypassCookie();
+    if (mounted) setState(() => _isCookieReady = true);
+  }
+
   @override
   void initState() {
     super.initState();
     currentTitle = widget.title;
-    BrowserSettingsFactory.injectBypassCookie();
-
+    _prepareCookies();
     pullToRefreshController = PullToRefreshController(
       settings: PullToRefreshSettings(color: GaraColors.studentPrimary),
       onRefresh: () async => webViewController?.reload(),
@@ -99,81 +104,77 @@ class _InAppBrowserPageState extends State<InAppBrowserPage> {
               child: Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(16),
-                      topRight: Radius.circular(16),
-                    ),
-                    child: InAppWebView(
-                      initialUrlRequest: URLRequest(url: WebUri(widget.initialUrl)),
-                      initialSettings: settings,
-                      pullToRefreshController: pullToRefreshController,
-                      onWebViewCreated: (c) {
-                        webViewController = c;
-                        c.addJavaScriptHandler(
-                          handlerName: 'passwordChanged',
-                          callback: (_) {
-                            _passwordChangedSuccess = true;
-                            _closeWithSuccess();
-                          },
-                        );
-                        c.addJavaScriptHandler(
-                          handlerName: 'blobDownloaded',
-                          callback: (args) async {
-                            if (args.length >= 2) {
-                              await BrowserFileDownloader.saveAndOpenDataUri(args[0].toString(), args[1].toString());
-                            }
-                          },
-                        );
-                      },
-                      onLoadStart: (_, __) => setState(() => progress = 0),
-                      onProgressChanged: (_, p) {
-                        if (p == 100) pullToRefreshController?.endRefreshing();
-                        setState(() => progress = p / 100);
-                      },
-                      onLoadStop: (c, url) async {
-                        pullToRefreshController?.endRefreshing();
-                        if (_isRetrying && mounted) setState(() => _showOfflineOverlay = _isRetrying = false);
-                        if (widget.title.isEmpty) {
-                          final t = await c.getTitle();
-                          if (mounted && t != null && t.isNotEmpty && !BrowserAppBar.isRawDomainOrUrl(t)) {
-                            setState(() => currentTitle = t);
-                          }
-                        }
-                        final back = await c.canGoBack();
-                        if (mounted) setState(() => canGoBack = back);
-
-                        if (widget.isPasswordFlow && url != null) _handlePasswordNav(url);
-                      },
-                      onReceivedError: (_, req, err) async {
-                        pullToRefreshController?.endRefreshing();
-                        if (req.isForMainFrame ?? false) {
-                          if (!err.description.contains('ERR_ABORTED') && mounted) setState(() => _showOfflineOverlay = true);
-                        }
-                      },
-                      onCreateWindow: (c, action) async {
-                        final req = action.request.url;
-                        if (req != null && ['http', 'https'].contains(req.scheme.toLowerCase())) {
-                          if (AppConfig.isAllowedDomain(req.host.toLowerCase())) {
-                            c.loadUrl(urlRequest: URLRequest(url: req));
-                            return true;
-                          }
-                          try { await launchUrl(req, mode: LaunchMode.externalApplication); return true; } catch (_) {}
-                        }
-                        return false;
-                      },
-                      shouldOverrideUrlLoading: (_, nav) async {
-                        final uri = nav.request.url;
-                        if (uri == null) return NavigationActionPolicy.CANCEL;
-                        if (widget.isPasswordFlow) {
-                          _handlePasswordNav(uri);
-                          final p = uri.path.toLowerCase();
-                          if (p == '/login' || p.endsWith('/login') || p.contains('pilih-') || p.contains('dashboard') || p.contains('materi')) {
-                            return NavigationActionPolicy.CANCEL;
-                          }
-                        }
-                        return ['http', 'https'].contains(uri.scheme) ? NavigationActionPolicy.ALLOW : NavigationActionPolicy.CANCEL;
-                      },
-                    ),
+                    borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16)),
+                    child: !_isCookieReady
+                        ? const Center(child: CircularProgressIndicator(color: GaraColors.studentPrimary))
+                        : InAppWebView(
+                            initialUrlRequest: URLRequest(url: WebUri(widget.initialUrl)),
+                            initialSettings: settings,
+                            pullToRefreshController: pullToRefreshController,
+                            onWebViewCreated: (c) {
+                              webViewController = c;
+                              c.addJavaScriptHandler(handlerName: 'passwordChanged', callback: (_) {
+                                _passwordChangedSuccess = true;
+                                _closeWithSuccess();
+                              });
+                              c.addJavaScriptHandler(handlerName: 'blobDownloaded', callback: (args) async {
+                                if (args.length >= 2) await BrowserFileDownloader.saveAndOpenDataUri(args[0].toString(), args[1].toString());
+                              });
+                            },
+                            onLoadStart: (_, __) => setState(() => progress = 0),
+                            onProgressChanged: (_, p) {
+                              if (p == 100) pullToRefreshController?.endRefreshing();
+                              setState(() => progress = p / 100);
+                            },
+                            onLoadStop: (c, url) async {
+                              pullToRefreshController?.endRefreshing();
+                              if (_isRetrying && mounted) setState(() => _showOfflineOverlay = _isRetrying = false);
+                              if (widget.title.isEmpty) {
+                                final t = await c.getTitle();
+                                if (mounted && t != null && t.isNotEmpty && !BrowserAppBar.isRawDomainOrUrl(t)) setState(() => currentTitle = t);
+                              }
+                              final back = await c.canGoBack();
+                              if (mounted) setState(() => canGoBack = back);
+                              if (widget.isPasswordFlow && url != null) _handlePasswordNav(url);
+                            },
+                            onReceivedError: (_, req, err) async {
+                              pullToRefreshController?.endRefreshing();
+                              if ((req.isForMainFrame ?? false) && !err.description.contains('ERR_ABORTED') && mounted) {
+                                setState(() => _showOfflineOverlay = true);
+                              }
+                            },
+                            onCreateWindow: (c, action) async {
+                              final req = action.request.url;
+                              if (req != null && ['http', 'https'].contains(req.scheme.toLowerCase())) {
+                                if (BrowserSettingsFactory.isInfinityCookieErrorUrl(req)) return false;
+                                if (AppConfig.isAllowedDomain(req.host.toLowerCase())) {
+                                  c.loadUrl(urlRequest: URLRequest(url: req));
+                                  return true;
+                                }
+                                try { await launchUrl(req, mode: LaunchMode.externalApplication); return true; } catch (_) {}
+                              }
+                              return false;
+                            },
+                            shouldOverrideUrlLoading: (c, nav) async {
+                              final uri = nav.request.url;
+                              if (uri == null) return NavigationActionPolicy.CANCEL;
+                              if (BrowserSettingsFactory.isInfinityCookieErrorUrl(uri)) {
+                                if (_cookieRetryCount < 2) {
+                                  _cookieRetryCount++;
+                                  BrowserSettingsFactory.recoverInfinityCookie(c, widget.initialUrl);
+                                }
+                                return NavigationActionPolicy.CANCEL;
+                              }
+                              if (widget.isPasswordFlow) {
+                                _handlePasswordNav(uri);
+                                final p = uri.path.toLowerCase();
+                                if (p == '/login' || p.endsWith('/login') || p.contains('pilih-') || p.contains('dashboard') || p.contains('materi')) {
+                                  return NavigationActionPolicy.CANCEL;
+                                }
+                              }
+                              return ['http', 'https'].contains(uri.scheme) ? NavigationActionPolicy.ALLOW : NavigationActionPolicy.CANCEL;
+                            },
+                          ),
                   ),
                   if (_showOfflineOverlay)
                     BrowserOfflineOverlay(

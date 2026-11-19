@@ -9,9 +9,11 @@ import '../utils/app_config.dart';
 import '../utils/app_constants.dart';
 import '../models/mapel_model.dart';
 import '../models/infinity_auth_result.dart';
+import '../widgets/browser/browser_settings_factory.dart';
 import 'infinity_bypass_exception.dart';
 import 'InfinityBypassEngine.dart';
 import 'InfinityApiClient.dart';
+import 'secure_token_storage.dart';
 
 export 'infinity_bypass_exception.dart';
 export '../models/infinity_auth_result.dart';
@@ -86,29 +88,23 @@ class InfinityAuthService {
       return InfinityAuthResult.error(data['message'] as String? ?? 'Login gagal.');
     }
 
-    if (testCookie.isNotEmpty) {
-      try {
-        final baseUrl = AppConfig.baseUrl;
-        await CookieManager.instance().setCookie(
-          url: WebUri(baseUrl),
-          name: '__test',
-          value: testCookie,
-          isSecure: baseUrl.startsWith('https'),
-        );
-      } catch (e) {
-        debugPrint('[InfinityAuth] Warning setCookie: $e');
-      }
+    final token = data['token'] as String?;
+    if (token != null && token.isNotEmpty) {
+      await SecureTokenStorage.instance.saveToken(token);
     }
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(GaraPrefKeys.isLoggedIn, true);
-    await prefs.setString(GaraPrefKeys.authToken, data['token'] as String? ?? '');
+    await prefs.remove(GaraPrefKeys.authToken);
     await prefs.setString(GaraPrefKeys.userRole, data['role'] as String? ?? 'siswa');
     await prefs.setString(GaraPrefKeys.namaLengkap, data['nama'] as String? ?? '');
     await prefs.setString(GaraPrefKeys.namaSiswa, data['nama'] as String? ?? '');
     await prefs.setString(GaraPrefKeys.profilePhotoUrl, data['profile_photo'] as String? ?? '');
-    await prefs.setString(GaraPrefKeys.bypassTestCookie, testCookie);
-    await prefs.setInt(GaraPrefKeys.bypassCookieTimestamp, DateTime.now().millisecondsSinceEpoch);
+    if (testCookie.isNotEmpty) {
+      await prefs.setString(GaraPrefKeys.bypassTestCookie, testCookie);
+      await prefs.setInt(GaraPrefKeys.bypassCookieTimestamp, DateTime.now().millisecondsSinceEpoch);
+      await BrowserSettingsFactory.injectBypassCookie();
+    }
 
     bool toBool(dynamic v) {
       if (v == null) return false;
@@ -174,8 +170,15 @@ class InfinityAuthService {
 
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-    try { await CookieManager.instance().deleteCookies(url: WebUri(AppConfig.baseUrl)); } catch (_) {}
+    for (final k in [
+      GaraPrefKeys.isLoggedIn, GaraPrefKeys.authToken, GaraPrefKeys.userRole,
+      GaraPrefKeys.namaLengkap, GaraPrefKeys.namaSiswa, GaraPrefKeys.kelasSiswa,
+      GaraPrefKeys.selectedMapel, GaraPrefKeys.selectedMapelId, GaraPrefKeys.profilePhotoUrl,
+      GaraPrefKeys.bypassSessionCookie, GaraPrefKeys.cachedMapelList, GaraPrefKeys.cachedMapelTimestamp,
+    ]) {
+      await prefs.remove(k);
+    }
+    try { await CookieManager.instance().deleteCookie(url: WebUri(AppConfig.baseUrl), name: 'laravel_session'); } catch (_) {}
   }
 
   static Future<bool> isLoggedIn() async {

@@ -26,6 +26,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'screens/splash_logic_page.dart';
 import 'services/server_fallback_service.dart';
+import 'services/secure_token_storage.dart';
 import 'utils/app_config.dart';
 
 Future<void> main() async {
@@ -44,6 +45,9 @@ Future<void> main() async {
   if (savedUrl != null && savedUrl.isNotEmpty) {
     AppConfig.overrideBaseUrl = savedUrl;
   }
+
+  // Migrate token to Secure Storage if needed (EP-01)
+  await SecureTokenStorage.migrateLegacyTokenIfNeeded();
 
   // Cek apakah ada masa fallback (Alternative Server) yang sedang berjalan
   await ServerFallbackService.checkAndApplyFallbackOnStartup();

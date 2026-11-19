@@ -1,0 +1,230 @@
+{
+  "product_requirement_document": {
+    "metadata": {
+      "project_name": "GARA (Garuda Akademi) - Interactive & Front-End Enhancement Suite",
+      "version": "2.1.0",
+      "author": "AI Front-End Engineer & Interactive Web Architect",
+      "date": "2026-05-30",
+      "status": "Approved / Under Development",
+      "target_release_date": "2026-06-15"
+    },
+    "1_executive_summary": {
+      "objective": "The main objective of this project is to enrich the user interface (UI) and interactive user experience (UX) of the GARA academic platform at the browser layer (client-side) while maintaining zero overhead on server performance. This includes refining Single Page Application (SPA) transits, optimizing static asset rendering, providing robust offline-first local backups, purging leftover developer/debug files (technical debt), and normalizing proctoring visibility guards to properly support mobile iOS devices.",
+      "problem_statement": "Several critical bottlenecks and bugs exist in the current GARA frontend: (1) Layout distortion and FOUC (Flash of Unstyled Content) in the Pomodoro widget due to Tailwind Play CDN loaded on top of Bootstrap 5; (2) Incompatible exam security calculations on iOS Safari, where URL bar dynamic resizing triggers false-positive DevTools warnings; (3) High server database load from redundant search queries in classroom resources; (4) Inaccessible or tedious external material link review flows for teachers; and (5) Risky developer debug logs and scrap scripts left in the public web root.",
+      "value_proposition": "This suite delivers a highly responsive, bandwidth-efficient, secure, and compatible user interface. Server search loads are completely eliminated by moving queries to browser-level instant DOM filters. Teachers benefit from rapid context-sensitive link previews, and iOS mobile students can perform exams securely and smoothly without false-positive cheating interruptions."
+    },
+    "2_target_audience_and_personas": {
+      "user_personas": [
+        {
+          "persona_name": "Garuda Akademi Student (iOS & PWA Mobile User)",
+          "role_description": "Secondary school students who actively access classroom courses, discussions, tasks, and exams from their smartphones (with a majority operating iPhone/iPad devices running Safari). They expect low page latencies, quick visual updates, and bug-free exam experiences."
+        },
+        {
+          "persona_name": "Garuda Akademi Teacher (Material Manager)",
+          "role_description": "Educational instructors who organize syllabus plans, publish coursework resources, and moderate class discussion forums. They require instant, accessible tools to inspect external resource links without losing context."
+        }
+      ],
+      "user_stories": [
+        "As a Student, I want to search for learning materials and tasks instantly (0ms) without sending queries to the server so that my academic workflow is frictionless.",
+        "As a Student using an iPhone/iPad, I want the exam proctoring script to detect my iOS platform and bypass DevTools alarms so that I do not trigger false cheating warnings when my Safari navigation bar collapses.",
+        "As a Student, I want to print my personal learning logs into a beautifully structured PDF document with school headers and clean layouts so that I can keep printed revision guides.",
+        "As a Teacher, I want to click a quick review icon to inspect dynamic learning links in a secure pop-up window so that I do not have to leave my master materials page or open multiple browser tabs."
+      ]
+    },
+    "3_scope_and_product_features": {
+      "in_scope": [
+        {
+          "feature_id": "FR-001",
+          "feature_name": "Dynamic Client-Side Search & DOM Filter (Ruang Belajar & Tugas)",
+          "description": "Replaces traditional backend search query requests with a high-performance client-side Vanilla JavaScript filtering engine. Intercepts the search bar input event, matches characters locally, and dynamically updates card element visibility in real-time using CSS scale and opacity fade transitions. This cuts material and task HTTP/HTMX database search requests to the server to exactly 0%, saving database transaction overhead.",
+          "priority": "P0 (Critical)",
+          "affected_routes": [
+            "http://localhost/edu/student/materi (Route: student.materi.index)",
+            "http://localhost/edu/student/tugas (Route: student.tugas.index)"
+          ],
+          "affected_files": [
+            "/var/www/html/edu/gara/resources/views/siswa/materi/index.blade.php",
+            "/var/www/html/edu/gara/resources/views/siswa/tugas/index.blade.php",
+            "/var/www/html/edu/assets/student/js/search_filter.js"
+          ]
+        },
+        {
+          "feature_id": "FR-002",
+          "feature_name": "CSS Print Styling for PDF Notes Export",
+          "description": "Applies a custom CSS print media query (@media print) to the student personal notes editor view. Hides non-printable assets (navigation menus, editor toolbars, header wraps, and bottom nav pills) and stretches note content to 100% printable width. Automatically injects a clean, official Garuda Akademi school letterhead ('kop surat') at the top of the printed document and formats typography sizes to fit A4 paper beautifully.",
+          "priority": "P1 (High)",
+          "affected_routes": [
+            "http://localhost/edu/student/ruang-catatan (Route: student.ruang-catatan.index)"
+          ],
+          "affected_files": [
+            "/var/www/html/edu/assets/student/css/catatan.css",
+            "/var/www/html/edu/gara/resources/views/siswa/ruang_catatan/index.blade.php"
+          ]
+        },
+        {
+          "feature_id": "FR-003",
+          "feature_name": "Interactive Link Modal & View Icon for Teacher Materials",
+          "description": "Appends a stylish 'View' icon inside the 'Link' data column of the Teacher Materials management table. Clicking the icon opens a secure Bootstrap-5 Modal asynchronouly, detailing all Google Drive, Docs, and YouTube media links assigned to that lesson. All displayed URLs are bound with target='_blank' and rel='noopener noreferrer' to secure external browsing without losing current Master table contexts.",
+          "priority": "P1 (High)",
+          "affected_routes": [
+            "http://localhost/edu/guru/materi (Route: guru.materi.index)"
+          ],
+          "affected_files": [
+            "/var/www/html/edu/gara/resources/views/guru/materi/index.blade.php"
+          ]
+        },
+        {
+          "feature_id": "FR-004",
+          "feature_name": "iOS Exam Security Failsafe Normalization",
+          "description": "Implements platform-aware user-agent checks inside GARA's core exam protection module (protect.js). If the platform is resolved as iOS (iPhone/iPad/iPod WebKit), the system automatically bypasses the outer-to-inner window size threshold checks ('devToolsDetector') and relaxes keyboard meta/alt blockers that conflict with Safari iOS viewport collapses. This completely mitigates false-positive 'Developer Tools Detected' alerts triggered by mobile Safari browser address/URL bar scrolling.",
+          "priority": "P0 (Critical)",
+          "affected_routes": [
+            "http://localhost/edu/ruang-ujian/arena (Route: ruang-ujian.arena)"
+          ],
+          "affected_files": [
+            "/var/www/html/edu/exam/js/protect.js"
+          ]
+        },
+        {
+          "feature_id": "FR-005",
+          "feature_name": "Server-Sent Events (SSE) Real-Time Notification & Live Feed",
+          "description": "Connects browser clients to a light persistent unidirectional server event stream using SSE (EventSource). Injects elegant pop-up toast overlays dynamically using Vanilla JS when new coursework is assigned, announcements are made, or discussions are updated.",
+          "priority": "P1 (High)",
+          "affected_routes": [
+            "http://localhost/edu/student/dashboard (Route: student.dashboard)"
+          ],
+          "affected_files": [
+            "/var/www/html/edu/gara/routes/web.php",
+            "/var/www/html/edu/gara/app/Http/Controllers/Siswa/NotificationController.php",
+            "/var/www/html/edu/assets/student/js/dashboard_v2.js"
+          ]
+        },
+        {
+          "feature_id": "FR-006",
+          "feature_name": "Keyboard Shortcuts Navigation (Power User Mode)",
+          "description": "Injects a dynamic viewport keydown listener to map shortcut binds: 'Shift + F' triggers Ruang Fokus, 'Shift + C' triggers Ruang Catatan, 'Shift + D' redirects to the Dashboard, and 'Esc' dismisses modals/pauses active Pomodoro timers.",
+          "priority": "P2 (Medium)",
+          "affected_routes": [
+            "All student dashboard and workspace routes under /student/*"
+          ],
+          "affected_files": [
+            "/var/www/html/edu/gara/resources/views/layouts/siswa.blade.php"
+          ]
+        },
+        {
+          "feature_id": "FR-007",
+          "feature_name": "Tailwind Play CDN Removal & CSS Framework Conflict Resolution",
+          "description": "Completely purges the Tailwind Play CSS CDN script from the student Ruang Fokus template to resolve CSS reset conflicts with global Bootstrap 5 frameworks. Translates Tailwind layout utility classes into isolated Vanilla CSS styles ('assets/student/css/fokus.css') aligning with GARA's Custom Harmony theme.",
+          "priority": "P0 (Critical)",
+          "affected_routes": [
+            "http://localhost/edu/student/ruang-fokus (Route: student.ruang-fokus.index)"
+          ],
+          "affected_files": [
+            "/var/www/html/edu/gara/resources/views/siswa/ruang_fokus/index.blade.php",
+            "/var/www/html/edu/assets/student/css/fokus.css"
+          ]
+        },
+        {
+          "feature_id": "FR-008",
+          "feature_name": "Fixing HTMX SPA Lifecycle & Script Isolation",
+          "description": "Upgrades 'htmx_init.js' with listener handlers on 'htmx:afterSwap' to re-bind child-view specific JavaScript elements (prayer times API, trivia widgets) dynamically. Hooks 'htmx:beforeSwap' to destroy active Pomodoro timer loops, preventing background browser memory leaks.",
+          "priority": "P1 (High)",
+          "affected_routes": [
+            "All dynamic student views accessed via HTMX within /student/*"
+          ],
+          "affected_files": [
+            "/var/www/html/edu/assets/student/js/htmx_init.js"
+          ]
+        },
+        {
+          "feature_id": "FR-009",
+          "feature_name": "Visual Gamification Upgrades for Trivia Widget",
+          "description": "Applies a premium 3D CSS flip-card transition animation when selecting trivia questions on the student dashboard. Adds a micro-confetti particle burst explosion using lightweight HTML5 Canvas rendering when a student responds correctly.",
+          "priority": "P2 (Medium)",
+          "affected_routes": [
+            "http://localhost/edu/student/dashboard (Route: student.dashboard)"
+          ],
+          "affected_files": [
+            "/var/www/html/edu/assets/student/js/dashboard_v2.js"
+          ]
+        },
+        {
+          "feature_id": "FR-010",
+          "feature_name": "Complete Purge of Public Root Debug Files & Redundant Assets",
+          "description": "Permanently deletes insecure leftovers, credentials, and debug files in the web root to eliminate data breach vulnerabilities. Purges double font imports and repeated accessibility script tags across blade templates.",
+          "priority": "P0 (Critical)",
+          "affected_routes": [
+            "All public directory levels and routing scopes"
+          ],
+          "affected_files": [
+            "/var/www/html/edu/test_tugas.php",
+            "/var/www/html/edu/cookies.txt",
+            "/var/www/html/edu/in_app.html",
+            "/var/www/html/edu/gara/test_tugas.php",
+            "/var/www/html/edu/gara/cookies.txt",
+            "/var/www/html/edu/gara/in_app.html"
+          ]
+        }
+      ],
+      "out_of_scope": [
+        "Synchronizing personal student learning logs/notes to the cloud server database (kept 100% offline-first inside local storage to prevent server load).",
+        "Implementing a dynamic custom dark/light color mode switcher (omitted to keep school corporate branding styles unified and lightweight).",
+        "Webcam-based hardware proctoring inside exams (avoided as it creates extreme overhead for low-end student devices)."
+      ]
+    },
+    "4_functional_requirements": {
+      "user_flows": "1. DYNAMIC SEARCH FLOW: Student opens /student/materi or /tugas -> Enters keyboard keywords in the search bar -> JS triggers 'input' event -> JS compares input characters with child card titles -> Mismatched elements fade-out and collapse (0ms) -> List updates instantly.\n2. TEACHER MASTER LINK PREVIEW FLOW: Teacher opens /guru/materi -> Locates a lesson row -> Clicks the 'View' icon in the Link column -> Bootstrap modal triggers, listing drive files/embeds -> Clicks external file link -> Hyperlink launches securely in a new browser tab.\n3. iOS SAFE EXAM CONTEXT: Student using Safari iOS opens /ruang-ujian/arena -> JS parses user-agent and matches Apple iPhone/iPad signature -> Proctoring engine turns off window resizing discrepancy alert ('devToolsDetector') -> Student scrolls or types freely without false visibility alarms.",
+      "system_behavior": "1. The local search DOM filter must execute in under 10ms at the client layer.\n2. The Teacher link preview modal must not fetch extra resource payloads as links are already bundled in the initial table index.\n3. The platform-aware check in protect.js must run instantly before document handlers and event visibility listeners are attached.",
+      "edge_cases": "1. NO SEARCH MATCHES: If client search input does not match any card titles, JS displays a beautifully animated 'No learning resources found' blank slate placeholder.\n2. ZERO NOTES EXPORT: If the local notes list is completely empty, the print and PDF export buttons are automatically disabled.\n3. SAFARI DESKTOP VS SAFARI MOBILE: Platform filters must isolate mobile Safari (iPhone/iPad/iPod WebKit) so that proctoring alerts remain fully strict for macOS Safari desktop users."
+    },
+    "5_non_functional_requirements": {
+      "performance": "1. Search filter latency on student dashboards must average 0 - 5 milliseconds.\n2. Static CSS footprint for the revised Pomodoro widget must stay under 15 KB.\n3. First Input Delay (FID) on student templates must decrease below 1.5s after purging Play CDNs.",
+      "security": "1. Insecure debug logs (test_tugas.php, cookies.txt) must be deleted from physical storage to prevent session hijacking.\n2. Links inside the Teacher links modal must force 'noopener noreferrer' tags to prevent reverse tab-nabbing vulnerabilities.",
+      "scalability": "1. Since course and task searches are entirely offloaded to client-side DOM filters, GARA's concurrent student capacity scales infinitely (10,000+ searches) without putting any stress on the MySQL database layer.",
+      "compatibility": "1. Local search and dynamic modal animations must operate flawlessly on Chrome, Safari, Firefox, Edge, and mobile WebKit.\n2. Bypassed proctoring controls must support iOS mobile Safari 14+."
+    },
+    "6_design_and_ux_requirements": {
+      "wireframes_link": "Implemented directly in GARA's Custom Harmony UI styling guide, retaining school themes in clean Bootstrap styles.",
+      "ui_style_guide": "1. Typographic Palette: 'Inter', sans-serif.\n2. Color Accents: Blue Royal (hsl(220, 90%, 50%)) & Amber Gold (hsl(35, 95%, 50%)).\n3. Teacher Preview Modal: Sleek Bootstrap 5 cards with backdrop blurring (backdrop-filter: blur(4px)) for modern, premium visual accents."
+    },
+    "7_key_performance_indicators": {
+      "success_metrics": [
+        {
+          "metric_name": "Database Load Reduction during Class Search Queries",
+          "target_goal": "Acheive 100% database search load reduction at the server layer."
+        },
+        {
+          "metric_name": "iOS False-Positive Exam Proctoring Failures",
+          "target_goal": "Successfully reduce false cheating alarms to 0% for Apple Safari mobile users."
+        },
+        {
+          "metric_name": "Lighthouse PWA Performance Score",
+          "target_goal": "Attain a score of >= 90 post-CDN purge and inline cleanup."
+        }
+      ]
+    },
+    "8_milestones_and_dependencies": {
+      "key_milestones": [
+        {
+          "phase": "Tailwind CDN Removal & Harmony CSS Refactoring in Pomodoro",
+          "estimated_timeline": "Day 1 - Day 2"
+        },
+        {
+          "phase": "Integration of Client Search Filters & Note PDF Styles",
+          "estimated_timeline": "Day 3 - Day 4"
+        },
+        {
+          "phase": "Teacher Materials View Modals & iOS Exam Security Fixes",
+          "estimated_timeline": "Day 5 - Day 6"
+        },
+        {
+          "phase": "Purging Web Root Leftovers & Final QA Verification",
+          "estimated_timeline": "Day 7"
+        }
+      ],
+      "dependencies": [
+        "Zero third-party API dependencies. The enhancements run cleanly on local resources using standard HTML5, ES6 Vanilla JavaScript, and Bootstrap 5 framework classes."
+      ]
+    }
+  }
+}

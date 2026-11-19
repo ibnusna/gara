@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -25,6 +26,12 @@ class _SmartConnectPageState extends State<SmartConnectPage>
   @override
   void initState() {
     super.initState();
+    if (kReleaseMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.pop(context);
+      });
+      return;
+    }
     _blobCtrl1 = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 25000))
       ..repeat(reverse: true);
@@ -69,6 +76,13 @@ class _SmartConnectPageState extends State<SmartConnectPage>
 
   @override
   Widget build(BuildContext context) {
+    if (kReleaseMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) Navigator.of(context).pop();
+      });
+      return const Scaffold(body: SizedBox.shrink());
+    }
+
     return Scaffold(
       backgroundColor: GaraColors.dsBgBody,
       body: Stack(

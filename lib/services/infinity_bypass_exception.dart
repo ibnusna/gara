@@ -30,14 +30,7 @@ class InfinityFreeBypassException implements Exception {
   });
 
   @override
-  String toString() {
-    final snippet = rawHtmlSnippet.length > 500
-        ? rawHtmlSnippet.substring(0, 500)
-        : rawHtmlSnippet;
-    return 'InfinityFreeBypassException: $message\n'
-        '--- RAW HTML SNIPPET (maks 500 chars) ---\n'
-        '$snippet';
-  }
+  String toString() => 'InfinityFreeBypassException: $message';
 }
 
 /// Exception khusus jika domain di-suspend oleh InfinityFree (reaching limit, dll)

@@ -107,7 +107,7 @@ class _SholatWidgetState extends State<SholatWidget> {
     }
 
     try {
-      final response = await http.get(apiUrl).timeout(const Duration(seconds: 8));
+      final response = await http.get(apiUrl).timeout(const Duration(seconds: 4));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final timings = data['data']['timings'] as Map<String, dynamic>;

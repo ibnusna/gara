@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -14,21 +13,31 @@ import 'package:open_filex/open_filex.dart';
 import '../utils/app_constants.dart';
 import '../utils/app_config.dart';
 import '../services/auth_service.dart';
+import '../services/device_security_service.dart';
+import '../services/handoff_loader_service.dart';
+import '../services/in_app_oauth_service.dart';
+import '../services/authenticated_download_service.dart';
+import '../utils/gara_error_mapper.dart';
 import '../screens/session_expired_page.dart';
-
+import 'browser/browser_settings_factory.dart';
+import 'gara_error_view.dart';
 
 const _kSecurityChannel = MethodChannel('com.lms.gara/security');
 
 class HybridWrapper extends StatefulWidget {
   final String url;
+  final String? targetPath;
   final String pageTitle;
   final bool enableExamMode;
+  final String? mapelId;
 
   const HybridWrapper({
     super.key,
     required this.url,
+    this.targetPath,
     required this.pageTitle,
     this.enableExamMode = false,
+    this.mapelId,
   });
 
   @override
@@ -58,34 +67,8 @@ class _HybridWrapperState extends State<HybridWrapper>
   // Tidak ada lagi load ke file HTML lokal (eror.html) karena menyebabkan
   // Android default error page terlihat sebentar sebelum redirect.
   
-  late final InAppWebViewSettings _webSettings = InAppWebViewSettings(
-    useHybridComposition:             true,
-    domStorageEnabled:                true,
-    databaseEnabled:                  true,
-    javaScriptEnabled:                true,
-    safeBrowsingEnabled:              true,
-    mixedContentMode:                 MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
-    cacheEnabled:                     true,
-    cacheMode:                        CacheMode.LOAD_DEFAULT,
-    
-    useShouldOverrideUrlLoading:      true,
-    allowFileAccessFromFileURLs:      true,
-    allowUniversalAccessFromFileURLs: true,
-    allowContentAccess:               true,
-    
-    mediaPlaybackRequiresUserGesture: false,
-    
-    allowsInlineMediaPlayback:        true,
-    
-    javaScriptCanOpenWindowsAutomatically: true,
-    supportMultipleWindows:           true,
-    useOnDownloadStart:               true,
-    transparentBackground:            false,
-    supportZoom:                      true,
-    thirdPartyCookiesEnabled:         true,
-    disableContextMenu:               false,
-    applicationNameForUserAgent:      'GARA_OFFICIAL_APP',
-    userAgent:                        'Mozilla/5.0 (Linux; Android 13; GARA_APP) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+  late final InAppWebViewSettings _webSettings = BrowserSettingsFactory.createHardenedSettings(
+    isExam: widget.enableExamMode || AppConfig.isExamUrl(widget.url),
   );
 
   
@@ -104,12 +87,7 @@ class _HybridWrapperState extends State<HybridWrapper>
       onRefresh: () async => await _webController?.reload(),
     );
 
-    // ── WebView Handoff Bridge: Inject bypass cookies ──────────────────────
-    // Sebelum WebView pertama kali load, kita inject cookie __test (InfinityFree
-    // bypass token) dan laravel_session (PHP session) ke CookieManager.
-    // Cookies ini di-set oleh InfinityAuthService saat login berhasil.
-    // Tanpa injection ini, WebView akan mendapat 403 atau redirect ke /login.
-    _injectBypassCookiesOnInit();
+    _resolveAndInit();
   }
 
   @override
@@ -124,68 +102,108 @@ class _HybridWrapperState extends State<HybridWrapper>
   
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!_isExamModeActive) return;
-    if (state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.paused ||
-        state == AppLifecycleState.hidden) {
-      if (mounted) setState(() => _showBlackout = true);
-    } else if (state == AppLifecycleState.resumed) {
-      
-      _enforceExamSecurity();
-      if (mounted) setState(() => _showBlackout = false);
+    if (_isExamModeActive) {
+      if (state == AppLifecycleState.inactive ||
+          state == AppLifecycleState.paused ||
+          state == AppLifecycleState.hidden) {
+        if (mounted) setState(() => _showBlackout = true);
+      } else if (state == AppLifecycleState.resumed) {
+        _enforceExamSecurity();
+        if (mounted) setState(() => _showBlackout = false);
+      }
+      return;
+    }
+
+    if (state == AppLifecycleState.resumed) {
+      // Auto-reload when returning from in-app OAuth tab (EP-07)
+      _webController?.reload();
     }
   }
 
   
 
   
+  String? _resolvedUrl;
   bool _isCookieReady = false;
+  int _cookieRetryCount = 0;
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // _injectBypassCookiesOnInit() — WebView Handoff Bridge
-  // ──────────────────────────────────────────────────────────────────────────
+  Future<void> _resolveAndInit() async {
+    DeviceSecurityService.initialize();
+    DeviceSecurityService.onViolationCallback = (reason) {
+      if (_isExamModeActive && mounted) {
+        setState(() => _showBlackout = true);
+      }
+    };
+
+    final isExam = widget.enableExamMode || AppConfig.isExamArenaUrl(widget.url);
+    if (isExam) {
+      final report = await DeviceSecurityService.checkDeviceIntegrity();
+      if (report.hasViolation) {
+        if (mounted) {
+          _showSecurityViolationDialog();
+        }
+        return;
+      }
+    }
+
+    await _injectBypassCookiesOnInit();
+    final resolved = await HandoffLoaderService.resolveHandoffUrl(
+      rawUrl: widget.url,
+      targetPath: widget.targetPath,
+      mapelId: widget.mapelId,
+    );
+
+    if (mounted) {
+      setState(() {
+        _resolvedUrl = resolved;
+        _isCookieReady = true;
+      });
+      if (_webController != null) {
+        _webController!.loadUrl(urlRequest: URLRequest(url: WebUri(resolved)));
+      }
+    }
+  }
+
+  void _showSecurityViolationDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Peringatan Keamanan Ujian'),
+        content: const Text(
+          'Perangkat tidak memenuhi syarat keamanan ujian digital (terdeteksi root atau perekaman layar aktif). Akses ujian dibatalkan demi integritas akademik.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              if (mounted) Navigator.of(context).pop();
+            },
+            child: const Text('Kembali'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _injectBypassCookiesOnInit() async {
     try {
+      await BrowserSettingsFactory.injectBypassCookie();
       final prefs = await SharedPreferences.getInstance();
-      final testCookie = prefs.getString(GaraPrefKeys.bypassTestCookie) ?? '';
       final sessionCookie = prefs.getString(GaraPrefKeys.bypassSessionCookie) ?? '';
-
-      if (testCookie.isEmpty && sessionCookie.isEmpty) {
-        debugPrint('[HybridWrapper] Tidak ada bypass cookies tersimpan.');
-      } else {
+      if (sessionCookie.isNotEmpty) {
         final baseUrl = AppConfig.baseUrl;
-        final targetUrl = WebUri(baseUrl);
-        final cookieMgr = CookieManager.instance();
-
-        if (testCookie.isNotEmpty) {
-          await cookieMgr.setCookie(
-            url: targetUrl,
-            name: '__test',
-            value: testCookie,
-            isSecure: baseUrl.startsWith('https'),
-            isHttpOnly: false,
-          );
-          debugPrint('[HybridWrapper] Cookie __test ter-inject sukses.');
-        }
-
-        if (sessionCookie.isNotEmpty) {
-          await cookieMgr.setCookie(
-            url: targetUrl,
-            name: 'laravel_session',
-            value: sessionCookie,
-            isSecure: baseUrl.startsWith('https'),
-            isHttpOnly: true,
-          );
-        }
+        await CookieManager.instance().setCookie(
+          url: WebUri(baseUrl),
+          name: 'laravel_session',
+          value: sessionCookie,
+          path: '/',
+          isSecure: baseUrl.startsWith('https'),
+          isHttpOnly: true,
+        );
       }
     } catch (e) {
       debugPrint('[HybridWrapper] Cookie injection warning: $e');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isCookieReady = true;
-        });
-      }
     }
   }
 
@@ -225,10 +243,6 @@ class _HybridWrapperState extends State<HybridWrapper>
     } catch (e) {
       debugPrint('[GARA Security] _enforceExamSecurity error: $e');
     }
-    
-    try {
-      await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
-    } catch (_) {}
   }
 
   
@@ -248,9 +262,6 @@ class _HybridWrapperState extends State<HybridWrapper>
     } catch (e) {
       debugPrint('[GARA Security] _deactivateExamMode error: $e');
     }
-    try {
-      await FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
-    } catch (_) {}
 
     debugPrint('[GARA Security] ExamMode DEACTIVATED — semua flags dibersihkan');
   }
@@ -264,7 +275,6 @@ class _HybridWrapperState extends State<HybridWrapper>
       _kSecurityChannel.invokeMethod('stopLockTask');
       _kSecurityChannel.invokeMethod('stopVolumeWatch');
     } catch (_) {}
-    try { FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE); } catch (_) {}
   }
 
   
@@ -596,14 +606,11 @@ class _HybridWrapperState extends State<HybridWrapper>
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
         final shouldPop = await _onPopInvoked();
-        if (shouldPop && mounted) {
-          
-          
+        if (shouldPop && context.mounted) {
           final canPop = Navigator.of(context).canPop();
           if (canPop) {
             Navigator.of(context).pop();
           }
-          
         }
       },
       child: Scaffold(
@@ -626,7 +633,7 @@ class _HybridWrapperState extends State<HybridWrapper>
                 )
               else
                 InAppWebView(
-                  initialUrlRequest: URLRequest(url: WebUri(widget.url)),
+                  initialUrlRequest: URLRequest(url: WebUri(_resolvedUrl ?? widget.url)),
                   initialSettings: _webSettings,
                   pullToRefreshController: _pullToRefreshController,
 
@@ -694,7 +701,7 @@ class _HybridWrapperState extends State<HybridWrapper>
                       // Server me-redirect ke /login = sesi expired (mis. login di perangkat lain).
                       // Tampilkan halaman informatif, bukan silent redirect.
                       await controller.stopLoading();
-                      if (mounted) {
+                      if (context.mounted) {
                         Navigator.pushAndRemoveUntil(
                           context,
                           PageRouteBuilder(
@@ -825,15 +832,52 @@ class _HybridWrapperState extends State<HybridWrapper>
                   onDownloadStartRequest: (controller, downloadStartRequest) async {
                     final dlUrl = downloadStartRequest.url.toString();
                     debugPrint('[GARA Download] Download request: $dlUrl');
-                    
+
+                    if (_isExamModeActive || widget.enableExamMode) {
+                      debugPrint('[GARA Download] Blocked during exam mode.');
+                      return;
+                    }
+
                     final uri = Uri.tryParse(dlUrl);
                     if (uri != null && ['http', 'https'].contains(uri.scheme.toLowerCase())) {
-                      try {
-                        await launchUrl(uri, mode: LaunchMode.externalApplication);
-                        return;
-                      } catch (e) {
-                        debugPrint('[GARA Download] launchUrl error: $e');
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Mengunduh berkas...'),
+                            duration: Duration(seconds: 2),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
                       }
+                      final result = await AuthenticatedDownloadService.downloadFromWebView(
+                        url: uri,
+                        suggestedFilename: downloadStartRequest.suggestedFilename,
+                        userAgent: downloadStartRequest.userAgent,
+                      );
+                      if (!context.mounted) return;
+                      if (result.success && result.filePath != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Berhasil mengunduh: ${result.fileName}'),
+                            action: SnackBarAction(
+                              label: 'Buka',
+                              onPressed: () => AuthenticatedDownloadService.openFile(result.filePath!),
+                            ),
+                            duration: const Duration(seconds: 6),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(result.errorMessage ?? 'Gagal mengunduh berkas (${result.errorCode ?? 'ERR-DL-002'}).'),
+                            backgroundColor: Colors.red.shade700,
+                            duration: const Duration(seconds: 4),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                      return;
                     }
                     
                     final filename = downloadStartRequest.suggestedFilename ?? 'Dokumen_GARA';
@@ -870,6 +914,9 @@ class _HybridWrapperState extends State<HybridWrapper>
                     if (reqUrl != null) {
                       debugPrint('[GARA Window] Popup requested: $reqUrl');
                       if (['http', 'https'].contains(reqUrl.scheme.toLowerCase())) {
+                        if (BrowserSettingsFactory.isInfinityCookieErrorUrl(reqUrl)) {
+                          return false;
+                        }
                         final host = reqUrl.host.toLowerCase();
                         if (AppConfig.isAllowedDomain(host)) {
                           controller.loadUrl(urlRequest: URLRequest(url: reqUrl));
@@ -898,29 +945,61 @@ class _HybridWrapperState extends State<HybridWrapper>
                     debugPrint('[GARA Console] ${msg.message}');
                   },
 
-                  
-                  
-                  
                   shouldOverrideUrlLoading: (controller, navigationAction) async {
                     final uri = navigationAction.request.url;
                     if (uri == null) return NavigationActionPolicy.ALLOW;
 
                     final scheme = uri.scheme.toLowerCase();
                     final host   = uri.host.toLowerCase();
+                    final urlStr = uri.toString();
+                    final isExam = _isExamModeActive || widget.enableExamMode || AppConfig.isExamArenaUrl(urlStr);
 
-                    
+                    if (scheme == 'whatsapp' || urlStr.startsWith('https://wa.me/')) {
+                      if (isExam) {
+                        return NavigationActionPolicy.CANCEL;
+                      }
+                      try {
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      } catch (_) {}
+                      return NavigationActionPolicy.CANCEL;
+                    }
+
                     if (!['http', 'https'].contains(scheme)) {
+                      return isExam ? NavigationActionPolicy.CANCEL : NavigationActionPolicy.ALLOW;
+                    }
+
+                    if (BrowserSettingsFactory.isInfinityCookieErrorUrl(uri)) {
+                      debugPrint('[GARA] Blocked InfinityFree cookies.html redirect; recovering cookie...');
+                      if (_cookieRetryCount < 2) {
+                        _cookieRetryCount++;
+                        BrowserSettingsFactory.recoverInfinityCookie(controller, widget.url);
+                      }
+                      return NavigationActionPolicy.CANCEL;
+                    }
+
+                    if (!isExam && InAppOAuthService.isGoogleOAuthUrl(urlStr)) {
+                      String authUrl = urlStr;
+                      if (!authUrl.contains('source=mobile_app')) {
+                        final sep = authUrl.contains('?') ? '&' : '?';
+                        authUrl = '$authUrl${sep}source=mobile_app';
+                      }
+                      InAppOAuthService.launchGoogleWorkspaceAuth(
+                        authUrl: authUrl,
+                        context: context,
+                      );
+                      return NavigationActionPolicy.CANCEL;
+                    }
+
+                    if (AppConfig.isAllowedDomain(host) || host.isEmpty) {
                       return NavigationActionPolicy.ALLOW;
                     }
 
-                    
-                    if (AppConfig.isAllowedDomain(host) ||
-                        host.isEmpty) {
-                      return NavigationActionPolicy.ALLOW;
+                    if (isExam) {
+                      debugPrint('[GARA Exam] Navigation to external domain blocked: $urlStr');
+                      return NavigationActionPolicy.CANCEL;
                     }
 
-                    
-                    debugPrint('[GARA External] Launching externally: ${uri.toString()}');
+                    debugPrint('[GARA External] Launching externally: $urlStr');
                     try {
                       await launchUrl(uri, mode: LaunchMode.externalApplication);
                     } catch (e) {
@@ -932,9 +1011,9 @@ class _HybridWrapperState extends State<HybridWrapper>
 
               
               if (_isLoading)
-                Positioned.fill(
+                const Positioned.fill(
                   child: AbsorbPointer(
-                    child: const _SkeletonOverlay(),
+                    child: _SkeletonOverlay(),
                   ),
                 ),
 
@@ -1115,80 +1194,14 @@ class _OfflineOverlay extends StatelessWidget {
     return Container(
       color: const Color(0xFFF8FAFC),
       child: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 88,
-                  height: 88,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFFE4E6),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.wifi_off_rounded,
-                      color: Color(0xFFDC2626), size: 40),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Koneksi Terputus',
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF1E293B),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Tidak dapat terhubung ke server GARA.\nPeriksa koneksi internet Anda dan coba lagi.',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13.5,
-                    color: const Color(0xFF64748B),
-                    height: 1.55,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                // Tombol Mulai Ulang — satu-satunya aksi yang tersedia
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    // Nonaktifkan tombol saat sedang retry agar tidak double-tap
-                    onPressed: isRetrying ? null : onRetry,
-                    icon: isRetrying
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : const Icon(Icons.refresh_rounded, size: 18),
-                    label: Text(
-                      isRetrying ? 'Menghubungkan...' : 'Mulai Ulang',
-                      style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600, fontSize: 14),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: GaraColors.studentPrimary,
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor:
-                          GaraColors.studentPrimary.withOpacity(0.7),
-                      disabledForegroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
-                      elevation: 0,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+        child: GaraErrorView(
+          error: const GaraUserError(
+            title: 'Koneksi Terputus',
+            userMessage: 'Periksa jaringan Wi-Fi atau data seluler Anda, lalu coba kembali.',
+            errorCode: 'ERR-NET-001',
+            icon: Icons.wifi_off_rounded,
           ),
+          onRetry: onRetry,
         ),
       ),
     );

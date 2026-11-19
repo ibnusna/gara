@@ -37,6 +37,7 @@ dependencies:
 
   # Local session/preference storage (menggantikan PHP Session Laravel)
   shared_preferences: ^2.3.2
+  flutter_secure_storage: ^9.2.2
 
   # SQLite database untuk Ruang Catatan dan Ruang Fokus (BUG-001 fix)
   # Menggantikan SharedPreferences yang bottleneck untuk data transaksional besar
@@ -51,12 +52,12 @@ dependencies:
 
   # Membuka URL eksternal (Jelajah Ilmu section)
   url_launcher: ^6.3.1
+  flutter_custom_tabs: ^2.1.0
 
   # In-App Browser untuk tetap mengunci di dalam aplikasi
   flutter_inappwebview: ^6.1.5
 
-  # Keamanan Ujian (Phase 4)
-  flutter_windowmanager: ^0.2.0
+  # Keamanan Audio Ujian
   volume_controller: ^3.4.4
 
   # HTTP client untuk panggilan REST API ke Laravel Sanctum
@@ -88,7 +89,6 @@ dev_dependencies:
     sdk: flutter
 
   flutter_launcher_icons: ^0.13.1
-  flutter_native_splash: ^2.4.0  # Juga di dev untuk CLI generate
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

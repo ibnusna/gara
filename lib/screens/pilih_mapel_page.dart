@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -129,7 +130,9 @@ class _PilihMapelPageState extends State<PilihMapelPage> with TickerProviderStat
 
   @override
   void dispose() {
-    for (final c in _cardControllers) c.dispose();
+    for (final c in _cardControllers) {
+      c.dispose();
+    }
     _blobCtrl1.dispose(); _blobCtrl2.dispose(); _blobCtrl3.dispose();
     super.dispose();
   }
@@ -352,13 +355,13 @@ class _PilihMapelPageState extends State<PilihMapelPage> with TickerProviderStat
               final prefs = await SharedPreferences.getInstance();
               final token = prefs.getString(GaraPrefKeys.authToken) ?? '';
               final mapelId = prefs.getString(GaraPrefKeys.selectedMapelId) ?? '';
-              if (!context.mounted) return;
+              if (!mounted) return;
               Navigator.push(context, MaterialPageRoute(builder: (_) => HybridWrapper(url: AppConfig.getHandoffUrl(token: token, targetPath: AppConfig.ruangUjianEntryPath, mapelId: mapelId.isNotEmpty ? mapelId : null), pageTitle: 'Ruang Ujian', enableExamMode: false)));
             },
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [GaraColors.dsRose500, const Color(0xFFF97316)]),
+                gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [GaraColors.dsRose500, Color(0xFFF97316)]),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [BoxShadow(color: GaraColors.dsRose500.withOpacity(0.35), blurRadius: 20, offset: const Offset(0, 8))],
               ),
@@ -424,12 +427,12 @@ class _PilihMapelPageState extends State<PilihMapelPage> with TickerProviderStat
 
   Widget _buildSmartConnectButton() {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const SmartConnectPage()),
-        );
-      },
+      onLongPress: kDebugMode
+          ? () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SmartConnectPage()),
+              )
+          : null,
       child: Container(
         margin: const EdgeInsets.only(bottom: 20),
         padding: const EdgeInsets.all(12),

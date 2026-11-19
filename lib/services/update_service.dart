@@ -83,7 +83,7 @@ class UpdateService {
     await dio.download(url, filePath, onReceiveProgress: onProgress);
 
     final result = await OpenFilex.open(filePath);
-    print("OpenFilex result: ${result.message}");
+    debugPrint("OpenFilex result: ${result.message}");
   }
 
   Future<void> cleanOldApk() async {
@@ -97,7 +97,7 @@ class UpdateService {
         }
       }
     } catch (e) {
-      print("Clean old apk failed: $e");
+      debugPrint("Clean old apk failed: $e");
     }
   }
 }

@@ -193,8 +193,8 @@ class _AkunTabState extends State<AkunTab> {
                 children: [
                   Container(
                     width: 38, height: 38,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEFF6FF),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFEFF6FF),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.key_rounded, color: Color(0xFF0B57D0), size: 18),

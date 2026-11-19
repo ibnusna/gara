@@ -1,141 +1,141 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// BUG-001 Fix: NotesService migrated from SharedPreferences to SQLite
-//
-// BEFORE: _save() encode seluruh list notes → prefs.setString() → XML write-all
-// AFTER:  Setiap operasi hanya menyentuh 1 row di tabel `notes`
-//         → INSERT OR REPLACE / DELETE WHERE id = ? → O(1) per operasi
-// ─────────────────────────────────────────────────────────────────────────────
-
-import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
 import '../models/note_model.dart';
-import 'db_service.dart';
+import 'local_database_service.dart';
 
 class NotesService {
   NotesService._();
 
-  // Helper: dapatkan instance DB
-  static Future<Database> get _db => DbService.database;
+  static Future<Database> get _db => LocalDatabaseService.instance.database;
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // load() — ambil semua catatan, diurutkan terbaru dulu
-  // Query: SELECT * FROM notes ORDER BY updated_at DESC
-  // ──────────────────────────────────────────────────────────────────────────
   static Future<List<NoteModel>> load() async {
     final db = await _db;
-    final rows = await db.query(
-      'notes',
-      orderBy: 'updated_at DESC',
-    );
-    return rows.map(_rowToNote).toList();
+    final noteRows = await db.query('notes', orderBy: 'updated_at DESC');
+    if (noteRows.isEmpty) return [];
+
+    final blockRows = await db.query('note_blocks', orderBy: 'sort_order ASC');
+    final Map<String, List<NoteBlock>> blocksMap = {};
+    for (final row in blockRows) {
+      final noteId = row['note_id'] as String;
+      blocksMap.putIfAbsent(noteId, () => []).add(NoteBlock(
+            type: BlockType.values.firstWhere(
+              (e) => e.name == (row['type'] as String),
+              orElse: () => BlockType.text,
+            ),
+            content: row['content'] as String? ?? '',
+            checked: (row['checked'] as int? ?? 0) == 1,
+          ));
+    }
+
+    return noteRows.map((r) {
+      final id = r['id'] as String;
+      return NoteModel(
+        id: id,
+        title: r['title'] as String? ?? '',
+        category: NoteCategory.values.firstWhere(
+          (e) => e.name == (r['category'] as String? ?? 'umum'),
+          orElse: () => NoteCategory.umum,
+        ),
+        blocks: blocksMap[id] ?? [],
+        createdAt: DateTime.tryParse(r['created_at'] as String? ?? '') ?? DateTime.now(),
+        updatedAt: DateTime.tryParse(r['updated_at'] as String? ?? '') ?? DateTime.now(),
+      );
+    }).toList();
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // saveOne() — insert atau update SATU catatan
-  // Query: INSERT OR REPLACE INTO notes VALUES (...)
-  // Mengembalikan list catatan terbaru (untuk UI state update)
-  // ──────────────────────────────────────────────────────────────────────────
-  static Future<List<NoteModel>> saveOne(
-    List<NoteModel> notes, // tetap ada untuk backward-compat dengan UI caller
-    NoteModel note,
-  ) async {
+  static Future<void> saveNote(NoteModel note) async {
     note.updatedAt = DateTime.now();
     final db = await _db;
-    await db.insert(
-      'notes',
-      _noteToRow(note),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-    // Kembalikan list terbaru dari DB (sudah ter-sort)
+    await db.transaction((txn) async {
+      await txn.insert(
+        'notes',
+        {
+          'id': note.id,
+          'title': note.title,
+          'category': note.category.name,
+          'created_at': note.createdAt.toIso8601String(),
+          'updated_at': note.updatedAt.toIso8601String(),
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+
+      await txn.delete('note_blocks', where: 'note_id = ?', whereArgs: [note.id]);
+      for (var i = 0; i < note.blocks.length; i++) {
+        final b = note.blocks[i];
+        await txn.insert('note_blocks', {
+          'note_id': note.id,
+          'sort_order': i,
+          'type': b.type.name,
+          'content': b.content,
+          'checked': b.checked ? 1 : 0,
+        });
+      }
+    });
+  }
+
+  static Future<List<NoteModel>> saveOne(List<NoteModel> notes, NoteModel note) async {
+    await saveNote(note);
     return load();
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // add() — tambah catatan baru
-  // ──────────────────────────────────────────────────────────────────────────
-  static Future<List<NoteModel>> add(
-    List<NoteModel> notes,
-    NoteModel note,
-  ) async {
-    final db = await _db;
-    await db.insert(
-      'notes',
-      _noteToRow(note),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-    return load();
-  }
+  static Future<List<NoteModel>> add(List<NoteModel> notes, NoteModel note) =>
+      saveOne(notes, note);
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // update() — perbarui catatan yang sudah ada
-  // Query: UPDATE notes SET ... WHERE id = ?
-  // ──────────────────────────────────────────────────────────────────────────
-  static Future<List<NoteModel>> update(
-    List<NoteModel> notes,
-    NoteModel updated,
-  ) async {
-    updated.updatedAt = DateTime.now();
-    final db = await _db;
-    await db.update(
-      'notes',
-      _noteToRow(updated),
-      where: 'id = ?',
-      whereArgs: [updated.id],
-    );
-    return load();
-  }
+  static Future<List<NoteModel>> update(List<NoteModel> notes, NoteModel note) =>
+      saveOne(notes, note);
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // delete() — hapus satu catatan berdasarkan ID
-  // Query: DELETE FROM notes WHERE id = ?
-  // ──────────────────────────────────────────────────────────────────────────
-  static Future<List<NoteModel>> delete(
-    List<NoteModel> notes,
-    String id,
-  ) async {
+  static Future<List<NoteModel>> delete(List<NoteModel> notes, String id) async {
     final db = await _db;
     await db.delete('notes', where: 'id = ?', whereArgs: [id]);
     return load();
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // Konversi: Map baris SQLite → NoteModel
-  // ──────────────────────────────────────────────────────────────────────────
-  static NoteModel _rowToNote(Map<String, dynamic> row) {
-    List<NoteBlock> blocks;
-    try {
-      final List blocksList = jsonDecode(row['blocks_json'] as String) as List;
-      blocks = blocksList
-          .map((b) => NoteBlock.fromJson(b as Map<String, dynamic>))
-          .toList();
-    } catch (_) {
-      blocks = [];
+  static Future<List<NoteModel>> search(String query) async {
+    final q = '%$query%';
+    final db = await _db;
+    final noteRows = await db.rawQuery('''
+      SELECT * FROM notes 
+      WHERE title LIKE ? OR id IN (
+        SELECT note_id FROM note_blocks WHERE content LIKE ?
+      )
+      ORDER BY updated_at DESC
+    ''', [q, q]);
+
+    final List<String> noteIds = noteRows.map((r) => r['id'] as String).toList();
+    if (noteIds.isEmpty) return [];
+
+    final blockRows = await db.query(
+      'note_blocks',
+      where: 'note_id IN (${List.filled(noteIds.length, '?').join(',')})',
+      whereArgs: noteIds,
+      orderBy: 'sort_order ASC',
+    );
+
+    final Map<String, List<NoteBlock>> blocksMap = {};
+    for (final row in blockRows) {
+      final noteId = row['note_id'] as String;
+      blocksMap.putIfAbsent(noteId, () => []).add(NoteBlock(
+            type: BlockType.values.firstWhere(
+              (e) => e.name == (row['type'] as String),
+              orElse: () => BlockType.text,
+            ),
+            content: row['content'] as String? ?? '',
+            checked: (row['checked'] as int? ?? 0) == 1,
+          ));
     }
 
-    return NoteModel(
-      id:        row['id'] as String,
-      title:     row['title'] as String,
-      category:  NoteCategory.values.firstWhere(
-        (e) => e.name == (row['category'] as String? ?? 'umum'),
-        orElse: () => NoteCategory.umum,
-      ),
-      blocks:    blocks,
-      createdAt: DateTime.parse(row['created_at'] as String),
-      updatedAt: DateTime.parse(row['updated_at'] as String),
-    );
+    return noteRows.map((r) {
+      final id = r['id'] as String;
+      return NoteModel(
+        id: id,
+        title: r['title'] as String? ?? '',
+        category: NoteCategory.values.firstWhere(
+          (e) => e.name == (r['category'] as String? ?? 'umum'),
+          orElse: () => NoteCategory.umum,
+        ),
+        blocks: blocksMap[id] ?? [],
+        createdAt: DateTime.tryParse(r['created_at'] as String? ?? '') ?? DateTime.now(),
+        updatedAt: DateTime.tryParse(r['updated_at'] as String? ?? '') ?? DateTime.now(),
+      );
+    }).toList();
   }
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // Konversi: NoteModel → Map baris SQLite
-  // ──────────────────────────────────────────────────────────────────────────
-  static Map<String, dynamic> _noteToRow(NoteModel note) => {
-        'id':          note.id,
-        'title':       note.title,
-        'category':    note.category.name,
-        // Hanya serialize blocks satu note — bukan seluruh list!
-        'blocks_json': jsonEncode(
-            note.blocks.map((b) => b.toJson()).toList()),
-        'created_at':  note.createdAt.toIso8601String(),
-        'updated_at':  note.updatedAt.toIso8601String(),
-      };
 }

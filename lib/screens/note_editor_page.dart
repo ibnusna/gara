@@ -147,35 +147,6 @@ class _NoteEditorPageState extends State<NoteEditorPage>
     _scheduleAutoSave();
   }
 
-  void _removeBlock(int idx) {
-    if (_note.blocks.length <= 1) return; // minimal 1 block
-
-    // Ambil referensi dulu sebelum setState
-    final ctrlToDispose = _controllers[idx];
-    final focusToDispose = _focusNodes[idx];
-    final prevFocusIdx = idx > 0 ? idx - 1 : null;
-
-    setState(() {
-      _note.blocks.removeAt(idx);
-      _controllers.removeAt(idx);
-      _focusNodes.removeAt(idx);
-    });
-
-    // Dispose SETELAH setState selesai (via addPostFrameCallback)
-    // untuk menghindari crash karena Flutter masih menggunakan widget
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ctrlToDispose.removeListener(_scheduleAutoSave);
-      ctrlToDispose.dispose();
-      focusToDispose.dispose();
-
-      // Pindahkan focus ke block sebelumnya
-      if (prevFocusIdx != null && mounted && prevFocusIdx < _focusNodes.length) {
-        _focusNodes[prevFocusIdx].requestFocus();
-      }
-    });
-    _scheduleAutoSave();
-  }
-
   void _toggleCheck(int idx) {
     HapticFeedback.selectionClick();
     setState(() => _note.blocks[idx].checked = !_note.blocks[idx].checked);
@@ -262,7 +233,7 @@ class _NoteEditorPageState extends State<NoteEditorPage>
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
+          const SizedBox(
             width: 12,
             height: 12,
             child: CircularProgressIndicator(
@@ -372,7 +343,7 @@ class _NoteEditorPageState extends State<NoteEditorPage>
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(
               children: [
-                Icon(Icons.add_circle_outline_rounded,
+                const Icon(Icons.add_circle_outline_rounded,
                     size: 16, color: GaraColors.studentTextMuted),
                 const SizedBox(width: 6),
                 Text('Tambah baris baru…',
@@ -445,8 +416,8 @@ class _NoteEditorPageState extends State<NoteEditorPage>
             child: block.checked
                 ? const Icon(Icons.check_circle_rounded,
                     key: ValueKey('checked'), size: 20, color: Color(0xFF22C55E))
-                : Icon(Icons.radio_button_unchecked_rounded,
-                    key: const ValueKey('unchecked'),
+                : const Icon(Icons.radio_button_unchecked_rounded,
+                    key: ValueKey('unchecked'),
                     size: 20,
                     color: GaraColors.studentTextMuted),
           ),

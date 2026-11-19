@@ -1,0 +1,40 @@
+# Graphify / Code Graph Ignore Patterns
+# Exclude third-party vendor directories, build artifacts, caches, and platform wrappers
+.git/
+.dart_tool/
+.gradle/
+build/
+coverage/
+
+# Platform native folders
+android/
+ios/
+linux/
+windows/
+macos/
+web/
+
+# Backend dependencies & caches
+vendor/
+garaz/gara/vendor/
+public/vendor/
+node_modules/
+garaz/gara/node_modules/
+garaz/gara/storage/framework/cache/
+garaz/gara/storage/framework/sessions/
+garaz/gara/storage/framework/views/
+garaz/gara/storage/logs/
+garaz/gara/bootstrap/cache/
+
+# Static and media binaries
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.ico
+*.mp4
+*.woff
+*.woff2
+*.ttf
+*.eot
+*.pdf

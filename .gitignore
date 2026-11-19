@@ -66,3 +66,7 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 api_google.json
+graphify-out/
+graph.json
+garaz/
+*.sql

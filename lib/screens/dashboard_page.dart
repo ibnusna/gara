@@ -28,6 +28,7 @@ import '../utils/app_config.dart';
 import '../utils/responsive_utils.dart';
 import '../services/auth_service.dart';
 import '../services/notification_service.dart';
+import '../services/notification_polling_manager.dart';
 import '../widgets/hybrid_wrapper.dart';
 import '../widgets/dashboard/ds_glass_card.dart';
 import '../models/pengumuman_model.dart';
@@ -46,30 +47,24 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   int _navIndex = 0;
 
-  
   String _nama    = '';
   String _kelas   = '';
   String _sekolah = 'Garuda Akademi';
   int _poin       = 0;
 
-  
   bool? _isExamActive;
 
-  
   List<PengumumanModel> _pengumumanList = [];
-  bool _isFetchingPengumuman = false; // false: tidak tampilkan spinner di awal
+  bool _isFetchingPengumuman = false;
 
-  
-  Timer? _pollTimer;
+  late final NotificationPollingManager _pollingManager;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   int _prevUnreadCount = 0;
-  // Mencegah SessionExpiredPage muncul lebih dari sekali
   bool _sessionExpiredHandled = false;
 
-  
   late final AnimationController _fadeCtrl;
   late final Animation<double> _fadeAnim;
 
@@ -111,7 +106,20 @@ class _DashboardPageState extends State<DashboardPage>
     _loadExamStatus(); 
     _fetchPengumuman(); 
     _initNotifications();
-    _checkUnreadCount(isInitial: true);
+    WidgetsBinding.instance.addObserver(this);
+    _pollingManager = NotificationPollingManager(
+      onNewNotification: (count) => _showLocalNotification(count),
+    );
+    _pollingManager.start();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      _pollingManager.pause();
+    } else if (state == AppLifecycleState.resumed) {
+      _pollingManager.resume();
+    }
   }
 
   
@@ -233,7 +241,7 @@ class _DashboardPageState extends State<DashboardPage>
   void _handleSessionExpired() {
     if (_sessionExpiredHandled) return; // Hanya sekali
     _sessionExpiredHandled = true;
-    _pollTimer?.cancel(); // Stop polling
+    _pollingManager.dispose(); // Stop polling
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
       context,
@@ -274,7 +282,8 @@ class _DashboardPageState extends State<DashboardPage>
 
   @override
   void dispose() {
-    _pollTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    _pollingManager.dispose();
     _fadeCtrl.dispose();
     _blobCtrl1.dispose();
     _blobCtrl2.dispose();
