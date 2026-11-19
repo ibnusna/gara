@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/app_constants.dart';
 import '../utils/app_config.dart';
 import 'auth_service.dart';
 
@@ -12,6 +14,7 @@ class HandoffLoaderService {
   }) async {
     String resolvedTarget = targetPath ?? '/student/dashboard';
     String? resolvedMapelId = mapelId;
+    String? fallbackToken;
 
     if (rawUrl != null && rawUrl.isNotEmpty) {
       final uri = Uri.tryParse(rawUrl);
@@ -24,7 +27,16 @@ class HandoffLoaderService {
         if (uri.queryParameters.containsKey('mapel_id')) {
           resolvedMapelId = uri.queryParameters['mapel_id'];
         }
+        if (uri.queryParameters.containsKey('token')) {
+          fallbackToken = uri.queryParameters['token'];
+        }
       }
+    }
+
+    fallbackToken ??= await AuthService.getToken();
+    if (fallbackToken == null || fallbackToken.isEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      fallbackToken = prefs.getString(GaraPrefKeys.authToken);
     }
 
     try {
@@ -39,7 +51,14 @@ class HandoffLoaderService {
       debugPrint('[HandoffLoaderService] Failed to acquire ticket: $e');
     }
 
-    // Fallback URL with ticket omitted (never leak token in URL)
+    if (fallbackToken != null && fallbackToken.isNotEmpty) {
+      return AppConfig.getHandoffUrl(
+        token: fallbackToken,
+        targetPath: resolvedTarget,
+        mapelId: resolvedMapelId,
+      );
+    }
+
     return '${AppConfig.baseUrl}$resolvedTarget';
   }
 }

@@ -95,7 +95,10 @@ class InfinityAuthService {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(GaraPrefKeys.isLoggedIn, true);
-    await prefs.remove(GaraPrefKeys.authToken);
+    if (token != null) await prefs.setString(GaraPrefKeys.authToken, token);
+    final uname = data['username'] as String? ?? '';
+    await prefs.setString(GaraPrefKeys.username, uname);
+    await prefs.setString('nis_siswa', uname);
     await prefs.setString(GaraPrefKeys.userRole, data['role'] as String? ?? 'siswa');
     await prefs.setString(GaraPrefKeys.namaLengkap, data['nama'] as String? ?? '');
     await prefs.setString(GaraPrefKeys.namaSiswa, data['nama'] as String? ?? '');
@@ -169,12 +172,14 @@ class InfinityAuthService {
   }
 
   static Future<void> logout() async {
+    await SecureTokenStorage.instance.clearToken();
     final prefs = await SharedPreferences.getInstance();
     for (final k in [
       GaraPrefKeys.isLoggedIn, GaraPrefKeys.authToken, GaraPrefKeys.userRole,
       GaraPrefKeys.namaLengkap, GaraPrefKeys.namaSiswa, GaraPrefKeys.kelasSiswa,
       GaraPrefKeys.selectedMapel, GaraPrefKeys.selectedMapelId, GaraPrefKeys.profilePhotoUrl,
       GaraPrefKeys.bypassSessionCookie, GaraPrefKeys.cachedMapelList, GaraPrefKeys.cachedMapelTimestamp,
+      'nis_siswa', GaraPrefKeys.username,
     ]) {
       await prefs.remove(k);
     }
@@ -183,10 +188,11 @@ class InfinityAuthService {
 
   static Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
-    return (prefs.getBool(GaraPrefKeys.isLoggedIn) ?? false) &&
-        (prefs.getString(GaraPrefKeys.authToken)?.isNotEmpty ?? false);
+    final token = await getToken();
+    return (prefs.getBool(GaraPrefKeys.isLoggedIn) ?? false) && (token != null && token.isNotEmpty);
   }
 
   static Future<String?> getToken() async =>
+      (await SecureTokenStorage.instance.getToken()) ??
       (await SharedPreferences.getInstance()).getString(GaraPrefKeys.authToken);
 }

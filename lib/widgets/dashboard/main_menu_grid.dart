@@ -27,6 +27,7 @@ import '../../utils/app_config.dart';
 import '../../utils/responsive_utils.dart';
 import '../../screens/ruang_catatan_page.dart';
 import '../../screens/ruang_fokus_page.dart';
+import '../../services/auth_service.dart';
 import '../hybrid_wrapper.dart';
 import 'ds_glass_card.dart';
 
@@ -189,7 +190,7 @@ class _LargeMenuTileState extends State<_LargeMenuTile> {
     }
 
     final prefs   = await SharedPreferences.getInstance();
-    final token   = prefs.getString(GaraPrefKeys.authToken)       ?? '';
+    final token   = await AuthService.getToken() ?? prefs.getString(GaraPrefKeys.authToken) ?? '';
     final mapelId = prefs.getString(GaraPrefKeys.selectedMapelId) ?? '';
 
     String? targetPath;
@@ -335,7 +336,7 @@ class _SmallMenuTileState extends State<_SmallMenuTile> {
     }
 
     final prefs   = await SharedPreferences.getInstance();
-    final token   = prefs.getString(GaraPrefKeys.authToken)       ?? '';
+    final token   = await AuthService.getToken() ?? prefs.getString(GaraPrefKeys.authToken) ?? '';
     final mapelId = prefs.getString(GaraPrefKeys.selectedMapelId) ?? '';
 
     String? targetPath;

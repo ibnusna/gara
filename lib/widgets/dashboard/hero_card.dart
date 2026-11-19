@@ -6,6 +6,7 @@ import '../../utils/app_constants.dart';
 import '../../utils/app_config.dart';
 import '../../utils/responsive_utils.dart';
 import '../../screens/pilih_mapel_page.dart';
+import '../../services/auth_service.dart';
 import '../hybrid_wrapper.dart';
 import 'hero_play_button.dart';
 import 'hero_progress_bar.dart';
@@ -46,7 +47,7 @@ class _HeroCardState extends State<HeroCard> {
   Future<void> _openRuangBelajar() async {
     HapticFeedback.lightImpact();
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(GaraPrefKeys.authToken) ?? '';
+    final token = await AuthService.getToken() ?? prefs.getString(GaraPrefKeys.authToken) ?? '';
     final mapelId = prefs.getString(GaraPrefKeys.selectedMapelId) ?? '';
     if (!mounted) return;
 

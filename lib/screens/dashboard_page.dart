@@ -159,7 +159,7 @@ class _DashboardPageState extends State<DashboardPage>
 
             if ((type == 'exam' || type == 'web') && targetPath.isNotEmpty) {
               final prefs = await SharedPreferences.getInstance();
-              final token   = prefs.getString(GaraPrefKeys.authToken) ?? '';
+              final token   = await AuthService.getToken() ?? prefs.getString(GaraPrefKeys.authToken) ?? '';
               final mapelId = prefs.getString(GaraPrefKeys.selectedMapelId) ?? '';
 
               final handoffUrl = AppConfig.getHandoffUrl(

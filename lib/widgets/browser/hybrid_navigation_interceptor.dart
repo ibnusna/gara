@@ -43,7 +43,7 @@ class HybridNavigationInterceptor {
       return true;
     }
 
-    // 4. Navigasi web ke halaman login (pop ke native daripada menampilkan web login atau trigger logout)
+    // 4. Navigasi web ke halaman login (pop ke native jika user logout dari web LMS)
     if (path == '/login' || path.endsWith('/login')) {
       debugPrint('[HybridNavigationInterceptor] Pop to native on login route: $path');
       return true;

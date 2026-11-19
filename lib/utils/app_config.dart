@@ -104,6 +104,7 @@ class AppConfig {
     String? mapelId,
   }) {
     final params = <String, String>{
+      if (token.isNotEmpty) 'token': token,
       'target': targetPath,
       if (mapelId != null && mapelId.isNotEmpty) 'mapel_id': mapelId,
     };

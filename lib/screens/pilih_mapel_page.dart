@@ -353,7 +353,7 @@ class _PilihMapelPageState extends State<PilihMapelPage> with TickerProviderStat
             onTap: () async {
               HapticFeedback.lightImpact();
               final prefs = await SharedPreferences.getInstance();
-              final token = prefs.getString(GaraPrefKeys.authToken) ?? '';
+              final token = await AuthService.getToken() ?? prefs.getString(GaraPrefKeys.authToken) ?? '';
               final mapelId = prefs.getString(GaraPrefKeys.selectedMapelId) ?? '';
               if (!mounted) return;
               Navigator.push(context, MaterialPageRoute(builder: (_) => HybridWrapper(url: AppConfig.getHandoffUrl(token: token, targetPath: AppConfig.ruangUjianEntryPath, mapelId: mapelId.isNotEmpty ? mapelId : null), pageTitle: 'Ruang Ujian', enableExamMode: false)));

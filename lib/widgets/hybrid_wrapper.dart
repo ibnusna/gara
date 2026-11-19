@@ -56,6 +56,7 @@ class _HybridWrapperState extends State<HybridWrapper>
   bool   _showOfflineOverlay = false;
   bool   _isRetrying         = false; // Mencegah Android error flash saat retry
   DateTime? _lastBackPressTime;
+  final DateTime _initTimestamp = DateTime.now();
 
   
   bool _showBlackout = false;
@@ -710,15 +711,19 @@ class _HybridWrapperState extends State<HybridWrapper>
                     // Saat web navigasi ke /student/dashboard, /student/pilih-mapel, /login
                     // (misal: user tekan 'Kembali ke Pilih Mapel' atau back dari Ruang Belajar),
                     // pop WebView dan kembali ke native Flutter app.
+                    final isBootstrapping = DateTime.now().difference(_initTimestamp).inSeconds < 3;
+
                     if (HybridNavigationInterceptor.shouldPopToNative(uri)) {
-                      await controller.stopLoading();
-                      if (context.mounted && Navigator.canPop(context)) {
-                        Navigator.pop(context, true);
-                        return;
+                      if (!isBootstrapping) {
+                        await controller.stopLoading();
+                        if (context.mounted && Navigator.canPop(context)) {
+                          Navigator.pop(context, true);
+                          return;
+                        }
                       }
                     }
 
-                    if (path.endsWith('/login') && !urlStr.contains('handoff')) {
+                    if (path.endsWith('/login') && !urlStr.contains('handoff') && !isBootstrapping) {
                       // Server me-redirect ke /login = sesi expired (mis. login di perangkat lain).
                       // Jika WebView dibuka dari stack native (canPop), pop kembali ke native app.
                       await controller.stopLoading();
@@ -967,10 +972,12 @@ class _HybridWrapperState extends State<HybridWrapper>
                     if (uri == null) return NavigationActionPolicy.ALLOW;
 
                     if (HybridNavigationInterceptor.shouldPopToNative(uri)) {
-                      if (mounted && Navigator.canPop(context)) {
-                        Navigator.pop(context, true);
+                      if (DateTime.now().difference(_initTimestamp).inSeconds >= 3) {
+                        if (mounted && Navigator.canPop(context)) {
+                          Navigator.pop(context, true);
+                        }
+                        return NavigationActionPolicy.CANCEL;
                       }
-                      return NavigationActionPolicy.CANCEL;
                     }
 
                     final scheme = uri.scheme.toLowerCase();

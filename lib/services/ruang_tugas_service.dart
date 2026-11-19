@@ -15,16 +15,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/app_config.dart';
 import '../utils/app_constants.dart';
 import '../models/ruang_tugas_model.dart';
+import 'secure_token_storage.dart';
 
 class RuangTugasService {
   RuangTugasService._();
 
   
 
-  static Future<String?> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(GaraPrefKeys.authToken);
-  }
+  static Future<String?> _getToken() async =>
+      (await SecureTokenStorage.instance.getToken()) ??
+      (await SharedPreferences.getInstance()).getString(GaraPrefKeys.authToken);
 
   static Map<String, String> _headers(String token) => {
         'Authorization': 'Bearer $token',

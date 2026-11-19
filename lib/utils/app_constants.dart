@@ -139,6 +139,8 @@ class GaraPrefKeys {
 
   
   static const String authToken       = 'auth_token';       
+  static const String username        = 'username';
+  static const String nisSiswa        = 'nis_siswa';
   static const String namaLengkap     = 'nama_lengkap';     
   static const String profilePhotoUrl = 'profile_photo_url'; 
 

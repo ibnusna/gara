@@ -18,6 +18,7 @@ import '../../utils/app_constants.dart';
 import '../../utils/app_config.dart';
 import '../../utils/responsive_utils.dart';
 import '../../services/auth_service.dart';
+import '../../services/handoff_loader_service.dart';
 import '../in_app_browser_page.dart';
 
 class AkunTab extends StatefulWidget {
@@ -53,11 +54,11 @@ class _AkunTabState extends State<AkunTab> {
   }
 
   Future<void> _loadProfileData() async {
-    
     final prefs = await SharedPreferences.getInstance();
+    final cachedNis = prefs.getString('nis_siswa') ?? prefs.getString(GaraPrefKeys.username) ?? '';
     if (mounted) {
       setState(() {
-        _nisSiswa = prefs.getString('nis_siswa') ?? '';
+        _nisSiswa = cachedNis;
         _isDefaultPassword = prefs.getBool('is_default_password') ?? false;
         _tahunAjaran = prefs.getString('tahun_ajaran') ?? '';
         _semester = prefs.getString('semester') ?? '';
@@ -66,18 +67,21 @@ class _AkunTabState extends State<AkunTab> {
       });
     }
 
-    
     final detail = await AuthService.getStudentAccountDetail();
     if (detail != null && mounted) {
+      final fetchedNis = (detail['nis'] as String?)?.isNotEmpty == true
+          ? detail['nis'] as String
+          : (detail['username'] as String?) ?? cachedNis;
       setState(() {
-        _nisSiswa = detail['nis'] ?? _nisSiswa;
+        _nisSiswa = fetchedNis.isNotEmpty ? fetchedNis : _nisSiswa;
         _isDefaultPassword = detail['is_default_password'] ?? _isDefaultPassword;
         _tahunAjaran = detail['tahun_ajaran'] ?? _tahunAjaran;
         _semester = detail['semester'] ?? _semester;
-        _namaSekolah = detail['nama_sekolah'] ?? _namaSekolah;
+        _namaSekolah = (detail['nama_sekolah'] as String?)?.isNotEmpty == true
+            ? detail['nama_sekolah']
+            : _namaSekolah;
       });
 
-      
       await prefs.setString('nis_siswa', _nisSiswa);
       await prefs.setBool('is_default_password', _isDefaultPassword);
       await prefs.setString('tahun_ajaran', _tahunAjaran);
@@ -86,17 +90,18 @@ class _AkunTabState extends State<AkunTab> {
     }
   }
 
-  
-  
   Future<void> _openGantiPassword() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(GaraPrefKeys.authToken) ?? '';
+    final token = await AuthService.getToken() ?? '';
     if (!mounted) return;
 
-    final handoffUrl = AppConfig.getHandoffUrl(
-      token: token,
+    final handoffUrl = await HandoffLoaderService.resolveHandoffUrl(
+      rawUrl: AppConfig.getHandoffUrl(
+        token: token,
+        targetPath: AppConfig.studentPasswordPath,
+      ),
       targetPath: AppConfig.studentPasswordPath,
     );
+    if (!mounted) return;
 
     Navigator.push(
       context,
@@ -108,7 +113,6 @@ class _AkunTabState extends State<AkunTab> {
         ),
       ),
     ).then((_) {
-      
       _loadProfileData();
     });
   }

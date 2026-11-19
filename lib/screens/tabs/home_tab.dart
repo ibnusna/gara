@@ -14,6 +14,7 @@ import '../../widgets/dashboard/sholat_widget.dart';
 import '../../widgets/dashboard/trivia_widget.dart';
 import '../../widgets/dashboard/jelajah_ilmu_grid.dart';
 import '../../models/pengumuman_model.dart';
+import '../../services/auth_service.dart';
 
 const _quoteBank = [
   'Belajar bukan tentang nilai, tapi tentang pemahaman.',
@@ -334,7 +335,7 @@ class _ExamActiveBannerState extends State<_ExamActiveBanner>
   Future<void> _openExam(BuildContext ctx) async {
     HapticFeedback.mediumImpact();
     final prefs   = await SharedPreferences.getInstance();
-    final token   = prefs.getString(GaraPrefKeys.authToken)       ?? '';
+    final token   = await AuthService.getToken() ?? prefs.getString(GaraPrefKeys.authToken) ?? '';
     final mapelId = prefs.getString(GaraPrefKeys.selectedMapelId) ?? '';
     if (!ctx.mounted) return;
 

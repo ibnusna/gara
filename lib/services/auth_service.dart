@@ -137,7 +137,12 @@ class AuthService {
     }
   }
 
-  static Future<String?> getToken() => SecureTokenStorage.instance.getToken();
+  static Future<String?> getToken() async {
+    final t = await SecureTokenStorage.instance.getToken();
+    if (t != null && t.isNotEmpty) return t;
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(GaraPrefKeys.authToken);
+  }
 
   static Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
@@ -152,7 +157,14 @@ class AuthService {
   static Future<void> _saveUserPreferences(Map<String, dynamic> data) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(GaraPrefKeys.isLoggedIn, true);
-    await prefs.remove(GaraPrefKeys.authToken); // Zero plaintext token in SharedPreferences
+    final token = data['token'] as String?;
+    if (token != null && token.isNotEmpty) {
+      await prefs.setString(GaraPrefKeys.authToken, token);
+      await SecureTokenStorage.instance.saveToken(token);
+    }
+    final uname = data['username'] as String? ?? '';
+    await prefs.setString(GaraPrefKeys.username, uname);
+    await prefs.setString('nis_siswa', uname);
     await prefs.setString(GaraPrefKeys.userRole, data['role'] as String? ?? 'siswa');
     await prefs.setString(GaraPrefKeys.namaLengkap, data['nama'] as String? ?? '');
     await prefs.setString(GaraPrefKeys.namaSiswa, data['nama'] as String? ?? '');
@@ -162,21 +174,12 @@ class AuthService {
   static Future<void> clearSession() async {
     await SecureTokenStorage.instance.clearToken();
     final prefs = await SharedPreferences.getInstance();
-    final keys = [
-      GaraPrefKeys.isLoggedIn,
-      GaraPrefKeys.userRole,
-      GaraPrefKeys.namaSiswa,
-      GaraPrefKeys.kelasSiswa,
-      GaraPrefKeys.selectedMapel,
-      GaraPrefKeys.selectedMapelId,
-      GaraPrefKeys.authToken,
-      GaraPrefKeys.namaLengkap,
-      GaraPrefKeys.profilePhotoUrl,
-      'student_points',
-      'student_attendance',
-      'student_pending_tasks',
-    ];
-    for (final k in keys) {
+    for (final k in [
+      GaraPrefKeys.isLoggedIn, GaraPrefKeys.userRole, GaraPrefKeys.namaSiswa,
+      GaraPrefKeys.kelasSiswa, GaraPrefKeys.selectedMapel, GaraPrefKeys.selectedMapelId,
+      GaraPrefKeys.authToken, GaraPrefKeys.namaLengkap, GaraPrefKeys.profilePhotoUrl,
+      'student_points', 'student_attendance', 'student_pending_tasks',
+    ]) {
       await prefs.remove(k);
     }
   }

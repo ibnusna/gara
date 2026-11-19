@@ -6,22 +6,24 @@ import '../utils/app_config.dart';
 import '../utils/app_constants.dart';
 import '../models/ruang_diskusi_model.dart';
 import 'dart:io';
+import 'secure_token_storage.dart';
 
 class RuangDiskusiService {
+  Future<String?> _getToken() async =>
+      (await SecureTokenStorage.instance.getToken()) ??
+      (await SharedPreferences.getInstance()).getString(GaraPrefKeys.authToken);
 
   Future<Map<String, String>> _getHeaders() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(GaraPrefKeys.authToken);
+    final token = await _getToken();
     return {
       'Accept': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
     };
   }
 
-  
   Future<Map<String, dynamic>> _callApi(Map<String, String> bodyMap, {File? mediaFile}) async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString(GaraPrefKeys.authToken);
+    final token = await _getToken();
     if (token == null || token.isEmpty) throw Exception('Sesi tidak valid.');
 
     final mapelId = prefs.getString(GaraPrefKeys.selectedMapelId);
