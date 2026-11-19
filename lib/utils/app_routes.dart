@@ -23,6 +23,8 @@ class AppRoutes {
   static const String handoffPath = '/auth/webview-handoff';
 
   static const String studentDashboardPath = '/student/dashboard';
+  static const String studentPilihMapelPath = '/student/pilih-mapel';
+  static const String pilihMapelPath = '/pilih-mapel';
   static const String guruDashboardPath = '/guru/pilih-sesi';
   static const String operatorDashboardPath = '/operator/dashboard';
   static const String kepsekDashboardPath = '/kepsek/dashboard';

@@ -20,6 +20,7 @@ import '../services/authenticated_download_service.dart';
 import '../utils/gara_error_mapper.dart';
 import '../screens/session_expired_page.dart';
 import 'browser/browser_settings_factory.dart';
+import 'browser/hybrid_navigation_interceptor.dart';
 import 'gara_error_view.dart';
 
 const _kSecurityChannel = MethodChannel('com.lms.gara/security');
@@ -676,6 +677,15 @@ class _HybridWrapperState extends State<HybridWrapper>
                         }
                       },
                     );
+                    c.addJavaScriptHandler(
+                      handlerName: 'garaBackToNative',
+                      callback: (args) {
+                        debugPrint('[HybridWrapper] garaBackToNative event received.');
+                        if (mounted && Navigator.canPop(context)) {
+                          Navigator.pop(context, true);
+                        }
+                      },
+                    );
                     // ─────────────────────────────────────────────────────────
                   },
 
@@ -716,11 +726,14 @@ class _HybridWrapperState extends State<HybridWrapper>
                       return;
                     }
                     
-                    // Saat web navigasi ke /student/dashboard (misal: user tekan back
-                    // dari Ruang Belajar), pop WebView dan kembali ke native Flutter app.
-                    // Ini adalah behavior yang benar dan disengaja.
-                    if (path.endsWith(AppConfig.studentDashboardPath) || path.endsWith('/student/') || path.endsWith('/student')) {
-                      if (mounted) Navigator.pop(context);
+                    // Saat web navigasi ke /student/dashboard atau /student/pilih-mapel
+                    // (misal: user tekan 'Kembali ke Pilih Mapel' atau back dari Ruang Belajar),
+                    // pop WebView dan kembali ke native Flutter app.
+                    if (HybridNavigationInterceptor.shouldPopToNative(uri)) {
+                      await controller.stopLoading();
+                      if (context.mounted && Navigator.canPop(context)) {
+                        Navigator.pop(context, true);
+                      }
                       return;
                     }
 
@@ -948,6 +961,13 @@ class _HybridWrapperState extends State<HybridWrapper>
                   shouldOverrideUrlLoading: (controller, navigationAction) async {
                     final uri = navigationAction.request.url;
                     if (uri == null) return NavigationActionPolicy.ALLOW;
+
+                    if (HybridNavigationInterceptor.shouldPopToNative(uri)) {
+                      if (mounted && Navigator.canPop(context)) {
+                        Navigator.pop(context, true);
+                      }
+                      return NavigationActionPolicy.CANCEL;
+                    }
 
                     final scheme = uri.scheme.toLowerCase();
                     final host   = uri.host.toLowerCase();

@@ -60,6 +60,8 @@ class AppConfig {
   static const String handoffPath = AppRoutes.handoffPath;
 
   static const String studentDashboardPath = AppRoutes.studentDashboardPath;
+  static const String studentPilihMapelPath = AppRoutes.studentPilihMapelPath;
+  static const String pilihMapelPath = AppRoutes.pilihMapelPath;
   static const String guruDashboardPath = AppRoutes.guruDashboardPath;
   static const String operatorDashboardPath = AppRoutes.operatorDashboardPath;
   static const String kepsekDashboardPath = AppRoutes.kepsekDashboardPath;
