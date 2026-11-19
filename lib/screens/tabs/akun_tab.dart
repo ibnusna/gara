@@ -19,6 +19,7 @@ import '../../utils/app_config.dart';
 import '../../utils/responsive_utils.dart';
 import '../../services/auth_service.dart';
 import '../../services/handoff_loader_service.dart';
+import '../../widgets/school_logo_widget.dart';
 import '../in_app_browser_page.dart';
 
 class AkunTab extends StatefulWidget {
@@ -46,6 +47,7 @@ class _AkunTabState extends State<AkunTab> {
   String _tahunAjaran = '';
   String _semester = '';
   String _namaSekolah = '';
+  String _logoUrl = '';
 
   @override
   void initState() {
@@ -63,6 +65,7 @@ class _AkunTabState extends State<AkunTab> {
         _tahunAjaran = prefs.getString('tahun_ajaran') ?? '';
         _semester = prefs.getString('semester') ?? '';
         _namaSekolah = prefs.getString('nama_sekolah') ?? widget.sekolahNama;
+        _logoUrl = prefs.getString('logo_sekolah_url') ?? '';
         _isLoadingProfile = false;
       });
     }
@@ -72,6 +75,7 @@ class _AkunTabState extends State<AkunTab> {
       final fetchedNis = (detail['nis'] as String?)?.isNotEmpty == true
           ? detail['nis'] as String
           : (detail['username'] as String?) ?? cachedNis;
+      final fetchedLogo = (detail['logo_url'] as String?) ?? '';
       setState(() {
         _nisSiswa = fetchedNis.isNotEmpty ? fetchedNis : _nisSiswa;
         _isDefaultPassword = detail['is_default_password'] ?? _isDefaultPassword;
@@ -80,6 +84,7 @@ class _AkunTabState extends State<AkunTab> {
         _namaSekolah = (detail['nama_sekolah'] as String?)?.isNotEmpty == true
             ? detail['nama_sekolah']
             : _namaSekolah;
+        _logoUrl = fetchedLogo.isNotEmpty ? fetchedLogo : _logoUrl;
       });
 
       await prefs.setString('nis_siswa', _nisSiswa);
@@ -87,6 +92,9 @@ class _AkunTabState extends State<AkunTab> {
       await prefs.setString('tahun_ajaran', _tahunAjaran);
       await prefs.setString('semester', _semester);
       await prefs.setString('nama_sekolah', _namaSekolah);
+      if (fetchedLogo.isNotEmpty) {
+        await prefs.setString('logo_sekolah_url', fetchedLogo);
+      }
     }
   }
 
@@ -298,14 +306,10 @@ class _AkunTabState extends State<AkunTab> {
                     ],
                   ),
                 ),
-                Container(
-                  width: 50, height: 50,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE0F2FE),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.school_rounded,
-                      color: Color(0xFF0284C7), size: 24),
+                SchoolLogoWidget(
+                  logoUrl: _logoUrl,
+                  size: 50,
+                  borderRadius: 12,
                 ),
               ],
             ),

@@ -469,14 +469,17 @@ class _HybridWrapperState extends State<HybridWrapper>
       s.id = 'gara-student-nav-hide';
       s.textContent = `
         /* Sembunyikan navigasi web siswa di WebView — Flutter punya BottomNav sendiri */
+        .gara-bottom-nav,
         .bottom-nav,
         .student-bottom-nav, .bottom-nav-student,
         #studentBottomNav, .siswa-nav-bottom,
-        [class*='student-bottom'], [class*='siswa-bottom'] {
+        [class*='student-bottom'], [class*='siswa-bottom'], [class*='bottom-nav'] {
           display: none !important;
         }
         /* Hapus spacer bawah yang dibuat untuk bottom nav */
-        div[style*='height: 80px'] {
+        .bottom-nav-spacer,
+        div[style*='height: 80px'],
+        div[style*='height: 76px'] {
           display: none !important;
         }
         /* Konten tidak perlu padding bawah karena bottom nav sudah hilang */

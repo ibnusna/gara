@@ -8,7 +8,7 @@ class BrowserSettingsFactory {
   BrowserSettingsFactory._();
 
   static const String garaUserAgent =
-      'Mozilla/5.0 (Linux; Android 13; GARA_APP) '
+      'Mozilla/5.0 (Linux; Android 13; GARA_OFFICIAL_APP GARA_APP) '
       'AppleWebKit/537.36 (KHTML, like Gecko) '
       'Chrome/120.0.0.0 Mobile Safari/537.36';
 
