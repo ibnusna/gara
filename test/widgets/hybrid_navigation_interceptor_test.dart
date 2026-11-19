@@ -64,6 +64,21 @@ void main() {
       );
     });
 
+    test('should intercept web login paths to pop back to native app', () {
+      expect(
+        HybridNavigationInterceptor.shouldPopToNative(
+          Uri.parse('https://gara.my.id/login'),
+        ),
+        isTrue,
+      );
+      expect(
+        HybridNavigationInterceptor.shouldPopToNative(
+          Uri.parse('http://localhost:8000/login'),
+        ),
+        isTrue,
+      );
+    });
+
     test('should NOT intercept active exam paths', () {
       expect(
         HybridNavigationInterceptor.shouldPopToNative(

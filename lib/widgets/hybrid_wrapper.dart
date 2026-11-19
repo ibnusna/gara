@@ -707,11 +707,26 @@ class _HybridWrapperState extends State<HybridWrapper>
                     
                     
                     
+                    // Saat web navigasi ke /student/dashboard, /student/pilih-mapel, /login
+                    // (misal: user tekan 'Kembali ke Pilih Mapel' atau back dari Ruang Belajar),
+                    // pop WebView dan kembali ke native Flutter app.
+                    if (HybridNavigationInterceptor.shouldPopToNative(uri)) {
+                      await controller.stopLoading();
+                      if (context.mounted && Navigator.canPop(context)) {
+                        Navigator.pop(context, true);
+                        return;
+                      }
+                    }
+
                     if (path.endsWith('/login') && !urlStr.contains('handoff')) {
                       // Server me-redirect ke /login = sesi expired (mis. login di perangkat lain).
-                      // Tampilkan halaman informatif, bukan silent redirect.
+                      // Jika WebView dibuka dari stack native (canPop), pop kembali ke native app.
                       await controller.stopLoading();
                       if (context.mounted) {
+                        if (Navigator.canPop(context)) {
+                          Navigator.pop(context, true);
+                          return;
+                        }
                         Navigator.pushAndRemoveUntil(
                           context,
                           PageRouteBuilder(
@@ -722,17 +737,6 @@ class _HybridWrapperState extends State<HybridWrapper>
                           ),
                           (route) => false,
                         );
-                      }
-                      return;
-                    }
-                    
-                    // Saat web navigasi ke /student/dashboard atau /student/pilih-mapel
-                    // (misal: user tekan 'Kembali ke Pilih Mapel' atau back dari Ruang Belajar),
-                    // pop WebView dan kembali ke native Flutter app.
-                    if (HybridNavigationInterceptor.shouldPopToNative(uri)) {
-                      await controller.stopLoading();
-                      if (context.mounted && Navigator.canPop(context)) {
-                        Navigator.pop(context, true);
                       }
                       return;
                     }
